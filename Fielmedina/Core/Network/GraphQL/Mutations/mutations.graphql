@@ -1,0 +1,26 @@
+# --- Mutations ---
+
+mutation SyncPreferences(
+  $userUid: UUID!
+  $firstVisit: Boolean!
+  $travelingWith: String!
+  $interests: [String!]!
+  $updatedAt: DateTime!
+) {
+  syncUserPreference(
+    userUid: $userUid
+    firstVisit: $firstVisit
+    travelingWith: $travelingWith
+    interests: $interests
+    updatedAt: $updatedAt
+  ) {
+    ok
+  }
+}
+
+mutation ForgetMe($userUid: UUID!) {
+  forgetMe(userUid: $userUid) {
+    ok
+  }
+}
+
