@@ -24,3 +24,20 @@ mutation ForgetMe($userUid: UUID!) {
   }
 }
 
+mutation RegisterFcmDevice(
+  $registrationId: String!
+  $type: String!
+  $userUid: UUID!
+  $name: String
+) {
+  registerFcmDevice(
+    registrationId: $registrationId
+    type: $type
+    userUid: $userUid
+    name: $name
+  ) {
+    message
+    ok
+  }
+}
+

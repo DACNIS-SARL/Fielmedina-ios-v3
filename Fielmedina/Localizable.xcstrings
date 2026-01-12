@@ -1,7 +1,95 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Cancel" : {
 
+    },
+    "Enable location" : {
+
+    },
+    "From" : {
+
+    },
+    "hiking_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiking"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Randonnée"
+          }
+        }
+      }
+    },
+    "home_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accueil"
+          }
+        }
+      }
+    },
+    "Location Access Required" : {
+
+    },
+    "map_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte"
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+
+    },
+    "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
+
+    },
+    "Upcoming Events" : {
+
+    },
+    "util_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emergency"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urgence"
+          }
+        }
+      }
+    }
   },
   "version" : "1.1"
 }

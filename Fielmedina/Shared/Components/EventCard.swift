@@ -18,8 +18,14 @@ struct Event: Identifiable {
 
 struct EventCardView: View {
     let event: Event
-    let cardWidth: CGFloat = 220
+    let cardWidth: CGFloat = 320
     let cardHeight: CGFloat = 300
+    
+    private var isFree: Bool {
+            event.price.lowercased() == "free" ||
+            event.price == "0" ||
+            event.price.isEmpty
+        }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -52,21 +58,42 @@ struct EventCardView: View {
 
             
             VStack(alignment: .leading, spacing: 5) {
-                Text("From")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                Text(event.price)
-                    .font(.subheadline)
-                    .fontWeight(.bold)
+                if !isFree{
+                    Text("From")
+                        .font(.custom("filmedinaSize", size: 16))
+                        .foregroundColor(.accentColor)
+                        .bold()
+                }
+                if isFree {
+                    Text(event.price)
+                        .font(.title3)
+                        .foregroundColor(.accentColor)
+                        .padding(.top, 10)
+                        .padding(.bottom, 10)
+                } else {
+                    Text(event.price)
+                        .font(.subheadline)
+                }
+                
             }
-            .padding(8)
+            .padding(12)
             .background(Color(.systemBackground))
-            .cornerRadius(8)
-            .padding([.top, .leading], 12)
-            .offset(y: -(cardHeight / 2) + 120)
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 12
+                )
+            )
+            .padding(.top, 12)
+            .offset(y: -(cardHeight / 2) + 50)
+            
+            
         }
         .frame(width: cardWidth, height: cardHeight)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(radius: 4)
     }
 }
+

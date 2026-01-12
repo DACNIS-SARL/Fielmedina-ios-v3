@@ -6,6 +6,21 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BE059AD72F0EB06700A609D5 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = BE059AD62F0EB05F00A609D5 /* Readme.md */; };
+		BECD93332F0FBB2800462C35 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93322F0FBB2800462C35 /* FirebaseAnalytics */; };
+		BECD93352F0FBB2800462C35 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93342F0FBB2800462C35 /* FirebaseCrashlytics */; };
+		BECD93372F0FBB2800462C35 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93362F0FBB2800462C35 /* FirebaseMessaging */; };
+		BECD933A2F0FBC3600462C35 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93392F0FBC3600462C35 /* FacebookCore */; };
+		BECD933D2F0FC35300462C35 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = BECD933C2F0FC35300462C35 /* Apollo */; };
+		BECD933F2F0FC35300462C35 /* ApolloSQLite in Frameworks */ = {isa = PBXBuildFile; productRef = BECD933E2F0FC35300462C35 /* ApolloSQLite */; };
+		BECD93422F0FCE4B00462C35 /* MapboxDirections in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93412F0FCE4B00462C35 /* MapboxDirections */; };
+		BECD93442F0FCE4B00462C35 /* MapboxNavigationCore in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93432F0FCE4B00462C35 /* MapboxNavigationCore */; };
+		BECD93462F0FCE4B00462C35 /* MapboxNavigationUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93452F0FCE4B00462C35 /* MapboxNavigationUIKit */; };
+		BECD93482F0FCE4B00462C35 /* _MapboxNavigationLocalization in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93472F0FCE4B00462C35 /* _MapboxNavigationLocalization */; };
+		BECD934F2F0FECE500462C35 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = BECD934E2F0FECE500462C35 /* FirebaseRemoteConfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		BE059AA92F0EA7F400A609D5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,11 +42,26 @@
 		BE059A992F0EA7EF00A609D5 /* Fielmedina.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fielmedina.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AA82F0EA7F400A609D5 /* FielmedinaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AB22F0EA7F400A609D5 /* FielmedinaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE059AD62F0EB05F00A609D5 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		BE985BE22F11C47400FC6061 /* SousseLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = SousseLocation.gpx; path = ../SousseLocation.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BE059B402F0EBA2E00A609D5 /* Exceptions for "Fielmedina" folder in "Fielmedina" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BE059A982F0EA7EF00A609D5 /* Fielmedina */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BE059A9B2F0EA7EF00A609D5 /* Fielmedina */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BE059B402F0EBA2E00A609D5 /* Exceptions for "Fielmedina" folder in "Fielmedina" target */,
+			);
 			path = Fielmedina;
 			sourceTree = "<group>";
 		};
@@ -52,6 +82,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BECD934F2F0FECE500462C35 /* FirebaseRemoteConfig in Frameworks */,
+				BECD93482F0FCE4B00462C35 /* _MapboxNavigationLocalization in Frameworks */,
+				BECD933D2F0FC35300462C35 /* Apollo in Frameworks */,
+				BECD93422F0FCE4B00462C35 /* MapboxDirections in Frameworks */,
+				BECD93372F0FBB2800462C35 /* FirebaseMessaging in Frameworks */,
+				BECD93332F0FBB2800462C35 /* FirebaseAnalytics in Frameworks */,
+				BECD93442F0FCE4B00462C35 /* MapboxNavigationCore in Frameworks */,
+				BECD93352F0FBB2800462C35 /* FirebaseCrashlytics in Frameworks */,
+				BECD93462F0FCE4B00462C35 /* MapboxNavigationUIKit in Frameworks */,
+				BECD933A2F0FBC3600462C35 /* FacebookCore in Frameworks */,
+				BECD933F2F0FC35300462C35 /* ApolloSQLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,9 +116,12 @@
 		BE059A902F0EA7EF00A609D5 = {
 			isa = PBXGroup;
 			children = (
+				BE985BE22F11C47400FC6061 /* SousseLocation.gpx */,
+				BE059AD62F0EB05F00A609D5 /* Readme.md */,
 				BE059A9B2F0EA7EF00A609D5 /* Fielmedina */,
 				BE059AAB2F0EA7F400A609D5 /* FielmedinaTests */,
 				BE059AB52F0EA7F400A609D5 /* FielmedinaUITests */,
+				BECD934D2F0FECE500462C35 /* Frameworks */,
 				BE059A9A2F0EA7EF00A609D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +134,13 @@
 				BE059AB22F0EA7F400A609D5 /* FielmedinaUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BECD934D2F0FECE500462C35 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +163,17 @@
 			);
 			name = Fielmedina;
 			packageProductDependencies = (
+				BECD93322F0FBB2800462C35 /* FirebaseAnalytics */,
+				BECD93342F0FBB2800462C35 /* FirebaseCrashlytics */,
+				BECD93362F0FBB2800462C35 /* FirebaseMessaging */,
+				BECD93392F0FBC3600462C35 /* FacebookCore */,
+				BECD933C2F0FC35300462C35 /* Apollo */,
+				BECD933E2F0FC35300462C35 /* ApolloSQLite */,
+				BECD93412F0FCE4B00462C35 /* MapboxDirections */,
+				BECD93432F0FCE4B00462C35 /* MapboxNavigationCore */,
+				BECD93452F0FCE4B00462C35 /* MapboxNavigationUIKit */,
+				BECD93472F0FCE4B00462C35 /* _MapboxNavigationLocalization */,
+				BECD934E2F0FECE500462C35 /* FirebaseRemoteConfig */,
 			);
 			productName = Fielmedina;
 			productReference = BE059A992F0EA7EF00A609D5 /* Fielmedina.app */;
@@ -192,9 +254,16 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = BE059A902F0EA7EF00A609D5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				BECD93382F0FBC3600462C35 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
+				BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */,
+				BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BE059A9A2F0EA7EF00A609D5 /* Products */;
 			projectDirPath = "";
@@ -212,6 +281,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE059AD72F0EB06700A609D5 /* Readme.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,6 +399,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -386,6 +457,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -395,24 +467,36 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Fielmedina/Fielmedina.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = MU83XD25F4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Fielmedina/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Fielmedina;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show nearby events even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show nearby events and directions on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dacnis.Fielmedina;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -427,24 +511,36 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Fielmedina/Fielmedina.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = MU83XD25F4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Fielmedina/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Fielmedina;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show nearby events even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show nearby events and directions on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dacnis.Fielmedina;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -578,6 +674,99 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+		BECD93382F0FBC3600462C35 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 14.1.0;
+			};
+		};
+		BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apollographql/apollo-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.4;
+			};
+		};
+		BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BECD93322F0FBB2800462C35 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		BECD93342F0FBB2800462C35 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		BECD93362F0FBB2800462C35 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		BECD93392F0FBC3600462C35 /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93382F0FBC3600462C35 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
+		BECD933C2F0FC35300462C35 /* Apollo */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = Apollo;
+		};
+		BECD933E2F0FC35300462C35 /* ApolloSQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = ApolloSQLite;
+		};
+		BECD93412F0FCE4B00462C35 /* MapboxDirections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxDirections;
+		};
+		BECD93432F0FCE4B00462C35 /* MapboxNavigationCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxNavigationCore;
+		};
+		BECD93452F0FCE4B00462C35 /* MapboxNavigationUIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxNavigationUIKit;
+		};
+		BECD93472F0FCE4B00462C35 /* _MapboxNavigationLocalization */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = _MapboxNavigationLocalization;
+		};
+		BECD934E2F0FECE500462C35 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BE059A912F0EA7EF00A609D5 /* Project object */;
 }
