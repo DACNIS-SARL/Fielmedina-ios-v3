@@ -37,63 +37,99 @@ struct AllEventsListView: View {
     }
     
     var body: some View {
-        VStack(spacing: 32) {
-            CarouselList(title: "Upcoming events", subtitle: "Top events", events: events, showShowAllButton: false)
-            
-        }
-        .padding(.bottom, 20)
-        
         NavigationStack {
             ZStack {
                 Color(.systemGroupedBackground)
                     .ignoresSafeArea()
-                
-                if filteredEvents.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "calendar.badge.exclamationmark")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.secondary)
-                        
-                        Text("No Events Found")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        Text("There are no events in this category yet.\nCheck back soon!")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                } else {
-                    
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(filteredEvents) { event in
-                                Item(event: event)
-                                    .onTapGesture {
-                                        FirebaseUtils.trackButtonTap(
-                                            buttonName: "event_item",
-                                            screenName: "AllEvents"
-                                        )
-                                    }
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        CarouselList(title: "Upcoming events", subtitle: "Top events", events: events, showShowAllButton: false)
+                            .padding(.bottom, 8)
+
+                        HStack {
+                            Text("ALL EVENTS")
+                                .font(.caption).bold()
+                                .foregroundStyle(.secondary)
+
+                            Spacer()
+                            
+                            Button {
+                                showFilterSheet = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "slider.horizontal.3")
+                                        .font(.system(size: 16, weight: .medium))
+                                    Text("Filter")
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 12)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
                             }
+                            .buttonStyle(.plain)
+
+//                            Button {
+//                                showFilterSheet = true
+//                            }label: {
+//                                Image(systemName: "slider.horizontal.3")
+//                                    
+//                            }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.top, 16)
-                        .padding(.bottom, 100)
+
+                        if filteredEvents.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: "calendar.badge.exclamationmark")
+                                    .font(.system(size: 60))
+                                    .foregroundStyle(.secondary)
+
+                                Text("No Events Found")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+
+                                Text("There are no events in this category yet.\nCheck back soon!")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
+                        } else {
+                            VStack(spacing: 12) {
+                                ForEach(filteredEvents) { event in
+                                    Item(event: event)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                .fill(Color(.secondarySystemBackground))
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .onTapGesture {
+                                            FirebaseUtils.trackButtonTap(
+                                                buttonName: "event_item",
+                                                screenName: "AllEvents"
+                                            )
+                                        }
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 24)
+                        }
                     }
-                    .scrollIndicators(.hidden)
+                    .padding(.top, 12)
                 }
             }
-            .navigationTitle(selectedCategory)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("Events")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showFilterSheet = true
+                    NavigationLink {
+                        SettingsView()
                     } label: {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 20, weight: .medium))
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 16, weight: .medium))
                             .foregroundStyle(.primary)
                     }
                 }
@@ -162,3 +198,4 @@ struct CategoryFilterView: View {
 #Preview {
     AllEventsListView()
 }
+

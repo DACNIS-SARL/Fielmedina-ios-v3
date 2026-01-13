@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "ALL EVENTS" : {
+
+    },
     "Cancel" : {
 
     },
@@ -8,6 +11,12 @@
 
     },
     "Enable location" : {
+
+    },
+    "Events" : {
+
+    },
+    "Filter" : {
 
     },
     "Filter by Category" : {
@@ -82,6 +91,9 @@
     "Read Aloud" : {
 
     },
+    "Settings" : {
+
+    },
     "Show All" : {
 
     },
@@ -89,9 +101,6 @@
 
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
-
-    },
-    "Upcoming Events" : {
 
     },
     "util_button" : {
