@@ -4,7 +4,13 @@
     "Cancel" : {
 
     },
+    "Done" : {
+
+    },
     "Enable location" : {
+
+    },
+    "Filter by Category" : {
 
     },
     "From" : {
@@ -64,7 +70,22 @@
         }
       }
     },
+    "No events available" : {
+
+    },
+    "No Events Found" : {
+
+    },
     "Open Settings" : {
+
+    },
+    "Read Aloud" : {
+
+    },
+    "Show All" : {
+
+    },
+    "There are no events in this category yet.\nCheck back soon!" : {
 
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
@@ -89,6 +110,9 @@
           }
         }
       }
+    },
+    "Voice Tester" : {
+
     }
   },
   "version" : "1.1"

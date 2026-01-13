@@ -8,10 +8,22 @@
 import SwiftUI
 
 struct HomeView: View {
+    let events = EventsData.sampleEvents
 
     var body: some View {
-        Text("home_button")
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 32) {
+                    CarouselList(title: "Best Experiences", subtitle: "Top events", events: events)
+                    
+                    // Other sections...
+                    
+                }
+                .padding(.bottom, 100)
+            }
+        }
 
+        
                 
     }
     
@@ -23,3 +35,4 @@ struct HomeView: View {
     HomeView()
         
 }
+

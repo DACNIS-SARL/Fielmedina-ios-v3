@@ -18,43 +18,7 @@ struct AllEventsListView: View {
         "Cultural Festival"
     ]
     
-    let events: [Event] = [
-        Event(
-            title: "7th International Festival of Circus and Street Arts",
-            date: "Thu, Feb 13, 8:30PM",
-            price: "145 TND",
-            imageName: "event-e",
-            category: "Spectacle / Show"
-        ),
-        Event(
-            title: "Tabarka Jazz Festival 2026",
-            date: "Fri, Mar 20, 7:00PM",
-            price: "50 TND",
-            imageName: "event-e",
-            category: "Live Music & Concerts"
-        ),
-        Event(
-            title: "Traditional Pottery Workshop",
-            date: "Sat, Apr 15, 10:00AM",
-            price: "Free",
-            imageName: "event-e",
-            category: "Workshop / Class"
-        ),
-        Event(
-            title: "Medina Heritage Walking Tour",
-            date: "Sun, Apr 16, 9:00AM",
-            price: "25 TND",
-            imageName: "event-e",
-            category: "Guided Tour / Walk"
-        ),
-        Event(
-            title: "Carthage History Re-enactment",
-            date: "Mon, May 1, 3:00PM",
-            price: "30 TND",
-            imageName: "event-e",
-            category: "Historical Re-enactment"
-        )
-    ]
+    let events = EventsData.sampleEvents
     
     
     var filteredEvents: [Event] {
@@ -66,13 +30,18 @@ struct AllEventsListView: View {
     }
     
     var body: some View {
+        VStack(spacing: 32) {
+            CarouselList(title: "Upcoming events", subtitle: "Top events", events: events, showShowAllButton: false)
+            
+        }
+        .padding(.bottom, 20)
+        
         NavigationStack {
             ZStack {
                 Color(.systemGroupedBackground)
                     .ignoresSafeArea()
                 
                 if filteredEvents.isEmpty {
-                    // Empty state
                     VStack(spacing: 16) {
                         Image(systemName: "calendar.badge.exclamationmark")
                             .font(.system(size: 60))
@@ -92,7 +61,6 @@ struct AllEventsListView: View {
                     
                     ScrollView {
                         LazyVStack(spacing: 16) {
-                            // CHANGE THIS: events -> filteredEvents
                             ForEach(filteredEvents) { event in
                                 Item(event: event)
                                     .onTapGesture {
@@ -134,7 +102,6 @@ struct AllEventsListView: View {
     }
 }
 
-// MARK: - Category Filter View
 
 struct CategoryFilterView: View {
     let categories: [String]

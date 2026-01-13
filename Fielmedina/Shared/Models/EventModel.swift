@@ -1,5 +1,5 @@
 //
-//  Event.swift
+//  EventModel.swift
 //  Fielmedina
 //
 //  Created by Aslan on 1/13/26.
