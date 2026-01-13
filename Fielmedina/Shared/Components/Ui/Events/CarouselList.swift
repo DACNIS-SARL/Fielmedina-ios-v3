@@ -1,3 +1,10 @@
+//
+//  CarouselList.swift
+//  Fielmedina
+//
+//  Created by Aslan on 1/9/26.
+//
+
 import SwiftUI
 
 struct CarouselList: View {
