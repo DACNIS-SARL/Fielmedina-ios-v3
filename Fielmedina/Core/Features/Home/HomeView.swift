@@ -9,30 +9,52 @@ import SwiftUI
 
 struct HomeView: View {
     let events = EventsData.sampleEvents
+    @State private var showTaxiButton = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 32) {
-                    CarouselList(title: "Best Experiences", subtitle: "Top events", events: events)
-                    
-                    // Other sections...
-                    
+            ZStack(alignment: .top) {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 0) {
+                        HeroBanner(showTaxiButton: showTaxiButton)
+                            .zIndex(10)
+                        
+                        VStack(spacing: 32) {
+                            CarouselList(
+                                title: "Top Attractions",
+                                subtitle: "Top places for you",
+                                events: events
+                            )
+                            .padding(.top, 80)
+                            
+                            CarouselList(
+                                title: "Best Experiences",
+                                subtitle: "Top events",
+                                events: events
+                            )
+                            .padding(.top, 50)
+                            
+                            // More sections...
+                        }
+                        .background(Color(.systemBackground))
+                        .zIndex(0)
+                        .padding(.bottom, 100)
+                    }
                 }
-                .padding(.bottom, 100)
+                .ignoresSafeArea()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SettingsButton()
+                }
             }
         }
-
-        
-                
     }
-    
-
-   
 }
 
 #Preview {
     HomeView()
-        
 }
-

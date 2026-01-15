@@ -4,6 +4,9 @@
     "ALL EVENTS" : {
 
     },
+    "Book a Taxi" : {
+
+    },
     "Cancel" : {
 
     },
@@ -88,6 +91,9 @@
     "Open Settings" : {
 
     },
+    "Public transports" : {
+
+    },
     "Read Aloud" : {
 
     },
@@ -101,6 +107,9 @@
 
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
+
+    },
+    "Tunisia" : {
 
     },
     "util_button" : {
@@ -121,6 +130,9 @@
       }
     },
     "Voice Tester" : {
+
+    },
+    "welcome" : {
 
     }
   },

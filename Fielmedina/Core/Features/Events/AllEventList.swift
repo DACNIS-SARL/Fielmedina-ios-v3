@@ -125,13 +125,7 @@ struct AllEventsListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.primary)
-                    }
+                    SettingsButton()
                 }
             }
             .sheet(isPresented: $showFilterSheet) {

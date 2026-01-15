@@ -50,7 +50,7 @@ struct CarouselList: View {
                     NavigationLink("Show All") {
                         AllEventsListView()
                     }
-                    .buttonStyle(ButtonStyle())
+                    .buttonStyle(CustomButtonStyle())
                     .sensoryFeedback(.impact(weight: .light), trigger: true)
                 }
             }
