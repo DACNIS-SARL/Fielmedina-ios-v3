@@ -1,0 +1,11 @@
+//
+//  LocationCard.swift
+//  Fielmedina
+//
+//  Created by Aslan on 1/16/26.
+//
+
+
+import SwiftUI
+
+

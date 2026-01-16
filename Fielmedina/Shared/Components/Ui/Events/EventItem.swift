@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-struct Item: View {
+struct EventItem: View {
     let event: Event
     @Environment(\.colorScheme) var colorScheme
         
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(event.title)
+                Text(event.displayName) // Use displayName
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                Text(event.date)
+                Text(event.displayDate) // Use displayDate
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
             }
@@ -28,19 +28,24 @@ struct Item: View {
             .padding(.leading, 20)
             .padding(.vertical, 16)
             
-            Image(event.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 100, height: 100)
-                .clipped()
-                .clipShape(
-                    .rect(
-                        topLeadingRadius: 0,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 16,
-                        topTrailingRadius: 16
-                    )
+            // Use AsyncImage with imageURL
+            AsyncImage(url: URL(string: event.imageURL ?? "")) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Color.gray
+            }
+            .frame(width: 100, height: 100)
+            .clipped()
+            .clipShape(
+                .rect(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 16,
+                    topTrailingRadius: 16
                 )
+            )
         }
         .frame(height: 100)
         .background(

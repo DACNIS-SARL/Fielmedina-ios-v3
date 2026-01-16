@@ -57,6 +57,12 @@ query GetCityTips($cityId: Int, $limit: Int, $offset: Int) {
     nameEn
     nameFr
   }
+  
+  eventCategories {
+    id
+    nameEn
+    nameFr
+  }
 }
 
 # 3. Advertisements by Country (Recommended for Mobile)
@@ -113,6 +119,11 @@ query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int)
     endDate
     time
     price
+    category {
+      id
+      nameEn
+      nameFr
+    }
     images {
       image { ...ImageFields }
       imageMobile { ...ImageFields }

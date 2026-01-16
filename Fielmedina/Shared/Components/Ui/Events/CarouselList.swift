@@ -1,5 +1,5 @@
 //
-//  CarouselList.swift
+//  CarouselListEvent.swift
 //  Fielmedina
 //
 //  Created by Aslan on 1/9/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CarouselList: View {
+struct CarouselListEvent: View {
     let title: String
     let subtitle: String?
     let events: [Event]
@@ -92,12 +92,12 @@ struct CarouselList: View {
     NavigationStack {
         ScrollView {
             VStack(spacing: 32) {
-                CarouselList(
+                CarouselListEvent(
                     title: "Upcoming Events",
                     subtitle: "Don't miss these experiences",
                     events: EventsData.sampleEvents
                 )
-                CarouselList(
+                CarouselListEvent(
                     title: "Featured Events",
                     events: EventsData.sampleEvents,
                     showShowAllButton: false

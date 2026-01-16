@@ -13,19 +13,21 @@ struct EventCardView: View {
     let cardHeight: CGFloat = 300
     
     private var isFree: Bool {
-            event.price.lowercased() == "free" ||
-            event.price == "0" ||
-            event.price.isEmpty
-        }
+        event.isFree // Use model's computed property
+    }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            Image(event.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: cardWidth, height: cardHeight)
-                .clipped()
-
+            // Use imageURL from model
+            AsyncImage(url: URL(string: event.imageURL ?? "")) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Color.gray
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .clipped()
            
             LinearGradient(
                 gradient: Gradient(colors: [Color.black.opacity(0.0), Color.black.opacity(0.8)]),
@@ -33,39 +35,36 @@ struct EventCardView: View {
                 endPoint: .bottom
             )
             
-            
             VStack(alignment: .leading) {
-                Text(event.title)
+                Text(event.displayName) // Use displayName
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .lineLimit(3)
                 
-                Text(event.date)
+                Text(event.displayDate) // Use displayDate
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.8))
             }
             .padding()
-
             
             VStack(alignment: .leading, spacing: 5) {
-                if !isFree{
+                if !isFree {
                     Text("From")
                         .font(.custom("filmedinaSize", size: 16))
                         .foregroundColor(.accentColor)
                         .bold()
                 }
                 if isFree {
-                    Text(event.price)
+                    Text(event.displayPrice) // Use displayPrice
                         .font(.title3)
                         .foregroundColor(.accentColor)
                         .padding(.top, 10)
                         .padding(.bottom, 10)
                 } else {
-                    Text(event.price)
+                    Text(event.displayPrice) // Use displayPrice
                         .font(.subheadline)
                 }
-                
             }
             .padding(12)
             .background(Color(.systemBackground))
@@ -79,8 +78,6 @@ struct EventCardView: View {
             )
             .padding(.top, 12)
             .offset(y: -(cardHeight / 2) + 50)
-            
-            
         }
         .frame(width: cardWidth, height: cardHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16))

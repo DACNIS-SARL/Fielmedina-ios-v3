@@ -10,29 +10,16 @@ import SwiftUI
 struct AllEventsListView: View {
     @State private var selectedCategory: String = "All Events"
     @State private var showFilterSheet = false
-    
-    let categories = [
-        "All Events",
-        "Spectacle / Show",
-        "Seasonal Event",
-        "Workshop / Class",
-        "Guided Tour / Walk",
-        "Historical Re-enactment",
-        "Market / Fair",
-        "Food & Drink Festival",
-        "Live Music & Concerts",
-        "Exhibition / Art Show",
-        "Cultural Festival"
-    ]
+    @State private var categories: [String] = ["All Events"] // Dynamic categories
+    @State private var isLoadingCategories = false
     
     let events = EventsData.sampleEvents
-    
     
     var filteredEvents: [Event] {
         if selectedCategory == "All Events" {
             return events
         } else {
-            return events.filter { $0.category == selectedCategory }
+            return events.filter { $0.category?.displayName == selectedCategory }
         }
     }
     
@@ -44,8 +31,13 @@ struct AllEventsListView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        CarouselList(title: "Upcoming events", subtitle: "Top events", events: events, showShowAllButton: false)
-                            .padding(.bottom, 8)
+                        CarouselListEvent(
+                            title: "Upcoming events",
+                            subtitle: "Top events",
+                            events: events,
+                            showShowAllButton: false
+                        )
+                        .padding(.bottom, 8)
 
                         HStack {
                             Text("ALL EVENTS")
@@ -69,13 +61,6 @@ struct AllEventsListView: View {
                                 .clipShape(Capsule())
                             }
                             .buttonStyle(.plain)
-
-//                            Button {
-//                                showFilterSheet = true
-//                            }label: {
-//                                Image(systemName: "slider.horizontal.3")
-//                                    
-//                            }
                         }
                         .padding(.horizontal, 16)
 
@@ -100,7 +85,7 @@ struct AllEventsListView: View {
                         } else {
                             VStack(spacing: 12) {
                                 ForEach(filteredEvents) { event in
-                                    Item(event: event)
+                                    EventItem(event: event)
                                         .background(
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                                 .fill(Color(.secondarySystemBackground))
@@ -130,18 +115,55 @@ struct AllEventsListView: View {
             }
             .sheet(isPresented: $showFilterSheet) {
                 CategoryFilterView(
-                    categories: categories,
+                    categories: $categories,
                     selectedCategory: $selectedCategory,
                     isPresented: $showFilterSheet
                 )
             }
+            .task {
+                await loadCategories()
+            }
         }
+    }
+    
+    private func loadCategories() async {
+        isLoadingCategories = true
+        
+        do {
+            print("🔄 Fetching event categories from API...")
+            let fetchedCategories = try await EventCategoryService.shared.fetchEventCategories()
+            print("✅ Fetched \(fetchedCategories.count) categories")
+            for cat in fetchedCategories {
+                print("   - \(cat.id): \(cat.nameEn) / \(cat.nameFr ?? "nil")")
+            }
+            let categoryNames = fetchedCategories.map { $0.displayName }
+            categories = ["All Events"] + categoryNames
+            print("📋 Final categories: \(categories)")
+        } catch {
+            print("❌ Error loading categories: \(error)")
+            // Keep default categories on error
+            categories = [
+                "All Events",
+                "Spectacle / Show",
+                "Seasonal Event",
+                "Workshop / Class",
+                "Guided Tour / Walk",
+                "Historical Re-enactment",
+                "Market / Fair",
+                "Food & Drink Festival",
+                "Live Music & Concerts",
+                "Exhibition / Art Show",
+                "Cultural Festival"
+            ]
+        }
+        
+        isLoadingCategories = false
     }
 }
 
 
 struct CategoryFilterView: View {
-    let categories: [String]
+    @Binding var categories: [String]
     @Binding var selectedCategory: String
     @Binding var isPresented: Bool
     

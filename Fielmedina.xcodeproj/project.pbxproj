@@ -19,6 +19,7 @@
 		BECD93462F0FCE4B00462C35 /* MapboxNavigationUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93452F0FCE4B00462C35 /* MapboxNavigationUIKit */; };
 		BECD93482F0FCE4B00462C35 /* _MapboxNavigationLocalization in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93472F0FCE4B00462C35 /* _MapboxNavigationLocalization */; };
 		BECD934F2F0FECE500462C35 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = BECD934E2F0FECE500462C35 /* FirebaseRemoteConfig */; };
+		BEFDABA72F1A3C0F006972D4 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = BEFDABA62F1A3C0F006972D4 /* ApolloWebSocket */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BECD934F2F0FECE500462C35 /* FirebaseRemoteConfig in Frameworks */,
+				BEFDABA72F1A3C0F006972D4 /* ApolloWebSocket in Frameworks */,
 				BECD93482F0FCE4B00462C35 /* _MapboxNavigationLocalization in Frameworks */,
 				BECD933D2F0FC35300462C35 /* Apollo in Frameworks */,
 				BECD93422F0FCE4B00462C35 /* MapboxDirections in Frameworks */,
@@ -174,6 +176,7 @@
 				BECD93452F0FCE4B00462C35 /* MapboxNavigationUIKit */,
 				BECD93472F0FCE4B00462C35 /* _MapboxNavigationLocalization */,
 				BECD934E2F0FECE500462C35 /* FirebaseRemoteConfig */,
+				BEFDABA62F1A3C0F006972D4 /* ApolloWebSocket */,
 			);
 			productName = Fielmedina;
 			productReference = BE059A992F0EA7EF00A609D5 /* Fielmedina.app */;
@@ -344,6 +347,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -398,6 +402,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -409,6 +414,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -456,6 +462,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
@@ -498,7 +505,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -542,7 +549,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -765,6 +772,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BECD93312F0FBB2800462C35 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseRemoteConfig;
+		};
+		BEFDABA62F1A3C0F006972D4 /* ApolloWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = ApolloWebSocket;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

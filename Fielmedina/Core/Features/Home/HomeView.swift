@@ -23,14 +23,14 @@ struct HomeView: View {
                             .zIndex(10)
                         
                         VStack(spacing: 32) {
-                            CarouselList(
+                            CarouselListEvent(
                                 title: "Top Attractions",
                                 subtitle: "Top places for you",
                                 events: events
                             )
                             .padding(.top, 80)
                             
-                            CarouselList(
+                            CarouselListEvent(
                                 title: "Best Experiences",
                                 subtitle: "Top events",
                                 events: events
