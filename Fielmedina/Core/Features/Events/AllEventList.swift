@@ -9,15 +9,15 @@ import SwiftUI
 
 struct AllEventsListView: View {
     @State private var events: [Event] = []
-    @State private var selectedCategory: String = "All Events"
+    @State private var selectedCategory: String = String(localized: "All Events")
     @State private var showFilterSheet = false
-    @State private var categories: [String] = ["All Events"]
+    @State private var categories: [String] = [String(localized: "All Events")]
     @State private var isLoadingEvents = true
     @State private var isLoadingCategories = false
     @State private var errorMessage: String?
     
     var filteredEvents: [Event] {
-        if selectedCategory == "All Events" {
+        if selectedCategory == String(localized: "All Events") {
             return events
         } else {
             return events.filter { $0.category?.displayName == selectedCategory }
@@ -175,10 +175,10 @@ struct AllEventsListView: View {
         do {
             let fetchedCategories = try await EventCategoryService.shared.fetchEventCategories()
             let categoryNames = fetchedCategories.map { $0.displayName }
-            categories = ["All Events"] + categoryNames
+            categories = [String(localized: "All Events")] + categoryNames
         } catch {
             // Keep default categories on error
-            categories = ["All Events"]
+            categories = [String(localized: "All Events")]
         }
     }
 }

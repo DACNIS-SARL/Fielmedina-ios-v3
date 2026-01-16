@@ -8,10 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var events: [Event] = []
-    @State private var isLoading = true
-    @State private var errorMessage: String?
-    @State private var showTaxiButton = false
+    @State private var viewModel = HomeViewModel()
 
     var body: some View {
         NavigationStack {
@@ -21,13 +18,13 @@ struct HomeView: View {
                 
                 ScrollView {
                     VStack(spacing: 0) {
-                        HeroBanner(showTaxiButton: showTaxiButton)
+                        HeroBanner(showTaxiButton: viewModel.showTaxiButton)
                             .zIndex(10)
                         
-                        if isLoading {
+                        if viewModel.isLoading {
                             ProgressView("Loading events...")
                                 .padding(.top, 100)
-                        } else if let error = errorMessage {
+                        } else if let error = viewModel.errorMessage {
                             VStack(spacing: 12) {
                                 Image(systemName: "exclamationmark.triangle")
                                     .font(.title)
@@ -36,7 +33,7 @@ struct HomeView: View {
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 Button("Try Again") {
-                                    Task { await loadEvents() }
+                                    Task { await viewModel.loadData() }
                                 }
                                 .buttonStyle(.bordered)
                             }
@@ -47,14 +44,14 @@ struct HomeView: View {
                                 CarouselListEvent(
                                     title: "Top Attractions",
                                     subtitle: "Top places for you",
-                                    events: events
+                                    events: viewModel.events
                                 )
                                 .padding(.top, 80)
                                 
                                 CarouselListEvent(
                                     title: "Best Experiences",
                                     subtitle: "Top events",
-                                    events: events
+                                    events: viewModel.events
                                 )
                                 .padding(.top, 50)
                             }
@@ -67,25 +64,13 @@ struct HomeView: View {
                 .ignoresSafeArea()
             }
             .task {
-                await loadEvents()
+                await viewModel.loadData()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
                 }
             }
-        }
-    }
-    
-    private func loadEvents() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            events = try await EventService.shared.fetchEvents()
-            isLoading = false
-        } catch {
-            errorMessage = error.localizedDescription
-            isLoading = false
         }
     }
 }

@@ -45,7 +45,7 @@ struct Event: Codable, Identifiable {
                 return price + " TND"
             }
         }
-        return "Free"
+        return String(localized: "Free")
     }
     
     var displayDate: String {

@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct CarouselListEvent: View {
-    let title: String
-    let subtitle: String?
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey?
     let events: [Event]
     let showShowAllButton: Bool
     
     init(
-        title: String,
-        subtitle: String? = nil,
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey? = nil,
         events: [Event],
         showShowAllButton: Bool = true
     ) {
@@ -37,7 +37,7 @@ struct CarouselListEvent: View {
                         .font(.title2)
                         .bold()
                     
-                    if let subtitle = subtitle, !subtitle.isEmpty {
+                    if let subtitle = subtitle {
                         Text(subtitle)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)

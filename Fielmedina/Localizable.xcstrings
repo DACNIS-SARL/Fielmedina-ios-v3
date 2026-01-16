@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "All Events" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les événements"
+          }
+        }
+      }
+    },
     "ALL EVENTS" : {
       "localizations" : {
         "fr" : {
@@ -10,6 +20,9 @@
           }
         }
       }
+    },
+    "Best Experiences" : {
+
     },
     "Book a Taxi" : {
       "localizations" : {
@@ -77,6 +90,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filtrer par catégorie"
+          }
+        }
+      }
+    },
+    "Free" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratuit"
           }
         }
       }
@@ -245,6 +268,36 @@
         }
       }
     },
+    "Top Attractions" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Principales attractions"
+          }
+        }
+      }
+    },
+    "Top events" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meilleurs événements"
+          }
+        }
+      }
+    },
+    "Top places for you" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les meilleurs endroits pour vous"
+          }
+        }
+      }
+    },
     "Try Again" : {
       "localizations" : {
         "fr" : {
@@ -261,6 +314,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tunisie"
+          }
+        }
+      }
+    },
+    "Upcoming events" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements à venir"
           }
         }
       }
