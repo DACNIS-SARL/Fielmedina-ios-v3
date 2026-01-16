@@ -9,26 +9,28 @@ Fielmedina is a modern iOS application built with SwiftUI, focusing on cultural 
 Fielmedina/
 ├── App/
 │   └── FielmedinaApp.swift           # Application Entry Point
+├── Components/                       # Reusable UI Components
+│   ├── Ui/
+│   │   ├── Events/                   # EventCard, EventItem, CarouselList
+│   │   ├── Locations/                # LocationCard, LocationItem, CarouselListLocations
+│   │   ├── FielmedinaImage.swift
+│   │   └── SettingsButton.swift
+│   └── ButtonStyle.swift
 ├── Core/
-│   ├── Features/                     # Main UI Features (Home, Events, Map, Hiking)
-│   │   ├── Home/
-│   │   ├── Events/                   # All Events List
-│   │   ├── Map/                      # Mapbox Integration
-│   │   └── Hiking/
+│   ├── Features/                     # Home, Events, Locations, Map, Hiking, AR, Profile, Utils
 │   ├── Network/
 │   │   └── GraphQL/                  # Apollo Config, Schema, and Operations
 │   ├── Notifications/                # Push Notifications & Location Manager
 │   └── Extensions/                   # Useful Swift Extensions
 ├── Services/
 │   ├── API/
+│   │   ├── Models/                   # Domain Models (Event, Location, etc.)
+│   │   ├── Sync/                     # DataSyncManager & SyncService
 │   │   ├── ApolloClient.swift        # Apollo Client Setup
-│   │   └── EventService.swift        # Live Event Data Fetching
-│   ├── Sync/                         # Category & Static Data Management
+│   │   ├── EventService.swift        # Live Event Data Fetching
+│   │   └── EventCategoryService.swift
 │   ├── Locale/                       # Internationalization (EN/FR)
 │   └── Analytics/                    # Firebase Analytics
-├── Shared/
-│   ├── Models/                       # Domain Models (Event, Location, etc.)
-│   └── Components/                   # Reusable UI (FielmedinaImage, HeroBanner)
 └── Assets.xcassets                   # Local Media Assets
 ```
 
@@ -71,10 +73,10 @@ The app supports English and French using modern **String Catalogs** (`.xcstring
     ./apollo-ios-cli generate
     ```
 3.  **Create Service**: Add a new service in `Services/API/` to wrap the generated query with `async/await`.
-4.  **Map to Model**: Ensure you map the generated `FielmedinaAPI` types to a domain model in `Shared/Models/`.
+4.  **Map to Model**: Ensure you map the generated `FielmedinaAPI` types to a domain model in `Services/API/Models/`.
 
 ### How to add a new UI Feature
-1.  **Model**: Define your data structure in `Shared/Models/`. Use `String(localized:)` for static text.
+1.  **Model**: Define your data structure in `Services/API/Models/`. Use `String(localized:)` for static text.
 2.  **ViewModel**: Create a `FeatureViewModel.swift` using the `@Observable` macro. Use `withThrowingTaskGroup` if fetching from multiple sources.
 3.  **View**: Create a new folder in `Core/Features/` for your feature. Bind the View to the ViewModel using `@State`.
 

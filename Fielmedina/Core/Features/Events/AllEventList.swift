@@ -138,8 +138,8 @@ struct AllEventsListView: View {
             }
             .sheet(isPresented: $showFilterSheet) {
                 CategoryFilterView(
-                    categories: $categories,
-                    selectedCategory: $selectedCategory,
+                    availableCategories: $categories,
+                    currentSelection: $selectedCategory,
                     isPresented: $showFilterSheet
                 )
             }
@@ -185,16 +185,16 @@ struct AllEventsListView: View {
 
 
 struct CategoryFilterView: View {
-    @Binding var categories: [String]
-    @Binding var selectedCategory: String
+    @Binding var availableCategories: [String]
+    @Binding var currentSelection: String
     @Binding var isPresented: Bool
     
     var body: some View {
         NavigationStack {
             List {
-                ForEach(categories, id: \.self) { category in
+                ForEach(availableCategories, id: \.self) { (category: String) in
                     Button {
-                        selectedCategory = category
+                        currentSelection = category
                         isPresented = false
                         
                         FirebaseUtils.trackButtonTap(
@@ -209,14 +209,15 @@ struct CategoryFilterView: View {
                             
                             Spacer()
                             
-                            if selectedCategory == category {
+                            if currentSelection == category {
                                 Image(systemName: "checkmark")
-                                    .foregroundStyle(Color(red: 0.702, green: 0.435, blue: 0.227))
+                                    .foregroundStyle(.primary)
                                     .font(.system(size: 16, weight: .semibold))
                             }
                         }
                         .padding(.vertical, 4)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .navigationTitle("Filter by Category")
