@@ -104,15 +104,18 @@
         }
       }
     },
-    "From" : {
+    "Price" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De"
+            "value" : "Prix"
           }
         }
       }
+    },
+    "Hello, world!" : {
+
     },
     "hiking_button" : {
       "extractionState" : "manual",
@@ -204,6 +207,9 @@
           }
         }
       }
+    },
+    "No locations available" : {
+
     },
     "Open Settings" : {
       "localizations" : {

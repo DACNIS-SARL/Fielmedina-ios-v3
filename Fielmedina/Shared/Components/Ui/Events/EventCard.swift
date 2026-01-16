@@ -13,12 +13,11 @@ struct EventCardView: View {
     let cardHeight: CGFloat = 300
     
     private var isFree: Bool {
-        event.isFree // Use model's computed property
+        event.isFree
     }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Use FielmedinaImage to handle local/remote URLs
             FielmedinaImage(url: event.imageURL, contentMode: .fill)
                 .frame(width: cardWidth, height: cardHeight)
                 .clipped()
@@ -30,13 +29,13 @@ struct EventCardView: View {
             )
             
             VStack(alignment: .leading) {
-                Text(event.displayName) // Use displayName
+                Text(event.displayName)
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .lineLimit(3)
                 
-                Text(event.displayDate) // Use displayDate
+                Text(event.displayDate)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.8))
             }
@@ -44,19 +43,20 @@ struct EventCardView: View {
             
             VStack(alignment: .leading, spacing: 5) {
                 if !isFree {
-                    Text("From")
+                    Text("Price")
                         .font(.custom("filmedinaSize", size: 16))
                         .foregroundColor(.accentColor)
                         .bold()
                 }
                 if isFree {
-                    Text(event.displayPrice) // Use displayPrice
-                        .font(.title3)
+                    Text(event.displayPrice)
+                        .font(.caption)
+                        .fontWeight(.semibold)
                         .foregroundColor(.accentColor)
                         .padding(.top, 10)
                         .padding(.bottom, 10)
                 } else {
-                    Text(event.displayPrice) // Use displayPrice
+                    Text(event.displayPrice)
                         .font(.subheadline)
                 }
             }

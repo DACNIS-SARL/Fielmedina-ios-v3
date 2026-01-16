@@ -61,7 +61,7 @@ class DataSyncManager {
         LogUtils.d("DataSyncManager", "Sending FCM token to backend for device: \(deviceName)")
         
         // Direct GraphQL API call
-        guard let url = URL(string: "https://your-api-endpoint.com/graphql") else {
+        guard let url = URL(string: "https://mystory.fielmedina.com/graphql") else {
             LogUtils.e("DataSyncManager", "Invalid GraphQL endpoint URL")
             return
         }

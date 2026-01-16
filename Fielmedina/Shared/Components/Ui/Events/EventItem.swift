@@ -14,13 +14,13 @@ struct EventItem: View {
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(event.displayName) // Use displayName
+                Text(event.displayName)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                Text(event.displayDate) // Use displayDate
+                Text(event.displayDate)
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
             }
@@ -28,7 +28,7 @@ struct EventItem: View {
             .padding(.leading, 20)
             .padding(.vertical, 16)
             
-            // Use FielmedinaImage with imageURL
+            
             FielmedinaImage(url: event.imageURL, contentMode: .fill)
                 .frame(width: 100, height: 100)
                 .clipped()

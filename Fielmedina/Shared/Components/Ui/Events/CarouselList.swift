@@ -95,11 +95,11 @@ struct CarouselListEvent: View {
                 CarouselListEvent(
                     title: "Upcoming Events",
                     subtitle: "Don't miss these experiences",
-                    events: EventsData.sampleEvents
+                    events: []
                 )
                 CarouselListEvent(
                     title: "Featured Events",
-                    events: EventsData.sampleEvents,
+                    events: [],
                     showShowAllButton: false
                 )
             }
