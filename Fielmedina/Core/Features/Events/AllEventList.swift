@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct AllEventsListView: View {
+    @State private var events: [Event] = []
     @State private var selectedCategory: String = "All Events"
     @State private var showFilterSheet = false
-    @State private var categories: [String] = ["All Events"] // Dynamic categories
+    @State private var categories: [String] = ["All Events"]
+    @State private var isLoadingEvents = true
     @State private var isLoadingCategories = false
-    
-    let events = EventsData.sampleEvents
+    @State private var errorMessage: String?
     
     var filteredEvents: [Event] {
         if selectedCategory == "All Events" {
@@ -64,7 +65,29 @@ struct AllEventsListView: View {
                         }
                         .padding(.horizontal, 16)
 
-                        if filteredEvents.isEmpty {
+                        if isLoadingEvents {
+                            VStack {
+                                ProgressView("Loading events...")
+                                    .padding(.vertical, 40)
+                            }
+                            .frame(maxWidth: .infinity)
+                        } else if let error = errorMessage {
+                            VStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.title)
+                                    .foregroundStyle(.red)
+                                Text(error)
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.center)
+                                Button("Try Again") {
+                                    Task { await loadData() }
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
+                            .padding(.horizontal)
+                        } else if filteredEvents.isEmpty {
                             VStack(spacing: 16) {
                                 Image(systemName: "calendar.badge.exclamationmark")
                                     .font(.system(size: 60))
@@ -121,43 +144,42 @@ struct AllEventsListView: View {
                 )
             }
             .task {
-                await loadCategories()
+                await loadData()
             }
         }
     }
     
-    private func loadCategories() async {
+    private func loadData() async {
+        isLoadingEvents = true
         isLoadingCategories = true
+        errorMessage = nil
         
-        do {
-            print("🔄 Fetching event categories from API...")
-            let fetchedCategories = try await EventCategoryService.shared.fetchEventCategories()
-            print("✅ Fetched \(fetchedCategories.count) categories")
-            for cat in fetchedCategories {
-                print("   - \(cat.id): \(cat.nameEn) / \(cat.nameFr ?? "nil")")
-            }
-            let categoryNames = fetchedCategories.map { $0.displayName }
-            categories = ["All Events"] + categoryNames
-            print("📋 Final categories: \(categories)")
-        } catch {
-            print("❌ Error loading categories: \(error)")
-            // Keep default categories on error
-            categories = [
-                "All Events",
-                "Spectacle / Show",
-                "Seasonal Event",
-                "Workshop / Class",
-                "Guided Tour / Walk",
-                "Historical Re-enactment",
-                "Market / Fair",
-                "Food & Drink Festival",
-                "Live Music & Concerts",
-                "Exhibition / Art Show",
-                "Cultural Festival"
-            ]
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await loadEvents() }
+            group.addTask { await loadCategories() }
         }
         
+        isLoadingEvents = false
         isLoadingCategories = false
+    }
+    
+    private func loadEvents() async {
+        do {
+            events = try await EventService.shared.fetchEvents(limit: 50)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    private func loadCategories() async {
+        do {
+            let fetchedCategories = try await EventCategoryService.shared.fetchEventCategories()
+            let categoryNames = fetchedCategories.map { $0.displayName }
+            categories = ["All Events"] + categoryNames
+        } catch {
+            // Keep default categories on error
+            categories = ["All Events"]
+        }
     }
 }
 

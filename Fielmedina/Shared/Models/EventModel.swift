@@ -38,15 +38,19 @@ struct Event: Codable, Identifiable {
     }
     
     var displayPrice: String {
-        if let price = price, !price.isEmpty, price != "0" {
-            return price
+        if let price = price, !price.isEmpty {
+            // Check if price is essentially zero (0, 0.0, 0.00, etc.)
+            let numericPrice = Double(price) ?? -1
+            if numericPrice > 0 {
+                return price + " TND"
+            }
         }
         return "Free"
     }
     
     var displayDate: String {
         if let time = time {
-            return "\(formatDate(startDate)), \(time)"
+            return "\(formatDate(startDate)), \(formatTime(time))"
         }
         return formatDate(startDate)
     }
@@ -56,7 +60,11 @@ struct Event: Codable, Identifiable {
     }
     
     var isFree: Bool {
-        price == nil || price == "0" || price?.isEmpty == true
+        if let price = price {
+            let numericPrice = Double(price) ?? -1
+            return numericPrice <= 0
+        }
+        return true
     }
     
     private func formatDate(_ dateString: String) -> String {
@@ -68,6 +76,25 @@ struct Event: Codable, Identifiable {
             return formatter.string(from: date)
         }
         return dateString
+    }
+
+    private func formatTime(_ timeString: String) -> String {
+        let formatter = DateFormatter()
+        // Input usually HH:mm:ss
+        formatter.dateFormat = "HH:mm:ss"
+        
+        if let date = formatter.date(from: timeString) {
+            formatter.dateFormat = "HH:mm"
+            return formatter.string(from: date)
+        }
+        
+        // Fallback for HH:mm input
+        formatter.dateFormat = "HH:mm"
+        if formatter.date(from: timeString) != nil {
+            return timeString
+        }
+
+        return timeString
     }
 }
 

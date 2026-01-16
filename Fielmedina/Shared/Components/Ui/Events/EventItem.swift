@@ -28,24 +28,18 @@ struct EventItem: View {
             .padding(.leading, 20)
             .padding(.vertical, 16)
             
-            // Use AsyncImage with imageURL
-            AsyncImage(url: URL(string: event.imageURL ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Color.gray
-            }
-            .frame(width: 100, height: 100)
-            .clipped()
-            .clipShape(
-                .rect(
-                    topLeadingRadius: 0,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 16,
-                    topTrailingRadius: 16
+            // Use FielmedinaImage with imageURL
+            FielmedinaImage(url: event.imageURL, contentMode: .fill)
+                .frame(width: 100, height: 100)
+                .clipped()
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 16,
+                        topTrailingRadius: 16
+                    )
                 )
-            )
         }
         .frame(height: 100)
         .background(

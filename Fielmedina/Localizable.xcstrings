@@ -2,31 +2,94 @@
   "sourceLanguage" : "en",
   "strings" : {
     "ALL EVENTS" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TOUS LES ÉVÉNEMENTS"
+          }
+        }
+      }
     },
     "Book a Taxi" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réserver un taxi"
+          }
+        }
+      }
     },
     "Cancel" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        }
+      }
     },
     "Done" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé"
+          }
+        }
+      }
     },
     "Enable location" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer la localisation"
+          }
+        }
+      }
     },
     "Events" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements"
+          }
+        }
+      }
     },
     "Filter" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre"
+          }
+        }
+      }
     },
     "Filter by Category" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrer par catégorie"
+          }
+        }
+      }
     },
     "From" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De"
+          }
+        }
+      }
     },
     "hiking_button" : {
       "extractionState" : "manual",
@@ -62,8 +125,25 @@
         }
       }
     },
+    "Loading events..." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement des événements..."
+          }
+        }
+      }
+    },
     "Location Access Required" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès au lieu requis"
+          }
+        }
+      }
     },
     "map_button" : {
       "extractionState" : "manual",
@@ -83,34 +163,107 @@
       }
     },
     "No events available" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun événement disponible"
+          }
+        }
+      }
     },
     "No Events Found" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun événement trouvé"
+          }
+        }
+      }
     },
     "Open Settings" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir les paramètres"
+          }
+        }
+      }
     },
     "Public transports" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transports publics"
+          }
+        }
+      }
     },
     "Read Aloud" : {
 
     },
     "Settings" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres"
+          }
+        }
+      }
     },
     "Show All" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout afficher"
+          }
+        }
+      }
     },
     "There are no events in this category yet.\nCheck back soon!" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a pas encore d'événements dans cette catégorie.\nRevenez bientôt !"
+          }
+        }
+      }
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour utiliser cette fonctionnalité, veuillez activer l'accès à la localisation dans les paramètres. Appuyez sur « Localisation » et sélectionnez « Lors de l'utilisation de l'application »."
+          }
+        }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer"
+          }
+        }
+      }
     },
     "Tunisia" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunisie"
+          }
+        }
+      }
     },
     "util_button" : {
       "extractionState" : "manual",
@@ -133,7 +286,14 @@
 
     },
     "welcome" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bienvenue"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

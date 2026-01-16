@@ -5,13 +5,6 @@
 //  Created by Aslan on 1/13/26.
 //
 
-//
-//  EventsData.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/13/26.
-//
-
 import Foundation
 
 struct EventsData {

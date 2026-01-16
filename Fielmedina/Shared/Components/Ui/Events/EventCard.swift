@@ -18,16 +18,10 @@ struct EventCardView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Use imageURL from model
-            AsyncImage(url: URL(string: event.imageURL ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Color.gray
-            }
-            .frame(width: cardWidth, height: cardHeight)
-            .clipped()
+            // Use FielmedinaImage to handle local/remote URLs
+            FielmedinaImage(url: event.imageURL, contentMode: .fill)
+                .frame(width: cardWidth, height: cardHeight)
+                .clipped()
            
             LinearGradient(
                 gradient: Gradient(colors: [Color.black.opacity(0.0), Color.black.opacity(0.8)]),

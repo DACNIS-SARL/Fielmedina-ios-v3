@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct HomeView: View {
-    let events = EventsData.sampleEvents
+    @State private var events: [Event] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     @State private var showTaxiButton = false
 
     var body: some View {
@@ -22,35 +24,68 @@ struct HomeView: View {
                         HeroBanner(showTaxiButton: showTaxiButton)
                             .zIndex(10)
                         
-                        VStack(spacing: 32) {
-                            CarouselListEvent(
-                                title: "Top Attractions",
-                                subtitle: "Top places for you",
-                                events: events
-                            )
-                            .padding(.top, 80)
-                            
-                            CarouselListEvent(
-                                title: "Best Experiences",
-                                subtitle: "Top events",
-                                events: events
-                            )
-                            .padding(.top, 50)
-                            
-                            // More sections...
+                        if isLoading {
+                            ProgressView("Loading events...")
+                                .padding(.top, 100)
+                        } else if let error = errorMessage {
+                            VStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.title)
+                                    .foregroundStyle(.red)
+                                Text(error)
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.center)
+                                Button("Try Again") {
+                                    Task { await loadEvents() }
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            .padding(.top, 100)
+                            .padding(.horizontal)
+                        } else {
+                            VStack(spacing: 32) {
+                                CarouselListEvent(
+                                    title: "Top Attractions",
+                                    subtitle: "Top places for you",
+                                    events: events
+                                )
+                                .padding(.top, 80)
+                                
+                                CarouselListEvent(
+                                    title: "Best Experiences",
+                                    subtitle: "Top events",
+                                    events: events
+                                )
+                                .padding(.top, 50)
+                            }
+                            .background(Color(.systemBackground))
+                            .zIndex(0)
                         }
-                        .background(Color(.systemBackground))
-                        .zIndex(0)
-                        .padding(.bottom, 100)
                     }
+                    .padding(.bottom, 100)
                 }
                 .ignoresSafeArea()
+            }
+            .task {
+                await loadEvents()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
                 }
             }
+        }
+    }
+    
+    private func loadEvents() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            events = try await EventService.shared.fetchEvents()
+            isLoading = false
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoading = false
         }
     }
 }
