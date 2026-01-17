@@ -32,7 +32,6 @@ class FirebaseUtils {
         
         Messaging.messaging().delegate = FCMDelegate.shared
         
-        getFCMToken()
         subscribeToDefaultTopics()
         
         isFCMInitialized = true
@@ -419,6 +418,11 @@ class FCMDelegate: NSObject, MessagingDelegate {
             LogUtils.d(FirebaseUtils.TAG, "FCM Token (refreshed): \(token)")
             FirebaseUtils.saveTokenLocally(token)
             Crashlytics.crashlytics().setCustomValue(token, forKey: "fcm_token")
+            
+            // Sync with backend
+            Task {
+                await SyncService.shared.registerDevice(token: token)
+            }
         }
     }
 }

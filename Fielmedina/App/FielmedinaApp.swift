@@ -45,8 +45,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         LogUtils.d("AppDelegate", "✅ APNS token received successfully")
         
         Messaging.messaging().apnsToken = deviceToken
-        
-        FirebaseUtils.getFCMToken()
     }
     
     func application(_ application: UIApplication,
@@ -126,7 +124,6 @@ struct FielmedinaApp: App {
             MainNavigationView().environment(locationManager)
                 .onAppear {
                     locationManager.requestPermission()
-                    DataSyncManager.shared.registerFCMDevice()
                 }
         }
     }

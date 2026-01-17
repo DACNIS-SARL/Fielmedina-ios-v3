@@ -5,3 +5,92 @@
 //  Created by Aslan on 1/7/26.
 //
 
+import Foundation
+import Apollo
+import UIKit
+
+actor SyncService {
+    static let shared = SyncService()
+    
+    private let DEVICE_UUID_KEY = "deviceUUID"
+    private let LAST_REGISTERED_TOKEN_KEY = "lastRegisteredFCMToken"
+    
+    private init() {}
+    
+    private var cachedUUID: UUID?
+    
+    var deviceUUID: UUID {
+        get {
+            if let cached = cachedUUID {
+                return cached
+            }
+            
+            if let uuidString = UserDefaults.standard.string(forKey: DEVICE_UUID_KEY),
+               let uuid = UUID(uuidString: uuidString) {
+                cachedUUID = uuid
+                return uuid
+            } else {
+                let newUUID = UUID()
+                UserDefaults.standard.set(newUUID.uuidString, forKey: DEVICE_UUID_KEY)
+                cachedUUID = newUUID
+                LogUtils.d("SyncService", "Generated fresh device UUID: \(newUUID.uuidString)")
+                return newUUID
+            }
+        }
+    }
+    
+    private var debounceTask: Task<Void, Never>?
+
+    func registerDevice(token: String, force: Bool = false) async {
+        debounceTask?.cancel()
+        
+        if !force && UserDefaults.standard.string(forKey: LAST_REGISTERED_TOKEN_KEY) == token {
+            LogUtils.d("SyncService", "Token \(token.prefix(5))... already registered. Skipping.")
+            return
+        }
+        
+        debounceTask = Task {
+            do {
+                try await Task.sleep(for: .seconds(3))
+            } catch {
+                return
+            }
+            
+            if Task.isCancelled { return }
+            
+            let uuid = self.deviceUUID.uuidString
+            let deviceName = await UIDevice.current.name
+            let deviceType = "ios"
+            
+            LogUtils.d("SyncService", "🚀 Registering LATEST token [ID: \(uuid.suffix(5))]: \(token.prefix(10))...")
+            
+            let mutation = FielmedinaAPI.RegisterFcmDeviceMutation(
+                registrationId: token,
+                type: deviceType,
+                userUid: uuid,
+                name: .some(deviceName)
+            )
+            
+            do {
+                let result = try await Network.shared.apollo.perform(mutation: mutation)
+                
+                if let registerResult = result.data?.registerFcmDevice {
+                    if registerResult.ok {
+                        LogUtils.d("SyncService", "✅ FCM device registered successfully: \(registerResult.message ?? "Success")")
+                        self.markTokenAsRegistered(token)
+                    } else {
+                        LogUtils.e("SyncService", "❌ FCM registration failed: \(registerResult.message ?? "Unknown error")")
+                    }
+                }
+            } catch {
+                if !Task.isCancelled {
+                    LogUtils.e("SyncService", "❌ Error performing FCM registration mutation", error)
+                }
+            }
+        }
+    }
+    
+    private func markTokenAsRegistered(_ token: String) {
+        UserDefaults.standard.set(token, forKey: LAST_REGISTERED_TOKEN_KEY)
+    }
+}
