@@ -20,7 +20,6 @@ struct LocationItem: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                // Only show info row if we have data
                 if location.hasScheduleInfo || location.hasAdmissionInfo {
                     HStack(spacing: 12) {
                         if let schedule = location.displaySchedule {

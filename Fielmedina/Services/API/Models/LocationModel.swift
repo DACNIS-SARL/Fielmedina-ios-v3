@@ -43,12 +43,11 @@ struct Location: Codable, Identifiable {
     
     var isFree: Bool {
         guard let fee = admissionFee, !fee.isEmpty else {
-            return false // No info available, don't show as free
+            return false
         }
         return fee == "0" || fee.lowercased() == "free"
     }
     
-    /// Returns true if we have admission info to display (either free or paid)
     var hasAdmissionInfo: Bool {
         guard let fee = admissionFee, !fee.isEmpty else {
             return false
@@ -62,7 +61,6 @@ struct Location: Codable, Identifiable {
         return "\(from) - \(to)"
     }
     
-    /// Returns true if we have schedule info to display
     var hasScheduleInfo: Bool {
         displaySchedule != nil
     }

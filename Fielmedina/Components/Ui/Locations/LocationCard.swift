@@ -42,7 +42,6 @@ struct LocationCardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 35)
                 
-                // Only show chips if we have info to display
                 if location.hasScheduleInfo || location.hasAdmissionInfo {
                     HStack(spacing: 8) {
                         if let schedule = location.displaySchedule {
