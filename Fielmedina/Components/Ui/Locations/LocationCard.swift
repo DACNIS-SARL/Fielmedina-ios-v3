@@ -15,7 +15,6 @@ struct LocationCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Image section
             ZStack(alignment: .bottomTrailing) {
                 FielmedinaImage(url: location.imageURL, contentMode: .fill)
                     .frame(width: cardWidth, height: cardHeight * 0.65)
@@ -41,7 +40,6 @@ struct LocationCardView: View {
                 }
             }
             
-            // Info section
             VStack(alignment: .leading, spacing: 16) {
                 Text(location.displayName)
                     .font(.title2)
@@ -50,7 +48,6 @@ struct LocationCardView: View {
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // Opening hours
                 if let schedule = location.displaySchedule {
                     HStack(spacing: 12) {
                         Image(systemName: "clock")
@@ -67,7 +64,6 @@ struct LocationCardView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 
-                // Price
                 HStack(spacing: 12) {
                     Image(systemName: "dollarsign.circle")
                         .font(.system(size: 18))
