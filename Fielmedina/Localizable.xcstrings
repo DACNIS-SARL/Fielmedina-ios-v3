@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ TND" : {
+
+    },
     "All Events" : {
       "localizations" : {
         "fr" : {
@@ -20,6 +23,12 @@
           }
         }
       }
+    },
+    "All Locations" : {
+
+    },
+    "ALL LOCATIONS" : {
+
     },
     "Best Experiences" : {
 
@@ -104,19 +113,6 @@
         }
       }
     },
-    "Price" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prix"
-          }
-        }
-      }
-    },
-    "Hello, world!" : {
-
-    },
     "hiking_button" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -161,6 +157,9 @@
         }
       }
     },
+    "Loading locations..." : {
+
+    },
     "Location Access Required" : {
       "localizations" : {
         "fr" : {
@@ -170,6 +169,9 @@
           }
         }
       }
+    },
+    "Locations" : {
+
     },
     "map_button" : {
       "extractionState" : "manual",
@@ -211,12 +213,25 @@
     "No locations available" : {
 
     },
+    "No Locations Found" : {
+
+    },
     "Open Settings" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir les paramètres"
+          }
+        }
+      }
+    },
+    "Price" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prix"
           }
         }
       }
@@ -263,6 +278,9 @@
           }
         }
       }
+    },
+    "There are no locations in this category yet.\nCheck back soon!" : {
+
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {

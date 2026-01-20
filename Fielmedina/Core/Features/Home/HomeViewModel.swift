@@ -12,6 +12,7 @@ import Observation
 class HomeViewModel {
     // Data properties
     var events: [Event] = []
+    var locations: [Location] = []
     
     // UI State properties
     var isLoading = true
@@ -19,7 +20,6 @@ class HomeViewModel {
     var showTaxiButton = false
     
     /// Loads all data required for the Home screen.
-    /// This is designed to be easily extensible for Locations, Tips, etc.
     func loadData() async {
         isLoading = true
         errorMessage = nil
@@ -35,11 +35,13 @@ class HomeViewModel {
                     }
                 }
                 
-                // FUTURE: Add Location fetching here
-                // group.addTask { ... }
-                
-                // FUTURE: Add Tips fetching here
-                // group.addTask { ... }
+                // Add Location fetching
+                group.addTask {
+                    let fetchedLocations = try await LocationService.shared.fetchLocations(limit: 10)
+                    await MainActor.run {
+                        self.locations = fetchedLocations
+                    }
+                }
                 
                 try await group.waitForAll()
             }

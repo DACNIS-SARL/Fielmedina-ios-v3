@@ -7,11 +7,13 @@
 
 import SwiftUI
 
-struct CarouselListLocations:View {
+struct CarouselListLocations: View {
     let locations: [Location]
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey?
     let showShowAllButton: Bool
+    
+    @State private var showAllLocations = false
     
     init(
         locations: [Location],
@@ -23,12 +25,11 @@ struct CarouselListLocations:View {
         self.title = title
         self.subtitle = subtitle
         self.showShowAllButton = showShowAllButton
-        
     }
+    
     var displayedLocations: [Location] {
         Array(locations.prefix(10))
     }
-    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -48,14 +49,17 @@ struct CarouselListLocations:View {
                 Spacer()
                 
                 if showShowAllButton {
-                    NavigationLink("Show All") {
-                        AllLocationListView()
+                    Button("Show All") {
+                        showAllLocations = true
                     }
                     .buttonStyle(CustomButtonStyle())
-                    .sensoryFeedback(.impact(weight: .light), trigger: true)
+                    .sensoryFeedback(.impact(weight: .light), trigger: showAllLocations)
                 }
             }
             .padding(.horizontal)
+            .fullScreenCover(isPresented: $showAllLocations) {
+                AllLocationListView()
+            }
             
             if displayedLocations.isEmpty {
                 VStack(spacing: 12) {

@@ -41,10 +41,10 @@ struct HomeView: View {
                             .padding(.horizontal)
                         } else {
                             VStack(spacing: 32) {
-                                CarouselListEvent(
+                                CarouselListLocations(
+                                    locations: viewModel.locations,
                                     title: "Top Attractions",
-                                    subtitle: "Top places for you",
-                                    events: viewModel.events
+                                    subtitle: "Top places for you"
                                 )
                                 .padding(.top, 80)
                                 
