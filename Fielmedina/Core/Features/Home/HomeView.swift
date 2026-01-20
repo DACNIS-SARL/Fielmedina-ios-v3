@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var viewModel = HomeViewModel()
+    @State private var showTaxiButton = false
 
     var body: some View {
         NavigationStack {
@@ -18,53 +18,28 @@ struct HomeView: View {
                 
                 ScrollView {
                     VStack(spacing: 0) {
-                        HeroBanner(showTaxiButton: viewModel.showTaxiButton)
+                        HeroBanner(showTaxiButton: showTaxiButton)
                             .zIndex(10)
                         
-                        if viewModel.isLoading {
-                            ProgressView("Loading events...")
-                                .padding(.top, 100)
-                        } else if let error = viewModel.errorMessage {
-                            VStack(spacing: 12) {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.title)
-                                    .foregroundStyle(.red)
-                                Text(error)
-                                    .font(.subheadline)
-                                    .multilineTextAlignment(.center)
-                                Button("Try Again") {
-                                    Task { await viewModel.loadData() }
-                                }
-                                .buttonStyle(.bordered)
-                            }
-                            .padding(.top, 100)
-                            .padding(.horizontal)
-                        } else {
-                            VStack(spacing: 32) {
-                                CarouselListLocations(
-                                    locations: viewModel.locations,
-                                    title: "Top Attractions",
-                                    subtitle: "Top places for you"
-                                )
-                                .padding(.top, 80)
-                                
-                                CarouselListEvent(
-                                    title: "Best Experiences",
-                                    subtitle: "Top events",
-                                    events: viewModel.events
-                                )
-                                .padding(.top, 50)
-                            }
-                            .background(Color(.systemBackground))
-                            .zIndex(0)
+                        VStack(spacing: 32) {
+                            CarouselListLocations(
+                                title: "Top Attractions",
+                                subtitle: "Top places for you"
+                            )
+                            .padding(.top, 80)
+                            
+                            CarouselListEvent(
+                                title: "Best Experiences",
+                                subtitle: "Top events"
+                            )
+                            .padding(.top, 50)
                         }
+                        .background(Color(.systemBackground))
+                        .zIndex(0)
                     }
                     .padding(.bottom, 100)
                 }
                 .ignoresSafeArea()
-            }
-            .task {
-                await viewModel.loadData()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

@@ -8,27 +8,29 @@
 import SwiftUI
 
 struct CarouselListLocations: View {
-    let locations: [Location]
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey?
     let showShowAllButton: Bool
+    let limit: Int
     
-    @State private var showAllLocations = false
+    @State private var locations: [Location] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     init(
-        locations: [Location],
         title: LocalizedStringKey,
         subtitle: LocalizedStringKey? = nil,
-        showShowAllButton: Bool = true
+        showShowAllButton: Bool = true,
+        limit: Int = 10
     ) {
-        self.locations = locations
         self.title = title
         self.subtitle = subtitle
         self.showShowAllButton = showShowAllButton
+        self.limit = limit
     }
     
     var displayedLocations: [Location] {
-        Array(locations.prefix(10))
+        Array(locations.prefix(limit))
     }
     
     var body: some View {
@@ -48,25 +50,46 @@ struct CarouselListLocations: View {
                 
                 Spacer()
                 
-                if showShowAllButton {
-                    Button("Show All") {
-                        showAllLocations = true
+                if showShowAllButton && !isLoading {
+                    NavigationLink("Show All") {
+                        AllLocationListView()
                     }
                     .buttonStyle(CustomButtonStyle())
-                    .sensoryFeedback(.impact(weight: .light), trigger: showAllLocations)
+                    .sensoryFeedback(.impact(weight: .light), trigger: true)
                 }
             }
             .padding(.horizontal)
-            .fullScreenCover(isPresented: $showAllLocations) {
-                AllLocationListView()
-            }
             
-            if displayedLocations.isEmpty {
+            if isLoading {
+                HStack(spacing: 16) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 320, height: 380)
+                    }
+                }
+                .padding(.horizontal)
+                .redacted(reason: .placeholder)
+            } else if let error = errorMessage {
                 VStack(spacing: 12) {
-                    Image(systemName: "calendar.badge.exclamationmark")
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.red)
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Button("Retry") {
+                        Task { await loadLocations() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else if displayedLocations.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "mappin.slash")
                         .font(.system(size: 40))
                         .foregroundStyle(.secondary)
-                    
                     Text("No locations available")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -90,6 +113,22 @@ struct CarouselListLocations: View {
                 }
             }
         }
+        .task {
+            await loadLocations()
+        }
+    }
+    
+    private func loadLocations() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            locations = try await LocationService.shared.fetchLocations(limit: Int32(limit))
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
     }
 }
 #Preview {
@@ -97,7 +136,6 @@ struct CarouselListLocations: View {
         ScrollView {
             VStack(spacing: 32) {
                 CarouselListLocations(
-                    locations: Location.sampleLocations,
                     title: "Top Attractions",
                     subtitle: "Top 10 places for you"
                 )

@@ -30,110 +30,110 @@ struct AllLocationListView: View {
                     .ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        HStack {
-                            Text("ALL LOCATIONS")
-                                .font(.caption).bold()
+                VStack(alignment: .leading, spacing: 24) {
+                    HStack {
+                        Text("ALL LOCATIONS")
+                            .font(.caption).bold()
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            showFilterSheet = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "slider.horizontal.3")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Filter")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 12)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16)
+                    
+                    if isLoading {
+                        VStack {
+                            ProgressView("Loading locations...")
+                                .padding(.vertical, 40)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else if let error = errorMessage {
+                        VStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.title)
+                                .foregroundStyle(.red)
+                            Text(error)
+                                .font(.subheadline)
+                                .multilineTextAlignment(.center)
+                            Button("Try Again") {
+                                Task { await loadData() }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                        .padding(.horizontal)
+                    } else if filteredLocations.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "mappin.slash")
+                                .font(.system(size: 60))
                                 .foregroundStyle(.secondary)
                             
-                            Spacer()
+                            Text("No Locations Found")
+                                .font(.title2)
+                                .fontWeight(.semibold)
                             
-                            Button {
-                                showFilterSheet = true
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "slider.horizontal.3")
-                                        .font(.system(size: 16, weight: .medium))
-                                    Text("Filter")
-                                        .font(.system(size: 16, weight: .semibold))
-                                }
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 12)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
+                            Text("There are no locations in this category yet.\nCheck back soon!")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(filteredLocations) { location in
+                                LocationItem(location: location)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(Color(.secondarySystemBackground))
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .onTapGesture {
+                                        FirebaseUtils.trackButtonTap(
+                                            buttonName: "location_item",
+                                            screenName: "AllLocations"
+                                        )
+                                    }
                             }
-                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 16)
-                        
-                        if isLoading {
-                            VStack {
-                                ProgressView("Loading locations...")
-                                    .padding(.vertical, 40)
-                            }
-                            .frame(maxWidth: .infinity)
-                        } else if let error = errorMessage {
-                            VStack(spacing: 12) {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.title)
-                                    .foregroundStyle(.red)
-                                Text(error)
-                                    .font(.subheadline)
-                                    .multilineTextAlignment(.center)
-                                Button("Try Again") {
-                                    Task { await loadData() }
-                                }
-                                .buttonStyle(.bordered)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 40)
-                            .padding(.horizontal)
-                        } else if filteredLocations.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "mappin.slash")
-                                    .font(.system(size: 60))
-                                    .foregroundStyle(.secondary)
-                                
-                                Text("No Locations Found")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                
-                                Text("There are no locations in this category yet.\nCheck back soon!")
-                                    .font(.body)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 40)
-                        } else {
-                            VStack(spacing: 12) {
-                                ForEach(filteredLocations) { location in
-                                    LocationItem(location: location)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                .fill(Color(.secondarySystemBackground))
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                        .onTapGesture {
-                                            FirebaseUtils.trackButtonTap(
-                                                buttonName: "location_item",
-                                                screenName: "AllLocations"
-                                            )
-                                        }
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 24)
-                        }
+                        .padding(.bottom, 24)
                     }
-                    .padding(.top, 12)
                 }
+                .padding(.top, 12)
             }
-            .navigationTitle("Locations")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SettingsButton()
-                }
+        }
+        .navigationTitle("Locations")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                SettingsButton()
             }
-            .sheet(isPresented: $showFilterSheet) {
-                LocationCategoryFilterView(
-                    availableCategories: $categories,
-                    currentSelection: $selectedCategory,
-                    isPresented: $showFilterSheet
-                )
-            }
+        }
+        .sheet(isPresented: $showFilterSheet) {
+            LocationCategoryFilterView(
+                availableCategories: $categories,
+                currentSelection: $selectedCategory,
+                isPresented: $showFilterSheet
+            )
+        }
             .task {
                 await loadData()
             }
