@@ -64,7 +64,4 @@ class EventService {
         }
     }
 }
-enum APIError: Error {
-    case graphQLErrors([GraphQLError])
-    case noData
-}
+
