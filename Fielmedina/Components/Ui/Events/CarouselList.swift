@@ -12,21 +12,25 @@ struct CarouselListEvent: View {
     let subtitle: LocalizedStringKey?
     let events: [Event]
     let showShowAllButton: Bool
+    let isBoostedOnly: Bool
     
     init(
         title: LocalizedStringKey,
         subtitle: LocalizedStringKey? = nil,
         events: [Event],
-        showShowAllButton: Bool = true
+        showShowAllButton: Bool = true,
+        isBoostedOnly: Bool = false
     ) {
         self.title = title
         self.subtitle = subtitle
         self.events = events
         self.showShowAllButton = showShowAllButton
+        self.isBoostedOnly = isBoostedOnly
     }
     
     var displayedEvents: [Event] {
-        Array(events.prefix(5))
+        let filtered = isBoostedOnly ? events.filter { $0.boost } : events
+        return Array(filtered.prefix(5))
     }
     
     var body: some View {

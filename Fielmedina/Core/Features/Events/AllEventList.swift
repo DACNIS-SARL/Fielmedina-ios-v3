@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AllEventsListView: View {
     @State private var events: [Event] = []
+    @State private var boostedEvents: [Event] = []
     @State private var selectedCategory: String = String(localized: "All Events")
     @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Events")]
@@ -35,8 +36,9 @@ struct AllEventsListView: View {
                         CarouselListEvent(
                             title: "Upcoming events",
                             subtitle: "Top events",
-                            events: events,
-                            showShowAllButton: false
+                            events: boostedEvents,
+                            showShowAllButton: false,
+                            isBoostedOnly: true
                         )
                         .padding(.bottom, 8)
 
@@ -165,7 +167,14 @@ struct AllEventsListView: View {
     
     private func loadEvents() async {
         do {
-            events = try await EventService.shared.fetchEvents(limit: 50)
+            // Fetch both boosted and regular events
+            async let boosted = try EventService.shared.fetchEvents(limit: 10, boost: true)
+            async let all = try EventService.shared.fetchEvents(limit: 50)
+            
+            let (fetchedBoosted, fetchedAll) = try await (boosted, all)
+            
+            self.boostedEvents = fetchedBoosted
+            self.events = fetchedAll
         } catch {
             errorMessage = error.localizedDescription
         }

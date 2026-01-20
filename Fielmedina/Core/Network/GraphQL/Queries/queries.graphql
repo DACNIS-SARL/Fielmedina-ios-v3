@@ -110,8 +110,8 @@ query GetLocationDetails($id: ID!) {
 }
 
 # 6. Events List
-query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int) {
-  events(cityId: $cityId, categoryId: $categoryId, limit: $limit, offset: $offset) {
+query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int, $boost: Boolean) {
+  events(cityId: $cityId, categoryId: $categoryId, limit: $limit, offset: $offset, boost: $boost) {
     id
     nameEn
     nameFr
@@ -128,6 +128,7 @@ query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int)
       image { ...ImageFields }
       imageMobile { ...ImageFields }
     }
+    boost
     location {
       id
       nameEn

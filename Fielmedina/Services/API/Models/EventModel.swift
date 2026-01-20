@@ -29,6 +29,7 @@ struct Event: Codable, Identifiable {
     let endDate: String?
     let time: String?
     let price: String?
+    let boost: Bool
     let images: [ImageContainer]?
     let location: EventLocation?
     let category: EventCategory?

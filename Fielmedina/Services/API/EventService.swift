@@ -18,12 +18,13 @@ class EventService {
     ///   - cityId: The ID of the city (optional).
     ///   - limit: Number of events to fetch.
     /// - Returns: An array of domain `Event` models.
-    func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10) async throws -> [Event] {
+    func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil) async throws -> [Event] {
         let query = FielmedinaAPI.GetEventsByCityQuery(
             cityId: cityId != nil ? .init(integerLiteral: cityId!) : .none,
             categoryId: .none,
             limit: .init(integerLiteral: limit),
-            offset: .none
+            offset: .none,
+            boost: boost != nil ? .some(boost!) : .none
         )
         
         let graphQLResult = try await apollo.fetch(query: query)
@@ -46,6 +47,7 @@ class EventService {
                 endDate: gEvent.endDate,
                 time: gEvent.time,
                 price: String(describing: gEvent.price), // Convert Decimal to String
+                boost: gEvent.boost,
                 images: gEvent.images.map { img in
                     ImageContainer(
                         image: ImageField(url: img.image.url),
@@ -61,4 +63,8 @@ class EventService {
             )
         }
     }
+}
+enum APIError: Error {
+    case graphQLErrors([GraphQLError])
+    case noData
 }

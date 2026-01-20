@@ -69,6 +69,7 @@ type EventType {
   link: String!
   shortLink: String
   shortId: String
+  boost: Boolean!
   description: String!
   descriptionEn: String!
   descriptionFr: String!
@@ -236,7 +237,7 @@ type Query {
   locationCategories: [LocationCategoryType!]!
   hikings(cityId: Int = null, limit: Int = null, offset: Int = 0): [HikingType!]!
   hiking(id: ID!): HikingType
-  events(cityId: Int = null, categoryId: Int = null, limit: Int = null, offset: Int = 0): [EventType!]!
+  events(cityId: Int = null, categoryId: Int = null, limit: Int = null, offset: Int = 0, boost: Boolean = null): [EventType!]!
   event(id: ID!): EventType
   eventCategories: [EventCategoryType!]!
   ads(cityId: Int = null, countryId: Int = null, isActive: Boolean = null, limit: Int = null, offset: Int = 0): [AdType!]!

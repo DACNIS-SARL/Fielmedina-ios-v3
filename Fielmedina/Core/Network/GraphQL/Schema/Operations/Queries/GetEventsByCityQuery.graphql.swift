@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetEventsByCity"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int) { events(cityId: $cityId, categoryId: $categoryId, limit: $limit, offset: $offset) { __typename id nameEn nameFr startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } location { __typename id nameEn nameFr } } }"#,
+        #"query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int, $boost: Boolean) { events( cityId: $cityId categoryId: $categoryId limit: $limit offset: $offset boost: $boost ) { __typename id nameEn nameFr startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } boost location { __typename id nameEn nameFr } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -17,24 +17,28 @@ extension FielmedinaAPI {
     public var categoryId: GraphQLNullable<Int32>
     public var limit: GraphQLNullable<Int32>
     public var offset: GraphQLNullable<Int32>
+    public var boost: GraphQLNullable<Bool>
 
     public init(
       cityId: GraphQLNullable<Int32>,
       categoryId: GraphQLNullable<Int32>,
       limit: GraphQLNullable<Int32>,
-      offset: GraphQLNullable<Int32>
+      offset: GraphQLNullable<Int32>,
+      boost: GraphQLNullable<Bool>
     ) {
       self.cityId = cityId
       self.categoryId = categoryId
       self.limit = limit
       self.offset = offset
+      self.boost = boost
     }
 
     @_spi(Unsafe) public var __variables: Variables? { [
       "cityId": cityId,
       "categoryId": categoryId,
       "limit": limit,
-      "offset": offset
+      "offset": offset,
+      "boost": boost
     ] }
 
     struct Data: FielmedinaAPI.SelectionSet {
@@ -47,7 +51,8 @@ extension FielmedinaAPI {
           "cityId": .variable("cityId"),
           "categoryId": .variable("categoryId"),
           "limit": .variable("limit"),
-          "offset": .variable("offset")
+          "offset": .variable("offset"),
+          "boost": .variable("boost")
         ]),
       ] }
       static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
@@ -75,6 +80,7 @@ extension FielmedinaAPI {
           .field("price", FielmedinaAPI.Decimal.self),
           .field("category", Category?.self),
           .field("images", [Image].self),
+          .field("boost", Bool.self),
           .field("location", Location?.self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
@@ -90,6 +96,7 @@ extension FielmedinaAPI {
         var price: FielmedinaAPI.Decimal { __data["price"] }
         var category: Category? { __data["category"] }
         var images: [Image] { __data["images"] }
+        var boost: Bool { __data["boost"] }
         var location: Location? { __data["location"] }
 
         /// Event.Category
