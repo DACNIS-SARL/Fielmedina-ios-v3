@@ -20,19 +20,27 @@ struct LocationItem: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                HStack(spacing: 12) {
-                    if let schedule = location.displaySchedule {
-                        Label(schedule, systemImage: "clock")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                // Only show info row if we have data
+                if location.hasScheduleInfo || location.hasAdmissionInfo {
+                    HStack(spacing: 12) {
+                        if let schedule = location.displaySchedule {
+                            Label(schedule, systemImage: "clock")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        if location.hasAdmissionInfo {
+                            if location.isFree {
+                                Label("Free", systemImage: "checkmark.seal")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.accent)
+                            } else if let admission = location.displayAdmission {
+                                Label("\(admission) TND", systemImage: "ticket")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    
-                    Label(
-                        location.isFree ? "Free" : "\(location.displayAdmission) TND",
-                        systemImage: location.isFree ? "checkmark.seal" : "ticket"
-                    )
-                    .font(.system(size: 12))
-                    .foregroundStyle(location.isFree ? .accent : .secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

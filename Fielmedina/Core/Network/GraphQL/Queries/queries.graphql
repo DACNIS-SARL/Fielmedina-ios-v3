@@ -91,6 +91,7 @@ query GetLocationsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: I
     ...LocationSummary
     openFrom
     openTo
+    admissionFee
   }
 }
 

@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetLocationsByCity"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetLocationsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int) { locations( cityId: $cityId categoryId: $categoryId limit: $limit offset: $offset ) { __typename ...LocationSummary openFrom openTo } }"#,
+        #"query GetLocationsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int) { locations( cityId: $cityId categoryId: $categoryId limit: $limit offset: $offset ) { __typename ...LocationSummary openFrom openTo admissionFee } }"#,
         fragments: [ImageFields.self, LocationSummary.self]
       ))
 
@@ -68,6 +68,7 @@ extension FielmedinaAPI {
           .field("__typename", String.self),
           .field("openFrom", FielmedinaAPI.Time?.self),
           .field("openTo", FielmedinaAPI.Time?.self),
+          .field("admissionFee", FielmedinaAPI.Decimal?.self),
           .fragment(LocationSummary.self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
@@ -77,6 +78,7 @@ extension FielmedinaAPI {
 
         var openFrom: FielmedinaAPI.Time? { __data["openFrom"] }
         var openTo: FielmedinaAPI.Time? { __data["openTo"] }
+        var admissionFee: FielmedinaAPI.Decimal? { __data["admissionFee"] }
         var id: FielmedinaAPI.ID { __data["id"] }
         var nameEn: String { __data["nameEn"] }
         var nameFr: String { __data["nameFr"] }

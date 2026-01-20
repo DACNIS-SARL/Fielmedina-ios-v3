@@ -42,22 +42,35 @@ struct LocationCardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 35)
                 
-                HStack(spacing: 8) {
-                    if let schedule = location.displaySchedule {
-                        InfoChip(
-                            icon: "clock.fill",
-                            text: schedule,
-                            style: .secondary
-                        )
+                // Only show chips if we have info to display
+                if location.hasScheduleInfo || location.hasAdmissionInfo {
+                    HStack(spacing: 8) {
+                        if let schedule = location.displaySchedule {
+                            InfoChip(
+                                icon: "clock.fill",
+                                text: schedule,
+                                style: .secondary
+                            )
+                        }
+                        
+                        if location.hasAdmissionInfo {
+                            if location.isFree {
+                                InfoChip(
+                                    icon: "checkmark.seal.fill",
+                                    text: "Free Entry",
+                                    style: .accent
+                                )
+                            } else if let admission = location.displayAdmission {
+                                InfoChip(
+                                    icon: "ticket.fill",
+                                    text: "\(admission) TND",
+                                    style: .primary
+                                )
+                            }
+                        }
+                        
+                        Spacer(minLength: 0)
                     }
-                    
-                    InfoChip(
-                        icon: location.isFree ? "checkmark.seal.fill" : "ticket.fill",
-                        text: location.isFree ? "Free Entry" : "\(location.displayAdmission) TND",
-                        style: location.isFree ? .accent : .primary
-                    )
-                    
-                    Spacer(minLength: 0)
                 }
             }
             .padding(20)

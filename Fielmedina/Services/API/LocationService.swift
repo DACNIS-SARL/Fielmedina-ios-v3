@@ -64,13 +64,22 @@ class LocationService {
                         imageMobile: img.imageMobile.map { ImageField(url: $0.url) }
                     )
                 },
-                openFrom: gLocation.openFrom.map { String(describing: $0) },
-                openTo: gLocation.openTo.map { String(describing: $0) },
+                openFrom: gLocation.openFrom.map { formatTime($0) },
+                openTo: gLocation.openTo.map { formatTime($0) },
                 storyEn: nil,
                 storyFr: nil,
-                admissionFee: nil,
+                admissionFee: gLocation.admissionFee,
                 closedDays: nil
             )
         }
+    }
+    
+    /// Formats time string to show only hours and minutes (HH:mm)
+    private func formatTime(_ time: String) -> String {
+        let components = time.split(separator: ":")
+        if components.count >= 2 {
+            return "\(components[0]):\(components[1])"
+        }
+        return time
     }
 }

@@ -34,20 +34,37 @@ struct Location: Codable, Identifiable {
         images?.first?.displayURL
     }
     
-    var displayAdmission: String {
-        if let fee = admissionFee, !fee.isEmpty, fee != "0" {
-            return fee
+    var displayAdmission: String? {
+        guard let fee = admissionFee, !fee.isEmpty, fee != "0" else {
+            return nil
         }
-        return "Free"
+        return fee
     }
     
     var isFree: Bool {
-        admissionFee == nil || admissionFee == "0" || admissionFee?.isEmpty == true
+        guard let fee = admissionFee, !fee.isEmpty else {
+            return false // No info available, don't show as free
+        }
+        return fee == "0" || fee.lowercased() == "free"
+    }
+    
+    /// Returns true if we have admission info to display (either free or paid)
+    var hasAdmissionInfo: Bool {
+        guard let fee = admissionFee, !fee.isEmpty else {
+            return false
+        }
+        return true
     }
     
     var displaySchedule: String? {
-        guard let from = openFrom, let to = openTo else { return nil }
+        guard let from = openFrom, !from.isEmpty,
+              let to = openTo, !to.isEmpty else { return nil }
         return "\(from) - \(to)"
+    }
+    
+    /// Returns true if we have schedule info to display
+    var hasScheduleInfo: Bool {
+        displaySchedule != nil
     }
 }
 
