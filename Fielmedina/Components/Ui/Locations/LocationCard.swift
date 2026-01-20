@@ -7,44 +7,41 @@
 
 import SwiftUI
 
+struct CardCurveShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: 0))
+        path.addCurve(
+            to: CGPoint(x: rect.width, y: 50),
+            control1: CGPoint(x: rect.width * 0.4, y: 0),
+            control2: CGPoint(x: rect.width * 0.6, y: 60)
+        )
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.closeSubpath()
+        return path
+    }
+}
+
 struct LocationCardView: View {
     let location: Location
     let cardWidth: CGFloat = 320
     let cardHeight: CGFloat = 380
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Image Section with Category Badge
-            ZStack(alignment: .topTrailing) {
-                FielmedinaImage(url: location.imageURL, contentMode: .fill)
-                    .frame(width: cardWidth, height: cardHeight * 0.55)
-                    .clipped()
-                
-                // Category badge
-                if let category = location.category {
-                    Text(category.displayName)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background {
-                            Capsule()
-                                .fill(Color.accentColor)
-                        }
-                        .padding(12)
-                }
-            }
-            .frame(width: cardWidth, height: cardHeight * 0.55)
+        ZStack(alignment: .bottom) {
+            FielmedinaImage(url: location.imageURL, contentMode: .fill)
+                .frame(width: cardWidth, height: cardHeight)
+                .clipped()
             
-            // Content Section
             VStack(alignment: .leading, spacing: 12) {
                 Text(location.displayName)
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 35)
                 
-                // Info chips row - time and admission side by side
                 HStack(spacing: 8) {
                     if let schedule = location.displaySchedule {
                         InfoChip(
@@ -63,22 +60,32 @@ struct LocationCardView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(.systemBackground))
+            .padding(20)
+            .background {
+                CardCurveShape()
+                    .fill(Color(.systemBackground))
+            }
         }
         .frame(width: cardWidth, height: cardHeight)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(.rect(cornerRadius: 30, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
         .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .strokeBorder(.primary.opacity(0.06), lineWidth: 1)
+        }
+        .overlay(alignment: .topTrailing) {
+            if let category = location.category {
+                Text(category.displayName)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.accentColor))
+                    .padding(16)
+            }
         }
     }
 }
-
-// MARK: - Info Chip Component
 
 private struct InfoChip: View {
     let icon: String
@@ -118,8 +125,6 @@ private struct InfoChip: View {
         .background(style.backgroundColor, in: Capsule())
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     LocationCardView(

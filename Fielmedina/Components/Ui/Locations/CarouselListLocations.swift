@@ -127,8 +127,8 @@ extension Location {
         ),
         Location(
             id: "2",
-            nameEn: "Great Mosque of Kairouan",
-            nameFr: "Grande Mosquée de Kairouan",
+            nameEn: "Great Mosque of Kairouan Great Mosque of Kairouan",
+            nameFr: "Grande Mosquée de Kairouan Great Mosque of Kairouan",
             latitude: 35.6781,
             longitude: 10.1042,
             category: LocationCategory(
