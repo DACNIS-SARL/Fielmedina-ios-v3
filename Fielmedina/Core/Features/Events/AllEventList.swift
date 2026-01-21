@@ -35,9 +35,9 @@ struct AllEventsListView: View {
                         title: "Upcoming events",
                         subtitle: "Top events",
                         showShowAllButton: false,
-                        isBoostedOnly: true
+                        isBoostedOnly: true,
+                        bottomPadding: 8
                     )
-                    .padding(.bottom, 8)
 
                     HStack {
                         Text("ALL EVENTS")
