@@ -35,7 +35,11 @@ struct Location: Codable, Identifiable {
     }
     
     var displayAdmission: String? {
-        guard let fee = admissionFee, !fee.isEmpty, fee != "0" else {
+        guard let fee = admissionFee, !fee.isEmpty else {
+            return nil
+        }
+        // Don't show price for free entries
+        if let numericFee = Double(fee), numericFee == 0 {
             return nil
         }
         return fee
@@ -45,7 +49,11 @@ struct Location: Codable, Identifiable {
         guard let fee = admissionFee, !fee.isEmpty else {
             return false
         }
-        return fee == "0" || fee.lowercased() == "free"
+        // Handle "0", "0.00", "0.0", etc.
+        if let numericFee = Double(fee) {
+            return numericFee == 0
+        }
+        return fee.lowercased() == "free"
     }
     
     var hasAdmissionInfo: Bool {
