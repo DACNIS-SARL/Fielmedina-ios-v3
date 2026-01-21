@@ -175,7 +175,6 @@ struct AllEventsListView: View {
             let categoryNames = fetchedCategories.map { $0.displayName }
             categories = [String(localized: "All Events")] + categoryNames
         } catch {
-            // Keep default categories on error
             categories = [String(localized: "All Events")]
         }
     }

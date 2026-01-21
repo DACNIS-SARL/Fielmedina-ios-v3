@@ -30,6 +30,14 @@ struct AllLocationListView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    CarouselListEvent(
+                        title: "Upcoming events",
+                        subtitle: "Top events",
+                        showShowAllButton: false,
+                        isBoostedOnly: true
+                    )
+                    .padding(.bottom, 8)
+
                     HStack {
                         Text("ALL LOCATIONS")
                             .font(.caption).bold()
