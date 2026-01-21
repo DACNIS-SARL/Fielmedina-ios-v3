@@ -53,9 +53,14 @@ struct CarouselListLocations: View {
                 if showShowAllButton && !isLoading {
                     NavigationLink(value: HomeNavigationDestination.allLocations) {
                         Text("Show All")
+                            .font(.system(size: 16, weight: .semibold))
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 12)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(CustomButtonStyle())
+                    .buttonStyle(.plain)
                     .accessibilityIdentifier("show_all_locations_button")
                     .sensoryFeedback(.impact(weight: .light), trigger: isLoading)
                 }
