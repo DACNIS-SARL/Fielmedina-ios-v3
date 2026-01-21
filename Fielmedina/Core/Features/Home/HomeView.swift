@@ -18,20 +18,16 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     HeroBanner()
-                    
-                    // Action Buttons with responsive layout
+                    Spacer()
                     VStack(spacing: 0) {
-                        if !areButtonsSticky {
-                            actionButtons
-                                .padding(.horizontal, 16)
-                                .padding(.top, -28)
-                                .zIndex(1)
-                                .transition(.opacity.combined(with: .scale(0.95)))
-                        } else {
-                            Color.clear
-                                .frame(height: 56)
-                        }
+                        actionButtons
+                            .padding(.horizontal, 16)
+                            .padding(.top, -28)
+                            .zIndex(1)
+                            .opacity(areButtonsSticky ? 0 : 1)
+                            .allowsHitTesting(!areButtonsSticky)
                     }
+                    .frame(height: 56)
                     
                     VStack(spacing: 32) {
                         CarouselListLocations(
@@ -60,32 +56,24 @@ struct HomeView: View {
             }
             .background(Color(.systemBackground))
             .ignoresSafeArea(edges: .top)
-            .safeAreaInset(edge: .top) {
-                if areButtonsSticky {
-                    VStack(spacing: 0) {
-                        HStack(spacing: 12) {
-                            actionButtons
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
-                        .frame(maxWidth: .infinity)
-                        .background(.ultraThinMaterial)
-                        .overlay(alignment: .bottom) {
-                            Divider()
-                        }
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .zIndex(100)
-                }
-            }
             .animation(.smooth(duration: 0.3), value: areButtonsSticky)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SettingsButton()
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    HStack(spacing: 8) {
+                        if areButtonsSticky {
+                            publicTransportIcon
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                            if showTaxiButton {
+                                taxiBookingIcon
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                            }
+                        }
+                        SettingsButton()
+                    }
+                    .animation(.smooth(duration: 0.3), value: areButtonsSticky)
                 }
             }
-            .toolbarBackground(areButtonsSticky ? .automatic : .hidden, for: .navigationBar)
+            .toolbarBackground(areButtonsSticky ? .visible : .hidden, for: .navigationBar)
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
                 case .allLocations:
@@ -107,7 +95,6 @@ struct HomeView: View {
     
     private var actionButtons: some View {
         ViewThatFits(in: .horizontal) {
-            // Horizontal layout for wide screens
             HStack(spacing: 12) {
                 publicTransportButton
                 if showTaxiButton {
@@ -115,7 +102,6 @@ struct HomeView: View {
                 }
             }
             
-            // Scaled down horizontal layout
             HStack(spacing: 8) {
                 publicTransportButton.scaleEffect(0.9)
                 if showTaxiButton {
@@ -123,7 +109,6 @@ struct HomeView: View {
                 }
             }
             
-            // Vertical layout for very narrow screens
             VStack(spacing: 8) {
                 publicTransportButton
                 if showTaxiButton {
@@ -170,10 +155,30 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
     }
-}
-
-#Preview {
-    HomeView()
+    
+    private var publicTransportIcon: some View {
+        NavigationLink(value: HomeNavigationDestination.publicTransports) {
+            Image(systemName: "train.side.rear.car")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Color.blue)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var taxiBookingIcon: some View {
+        NavigationLink(value: HomeNavigationDestination.taxiBooking) {
+            Image(systemName: "car.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.black)
+                .frame(width: 32, height: 32)
+                .background(Color.yellow)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 #Preview {

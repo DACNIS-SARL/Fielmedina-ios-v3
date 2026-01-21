@@ -6,7 +6,6 @@ struct HeroBanner: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottomLeading) {
-                // Background Image with Parallax
                 Image("hero-bg")
                     .resizable()
                     .scaledToFill()
@@ -18,7 +17,7 @@ struct HeroBanner: View {
                             .offset(y: phase.isIdentity ? 0 : phase.value * -50)
                     }
                 
-                // Modern Gradient Overlay
+                
                 LinearGradient(
                     colors: [
                         Color.black.opacity(0.4),
@@ -31,7 +30,6 @@ struct HeroBanner: View {
                 .frame(width: geometry.size.width, height: baseHeight)
                 .allowsHitTesting(false)
                 
-                // Responsive Content constrained to screen width
                 VStack(alignment: .leading, spacing: -4) {
                     Text("Tunisia")
                         .font(.system(size: 72, weight: .black))
