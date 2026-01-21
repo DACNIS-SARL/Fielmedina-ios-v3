@@ -31,7 +31,7 @@ struct UtilView: View {
                    VStack(spacing: 20) {
                        EmergencyContactCard(
                            title: "Police",
-                           subtitle: "Emergency law enforcement",
+                           subtitle: NSLocalizedString("police_subtitle", comment: "Police subtitle"),
                            phoneNumber: "197",
                            icon: "shield.fill",
                            backgroundColor: Color(red: 0.082, green: 0.396, blue: 0.753),
@@ -42,7 +42,7 @@ struct UtilView: View {
                        
                        EmergencyContactCard(
                            title: "Ambulance",
-                           subtitle: "Medical emergency services",
+                           subtitle: NSLocalizedString("medical_subtitle", comment: "Medical subtitle"),
                            phoneNumber: "192",
                            icon: "cross.fill",
                            backgroundColor: Color(red: 0.827, green: 0.184, blue: 0.184),

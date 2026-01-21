@@ -14,11 +14,23 @@ struct TipsCarousel: View {
     @State private var currentPageIndex = 0
     
     private var cardHeight: CGFloat {
-        sizeClass == .regular ? 340 : 240
+        sizeClass == .regular ? 400 : 260
     }
     
     private var tipFont: Font {
-        sizeClass == .regular ? .title2 : .body
+        sizeClass == .regular ? .largeTitle : .title3
+    }
+    
+    private var headerFont: Font {
+        sizeClass == .regular ? .title2 : .subheadline
+    }
+    
+    private var cardGradient: LinearGradient {
+        LinearGradient(
+            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
     
     var body: some View {
@@ -41,15 +53,35 @@ struct TipsCarousel: View {
                     ZStack(alignment: .bottom) {
                         TabView(selection: $currentPageIndex) {
                             ForEach(Array(tips.enumerated()), id: \.element.id) { index, tip in
-                                VStack {
-                                    Text(tip.displayDescription.htmlToMarkdown())
-                                        .font(tipFont)
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                        .padding(.top, 32)
-                                        .padding(.horizontal, 24)
-                                        .padding(.bottom, 60)
-                                    Spacer()
+                                ZStack {
+                                    Image(systemName: "lightbulb.fill")
+                                        .font(.system(size: sizeClass == .regular ? 200 : 140))
+                                        .foregroundColor(.white.opacity(0.1))
+                                        .offset(x: sizeClass == .regular ? 150 : 100, y: sizeClass == .regular ? 50 : 30)
+                                        .rotationEffect(.degrees(-15))
+                                    
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        Spacer()
+                                        
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "sparkles")
+                                            Text("Did you know?")
+                                        }
+                                        .font(headerFont)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white.opacity(0.9))
+                                        
+                                        Text(tip.displayDescription.htmlToMarkdown())
+                                            .font(tipFont)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.leading)
+                                            .minimumScaleFactor(0.5)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, sizeClass == .regular ? 60 : 24)
+                                    .padding(.bottom, 40)
                                 }
                                 .tag(index)
                             }
@@ -58,17 +90,17 @@ struct TipsCarousel: View {
                         
                         HStack(spacing: 8) {
                             ForEach(0..<tips.count, id: \.self) { index in
-                                Circle()
-                                    .fill(index == currentPageIndex ? Color.white : Color.white.opacity(0.4))
-                                    .frame(width: 8, height: 8)
-                                    .animation(.easeInOut(duration: 0.3), value: currentPageIndex)
+                                Capsule()
+                                    .fill(index == currentPageIndex ? Color.white : Color.white.opacity(0.3))
+                                    .frame(width: index == currentPageIndex ? 20 : 6, height: 6)
+                                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: currentPageIndex)
                             }
                         }
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 20)
                     }
                     .frame(height: cardHeight)
-                    .background(Color.accentColor)
-                    .cornerRadius(20)
+                    .background(cardGradient)
+                    .cornerRadius(24)
                     .padding(.horizontal)
                 }
             }

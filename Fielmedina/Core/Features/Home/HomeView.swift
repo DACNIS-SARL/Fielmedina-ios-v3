@@ -8,7 +8,7 @@ enum HomeNavigationDestination: Hashable {
 }
 
 struct HomeView: View {
-    @State private var showTaxiButton = true
+    @State private var showTaxiButton = false
     @State private var scrollOffset: CGFloat = 0
     
     private let buttonStickyThreshold: CGFloat = 180

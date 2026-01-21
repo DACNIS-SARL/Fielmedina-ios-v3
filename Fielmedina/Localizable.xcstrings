@@ -25,13 +25,34 @@
       }
     },
     "All Locations" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les emplacements"
+          }
+        }
+      }
     },
     "ALL LOCATIONS" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TOUS LES EMPLACEMENTS"
+          }
+        }
+      }
     },
     "Best Experiences" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meilleures expériences"
+          }
+        }
+      }
     },
     "Book a Taxi" : {
       "localizations" : {
@@ -56,6 +77,16 @@
     "Coming soon!" : {
 
     },
+    "Did you know?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le saviez-vous ?"
+          }
+        }
+      }
+    },
     "Done" : {
       "localizations" : {
         "fr" : {
@@ -67,10 +98,24 @@
       }
     },
     "Emergency Contacts" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacts d'urgence"
+          }
+        }
+      }
     },
     "Emergency Use Only" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À utiliser uniquement en cas d'urgence"
+          }
+        }
+      }
     },
     "Enable location" : {
       "localizations" : {
@@ -123,10 +168,24 @@
       }
     },
     "From" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À partir"
+          }
+        }
+      }
     },
     "Hacks and tips" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Astuces et conseils"
+          }
+        }
+      }
     },
     "hiking_button" : {
       "extractionState" : "manual",
@@ -173,7 +232,14 @@
       }
     },
     "Loading locations..." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement des emplacements..."
+          }
+        }
+      }
     },
     "Location Access Required" : {
       "localizations" : {
@@ -186,7 +252,14 @@
       }
     },
     "Locations" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lieux"
+          }
+        }
+      }
     },
     "map_button" : {
       "extractionState" : "manual",
@@ -201,6 +274,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carte"
+          }
+        }
+      }
+    },
+    "medical_subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medical emergency services"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services médicaux d'urgence"
           }
         }
       }
@@ -226,10 +316,24 @@
       }
     },
     "No locations available" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun emplacement disponible"
+          }
+        }
+      }
     },
     "No Locations Found" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun emplacement trouvé"
+          }
+        }
+      }
     },
     "Open Settings" : {
       "localizations" : {
@@ -241,19 +345,32 @@
         }
       }
     },
-    "Price" : {
-      "extractionState" : "stale",
+    "police_subtitle" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emergency law enforcement"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prix"
+            "value" : "Services d'urgence de maintien de l'ordre"
           }
         }
       }
     },
     "Public Transport list" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste des transports publics"
+          }
+        }
+      }
     },
     "Public transports" : {
       "localizations" : {
@@ -269,7 +386,14 @@
 
     },
     "Retry" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer"
+          }
+        }
+      }
     },
     "Settings" : {
       "localizations" : {
@@ -292,7 +416,14 @@
       }
     },
     "Tap any contact to call immediately" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez sur n'importe quel contact pour l'appeler immédiatement."
+          }
+        }
+      }
     },
     "There are no events in this category yet.\nCheck back soon!" : {
       "localizations" : {
@@ -305,10 +436,24 @@
       }
     },
     "There are no locations in this category yet.\nCheck back soon!" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a encore aucun emplacement dans cette catégorie.\nRevenez bientôt !"
+          }
+        }
+      }
     },
     "These numbers are for genuine emergencies only. Misuse may result in legal consequences." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces numéros sont réservés aux urgences réelles. Toute utilisation abusive peut entraîner des poursuites judiciaires."
+          }
+        }
+      }
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {
