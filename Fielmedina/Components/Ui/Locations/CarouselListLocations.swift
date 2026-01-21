@@ -51,11 +51,13 @@ struct CarouselListLocations: View {
                 Spacer()
                 
                 if showShowAllButton && !isLoading {
-                    NavigationLink("Show All") {
-                        AllLocationListView()
+                    NavigationLink(value: HomeNavigationDestination.allLocations) {
+                        Text("Show All")
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(CustomButtonStyle())
-                    .sensoryFeedback(.impact(weight: .light), trigger: true)
+                    .accessibilityIdentifier("show_all_locations_button")
+                    .sensoryFeedback(.impact(weight: .light), trigger: isLoading)
                 }
             }
             .padding(.horizontal)

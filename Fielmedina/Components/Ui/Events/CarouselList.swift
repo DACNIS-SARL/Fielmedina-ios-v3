@@ -54,11 +54,13 @@ struct CarouselListEvent: View {
                 Spacer()
                 
                 if showShowAllButton && !isLoading {
-                    NavigationLink("Show All") {
-                        AllEventsListView()
+                    NavigationLink(value: HomeNavigationDestination.allEvents) {
+                        Text("Show All")
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(CustomButtonStyle())
-                    .sensoryFeedback(.impact(weight: .light), trigger: true)
+                    .accessibilityIdentifier("show_all_events_button")
+                    .sensoryFeedback(.impact(weight: .light), trigger: isLoading)
                 }
             }
             .padding(.horizontal)

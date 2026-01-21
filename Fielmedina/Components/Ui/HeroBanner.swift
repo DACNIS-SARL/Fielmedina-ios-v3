@@ -52,12 +52,7 @@ struct HeroBanner: View {
                     Spacer()
                     
                     HStack(spacing: 12) {
-                        Button {
-                            FirebaseUtils.trackButtonTap(
-                                buttonName: "public_transport",
-                                screenName: "Home"
-                            )
-                        } label: {
+                        NavigationLink(value: HomeNavigationDestination.publicTransports) {
                             HStack(spacing: 10) {
                                 Image(systemName: "train.side.rear.car")
                                     .font(.system(size: 14, weight: .semibold))
@@ -70,15 +65,17 @@ struct HeroBanner: View {
                             .background(Color.blue)
                             .clipShape(Capsule())
                             .shadow(color: .black.opacity(0.15), radius: 6)
+                            .contentShape(Capsule())
                         }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            FirebaseUtils.trackButtonTap(
+                                buttonName: "public_transport",
+                                screenName: "Home"
+                            )
+                        })
                         
                         if showTaxiButton {
-                            Button {
-                                FirebaseUtils.trackButtonTap(
-                                    buttonName: "book_taxi",
-                                    screenName: "Home"
-                                )
-                            } label: {
+                            NavigationLink(value: HomeNavigationDestination.taxiBooking) {
                                 HStack(spacing: 10) {
                                     Image(systemName: "car.fill")
                                         .font(.system(size: 14, weight: .semibold))
@@ -91,7 +88,14 @@ struct HeroBanner: View {
                                 .background(Color.yellow)
                                 .clipShape(Capsule())
                                 .shadow(color: .black.opacity(0.15), radius: 6)
+                                .contentShape(Capsule())
                             }
+                            .simultaneousGesture(TapGesture().onEnded {
+                                FirebaseUtils.trackButtonTap(
+                                    buttonName: "book_taxi",
+                                    screenName: "Home"
+                                )
+                            })
                         }
                     }
                     .padding(.horizontal, 16)

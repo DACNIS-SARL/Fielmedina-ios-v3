@@ -24,12 +24,11 @@ struct AllLocationListView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(.systemGroupedBackground)
-                    .ignoresSafeArea()
-                
-                ScrollView {
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     HStack {
                         Text("ALL LOCATIONS")
@@ -134,9 +133,8 @@ struct AllLocationListView: View {
                 isPresented: $showFilterSheet
             )
         }
-            .task {
-                await loadData()
-            }
+        .task {
+            await loadData()
         }
     }
     

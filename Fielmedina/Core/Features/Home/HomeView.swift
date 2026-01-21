@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+enum HomeNavigationDestination: Hashable {
+    case allLocations
+    case allEvents
+    case publicTransports
+    case taxiBooking
+}
+
 struct HomeView: View {
     @State private var showTaxiButton = false
 
@@ -19,7 +26,6 @@ struct HomeView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         HeroBanner(showTaxiButton: showTaxiButton)
-                            .zIndex(10)
                         
                         VStack(spacing: 32) {
                             CarouselListLocations(
@@ -34,8 +40,6 @@ struct HomeView: View {
                             )
                             .padding(.top, 50)
                         }
-                        .background(Color(.systemBackground))
-                        .zIndex(0)
                     }
                     .padding(.bottom, 100)
                 }
@@ -44,6 +48,18 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
+                }
+            }
+            .navigationDestination(for: HomeNavigationDestination.self) { destination in
+                switch destination {
+                case .allLocations:
+                    AllLocationListView()
+                case .allEvents:
+                    AllEventsListView()
+                case .publicTransports:
+                    PublicTransports()
+                case .taxiBooking:
+                    TaxiBooking()
                 }
             }
         }

@@ -53,6 +53,9 @@
         }
       }
     },
+    "Coming soon!" : {
+
+    },
     "Done" : {
       "localizations" : {
         "fr" : {
@@ -62,6 +65,12 @@
           }
         }
       }
+    },
+    "Emergency Contacts" : {
+
+    },
+    "Emergency Use Only" : {
+
     },
     "Enable location" : {
       "localizations" : {
@@ -240,6 +249,9 @@
         }
       }
     },
+    "Public Transport list" : {
+
+    },
     "Public transports" : {
       "localizations" : {
         "fr" : {
@@ -276,6 +288,9 @@
         }
       }
     },
+    "Tap any contact to call immediately" : {
+
+    },
     "There are no events in this category yet.\nCheck back soon!" : {
       "localizations" : {
         "fr" : {
@@ -287,6 +302,9 @@
       }
     },
     "There are no locations in this category yet.\nCheck back soon!" : {
+
+    },
+    "These numbers are for genuine emergencies only. Misuse may result in legal consequences." : {
 
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
