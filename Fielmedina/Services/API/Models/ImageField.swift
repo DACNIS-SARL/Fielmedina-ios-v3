@@ -5,7 +5,7 @@
 //  Created by Aslan on 1/16/26.
 //
 
-import Foundation
+import SwiftUI
 
 struct ImageField: Codable {
     let url: String
@@ -16,6 +16,10 @@ struct ImageContainer: Codable {
     let imageMobile: ImageField?
     
     var displayURL: String? {
-        imageMobile?.url ?? image?.url
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return image?.url ?? imageMobile?.url
+        } else {
+            return imageMobile?.url ?? image?.url
+        }
     }
 }

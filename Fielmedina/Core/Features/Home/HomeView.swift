@@ -15,7 +15,7 @@ enum HomeNavigationDestination: Hashable {
 }
 
 struct HomeView: View {
-    @State private var showTaxiButton = false
+    @State private var showTaxiButton = true
 
     var body: some View {
         NavigationStack {

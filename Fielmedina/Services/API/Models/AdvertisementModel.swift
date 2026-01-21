@@ -5,7 +5,7 @@
 //  Created by Aslan on 1/16/26.
 //
 
-import Foundation
+import SwiftUI
 
 struct Advertisement: Codable, Identifiable {
     let id: String
@@ -17,7 +17,11 @@ struct Advertisement: Codable, Identifiable {
     let imageTablet: ImageField?
     
     var displayImage: String? {
-        imageMobile?.url ?? imageTablet?.url
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return imageTablet?.url ?? imageMobile?.url
+        } else {
+            return imageMobile?.url ?? imageTablet?.url
+        }
     }
 }
 

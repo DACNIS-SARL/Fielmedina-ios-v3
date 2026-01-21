@@ -83,7 +83,7 @@ struct HeroBanner: View {
                                         .font(.system(size: 14, weight: .semibold))
                                 }
                                 .foregroundStyle(.black)
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: 250)
                                 .frame(height: 56)
                                 .background(Color.yellow)
                                 .clipShape(Capsule())
