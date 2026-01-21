@@ -13,6 +13,10 @@ struct Tip: Codable, Identifiable {
     let descriptionFr: String
     
     var displayDescription: String {
-        descriptionFr.isEmpty ? descriptionEn : descriptionFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench && !descriptionFr.isEmpty {
+            return descriptionFr
+        }
+        return descriptionEn
     }
 }

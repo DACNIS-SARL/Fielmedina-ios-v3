@@ -39,6 +39,9 @@ struct HomeView: View {
                                 subtitle: "Top events"
                             )
                             .padding(.top, 50)
+                            
+                            TipsCarousel()
+                                .padding(.top, 50)
                         }
                     }
                     .padding(.bottom, 100)
