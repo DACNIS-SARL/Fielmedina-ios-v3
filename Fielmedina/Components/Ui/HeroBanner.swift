@@ -1,112 +1,73 @@
-//
-//  HeroBanner.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/15/26.
-//
-
-
 import SwiftUI
 
 struct HeroBanner: View {
-    let showTaxiButton: Bool
-    
-    init(showTaxiButton: Bool = true) {
-        self.showTaxiButton = showTaxiButton
-    }
+    private let baseHeight: CGFloat = 320
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.clear
-                .frame(height: 350)
-                .background(
-                    Image("hero-bg")
-                        .resizable()
-                        .scaledToFill()
-                )
-                .clipped()
-            
-            LinearGradient(
-                colors: [
-                    Color.black.opacity(0.25),
-                    Color.clear,
-                    Color.black.opacity(0.15)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            
-            VStack(spacing: 0) {
-                Spacer()
+        GeometryReader { geometry in
+            ZStack(alignment: .bottomLeading) {
+                // Background Image with Parallax
+                Image("hero-bg")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: baseHeight)
+                    .clipped()
+                    .scrollTransition(axis: .vertical) { content, phase in
+                        content
+                            .scaleEffect(phase.isIdentity ? 1 : 1.1)
+                            .offset(y: phase.isIdentity ? 0 : phase.value * -50)
+                    }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                // Modern Gradient Overlay
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.4),
+                        Color.clear,
+                        Color.black.opacity(0.3)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(width: geometry.size.width, height: baseHeight)
+                .allowsHitTesting(false)
+                
+                // Responsive Content constrained to screen width
+                VStack(alignment: .leading, spacing: -4) {
                     Text("Tunisia")
-                        .font(.system(size: 80, weight: .bold))
+                        .font(.system(size: 72, weight: .black))
                         .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.3), radius: 4)
+                        .shadow(color: .black.opacity(0.4), radius: 8)
+                        .minimumScaleFactor(0.3)
+                        .lineLimit(1)
                     
                     Text("welcome")
-                        .font(.system(size: 44, weight: .medium))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.9))
                         .shadow(color: .black.opacity(0.3), radius: 4)
-                        .padding(.leading, 8)
+                        .padding(.leading, 4)
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
-                
-                Spacer()
-                
-                HStack(spacing: 12) {
-                    NavigationLink(value: HomeNavigationDestination.publicTransports) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "train.side.rear.car")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Public transports")
-                                .font(.system(size: 14, weight: .semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .frame(height: 56)
-                        .background(Color.blue)
-                        .clipShape(Capsule())
-                        .shadow(color: .black.opacity(0.15), radius: 6)
-                    }
-                    .buttonStyle(.plain)
-                    .simultaneousGesture(TapGesture().onEnded {
-                        FirebaseUtils.trackButtonTap(
-                            buttonName: "public_transport",
-                            screenName: "Home"
-                        )
-                    })
-                    
-                    if showTaxiButton {
-                        NavigationLink(value: HomeNavigationDestination.taxiBooking) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "car.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text("Book a Taxi")
-                                    .font(.system(size: 14, weight: .semibold))
-                            }
-                            .foregroundStyle(.black)
-                            .padding(.horizontal, 20)
-                            .frame(height: 56)
-                            .background(Color.yellow)
-                            .clipShape(Capsule())
-                            .shadow(color: .black.opacity(0.15), radius: 6)
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(TapGesture().onEnded {
-                            FirebaseUtils.trackButtonTap(
-                                buttonName: "book_taxi",
-                                screenName: "Home"
-                            )
-                        })
-                    }
+                .padding(.bottom, 48)
+                .frame(width: geometry.size.width, alignment: .bottomLeading)
+                .scrollTransition(axis: .vertical) { content, phase in
+                    content
+                        .opacity(phase.isIdentity ? 1 : 1 - abs(phase.value))
+                        .blur(radius: phase.isIdentity ? 0 : abs(phase.value) * 5)
+                        .offset(y: phase.isIdentity ? 0 : phase.value * 20)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, -30)
             }
         }
-        .frame(height: 350)
+        .frame(height: baseHeight)
+        .clipped()
     }
+}
+
+#Preview {
+    ScrollView {
+        HeroBanner()
+        Color.gray.frame(height: 1000)
+    }
+    .ignoresSafeArea()
 }

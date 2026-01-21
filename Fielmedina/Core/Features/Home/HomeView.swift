@@ -1,10 +1,3 @@
-//
-//  HomeView.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/7/26.
-//
-
 import SwiftUI
 
 enum HomeNavigationDestination: Hashable {
@@ -16,43 +9,83 @@ enum HomeNavigationDestination: Hashable {
 
 struct HomeView: View {
     @State private var showTaxiButton = true
+    @State private var scrollOffset: CGFloat = 0
+    
+    private let buttonStickyThreshold: CGFloat = 180
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-                
-                ScrollView {
+            ScrollView {
+                VStack(spacing: 0) {
+                    HeroBanner()
+                    
+                    // Action Buttons with responsive layout
                     VStack(spacing: 0) {
-                        HeroBanner(showTaxiButton: showTaxiButton)
-                        
-                        VStack(spacing: 32) {
-                            CarouselListLocations(
-                                title: "Top Attractions",
-                                subtitle: "Top places for you"
-                            )
-                            .padding(.top, 80)
-                            
-                            CarouselListEvent(
-                                title: "Best Experiences",
-                                subtitle: "Top events"
-                            )
-                            .padding(.top, 50)
-                            
-                            TipsCarousel()
-                                .padding(.top, 50)
+                        if !areButtonsSticky {
+                            actionButtons
+                                .padding(.horizontal, 16)
+                                .padding(.top, -28)
+                                .zIndex(1)
+                                .transition(.opacity.combined(with: .scale(0.95)))
+                        } else {
+                            Color.clear
+                                .frame(height: 56)
                         }
                     }
-                    .padding(.bottom, 100)
+                    
+                    VStack(spacing: 32) {
+                        CarouselListLocations(
+                            title: "Top Attractions",
+                            subtitle: "Top places for you"
+                        )
+                        .padding(.top, 24)
+                        
+                        CarouselListEvent(
+                            title: "Best Experiences",
+                            subtitle: "Top events"
+                        )
+                        .padding(.top, 16)
+                        
+                        TipsCarousel()
+                            .padding(.top, 16)
+                    }
+                    .background(Color(.systemBackground))
                 }
-                .ignoresSafeArea()
+                .padding(.bottom, 100)
             }
+            .onScrollGeometryChange(for: CGFloat.self) { geo in
+                geo.contentOffset.y + geo.contentInsets.top
+            } action: { _, newValue in
+                scrollOffset = newValue
+            }
+            .background(Color(.systemBackground))
+            .ignoresSafeArea(edges: .top)
+            .safeAreaInset(edge: .top) {
+                if areButtonsSticky {
+                    VStack(spacing: 0) {
+                        HStack(spacing: 12) {
+                            actionButtons
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(.ultraThinMaterial)
+                        .overlay(alignment: .bottom) {
+                            Divider()
+                        }
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(100)
+                }
+            }
+            .animation(.smooth(duration: 0.3), value: areButtonsSticky)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
                 }
             }
+            .toolbarBackground(areButtonsSticky ? .automatic : .hidden, for: .navigationBar)
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
                 case .allLocations:
@@ -67,6 +100,80 @@ struct HomeView: View {
             }
         }
     }
+    
+    private var areButtonsSticky: Bool {
+        scrollOffset > buttonStickyThreshold
+    }
+    
+    private var actionButtons: some View {
+        ViewThatFits(in: .horizontal) {
+            // Horizontal layout for wide screens
+            HStack(spacing: 12) {
+                publicTransportButton
+                if showTaxiButton {
+                    taxiBookingButton
+                }
+            }
+            
+            // Scaled down horizontal layout
+            HStack(spacing: 8) {
+                publicTransportButton.scaleEffect(0.9)
+                if showTaxiButton {
+                    taxiBookingButton.scaleEffect(0.9)
+                }
+            }
+            
+            // Vertical layout for very narrow screens
+            VStack(spacing: 8) {
+                publicTransportButton
+                if showTaxiButton {
+                    taxiBookingButton
+                }
+            }
+        }
+    }
+    
+    private var publicTransportButton: some View {
+        NavigationLink(value: HomeNavigationDestination.publicTransports) {
+            HStack(spacing: 8) {
+                Image(systemName: "train.side.rear.car")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Public transports")
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .frame(height: 50)
+            .background(Color.blue)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.1), radius: 4)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var taxiBookingButton: some View {
+        NavigationLink(value: HomeNavigationDestination.taxiBooking) {
+            HStack(spacing: 8) {
+                Image(systemName: "car.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Book a Taxi")
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.black)
+            .padding(.horizontal, 16)
+            .frame(height: 50)
+            .background(Color.yellow)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.1), radius: 4)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+#Preview {
+    HomeView()
 }
 
 #Preview {
