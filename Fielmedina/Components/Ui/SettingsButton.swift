@@ -13,9 +13,11 @@ struct SettingsButton: View {
             SettingsView()
         } label: {
             Image(systemName: "gearshape")
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.primary)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }
 

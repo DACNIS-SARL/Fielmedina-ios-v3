@@ -87,6 +87,9 @@
         }
       }
     },
+    "Discover beautiful trails coming soon!" : {
+
+    },
     "Done" : {
       "localizations" : {
         "fr" : {
@@ -186,6 +189,9 @@
           }
         }
       }
+    },
+    "Hiking Trails" : {
+
     },
     "hiking_button" : {
       "extractionState" : "manual",
@@ -362,7 +368,11 @@
         }
       }
     },
+    "Public Transport" : {
+
+    },
     "Public Transport list" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -395,6 +405,9 @@
         }
       }
     },
+    "Routes and schedules coming soon!" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "fr" : {
@@ -424,6 +437,9 @@
           }
         }
       }
+    },
+    "Taxi Booking" : {
+
     },
     "There are no events in this category yet.\nCheck back soon!" : {
       "localizations" : {
