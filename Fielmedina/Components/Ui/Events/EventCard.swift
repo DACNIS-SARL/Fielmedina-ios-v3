@@ -10,72 +10,77 @@ import SwiftUI
 struct EventCardView: View {
     let event: Event
     let cardWidth: CGFloat = 320
-    let cardHeight: CGFloat = 300
+    let cardHeight: CGFloat = 380
     
-    private var isFree: Bool {
-        event.isFree
-    }
-
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .bottom) {
+            // Background Image
             FielmedinaImage(url: event.imageURL, contentMode: .fill)
                 .frame(width: cardWidth, height: cardHeight)
                 .clipped()
-           
+            
+            // Bottom gradient overlay
             LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.0), Color.black.opacity(0.8)]),
-                startPoint: .top,
+                colors: [.clear, .black.opacity(0.7), .black.opacity(0.85)],
+                startPoint: .center,
                 endPoint: .bottom
             )
             
-            VStack(alignment: .leading) {
-                Text(event.displayName)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .lineLimit(3)
-                
-                Text(event.displayDate)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
+            // Price badge - top left
+            VStack {
+                HStack {
+                    PriceBadge(price: event.displayPrice, isFree: event.isFree)
+                    Spacer()
+                }
+                Spacer()
             }
-            .padding()
+            .padding(16)
             
-            VStack(alignment: .leading, spacing: 5) {
-                if !isFree {
-                    Text("Price")
-                        .font(.custom("filmedinaSize", size: 16))
-                        .foregroundColor(.accentColor)
-                        .bold()
-                }
-                if isFree {
-                    Text(event.displayPrice)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.accentColor)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
-                } else {
-                    Text(event.displayPrice)
-                        .font(.subheadline)
-                }
+            // Title and date - bottom
+            VStack(alignment: .leading, spacing: 8) {
+                Text(event.displayName)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                
+                Text(event.displayDateFormatted)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.9))
             }
-            .padding(12)
-            .background(Color(.systemBackground))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 0,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 12
-                )
-            )
-            .padding(.top, 12)
-            .offset(y: -(cardHeight / 2) + 50)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20)
         }
         .frame(width: cardWidth, height: cardHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(radius: 4)
+        .clipShape(.rect(cornerRadius: 24, style: .continuous))
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
     }
 }
 
+// MARK: - Price Badge Component
+
+private struct PriceBadge: View {
+    let price: String
+    let isFree: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if isFree {
+                Text("Free")
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Text("From")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.accentColor)
+                Text(price)
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(.primary)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(.systemBackground).opacity(0.95))
+        .clipShape(.rect(cornerRadius: 12, style: .continuous))
+    }
+}

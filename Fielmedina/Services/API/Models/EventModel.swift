@@ -56,6 +56,14 @@ struct Event: Codable, Identifiable {
         return formatDate(startDate)
     }
     
+    /// Modern formatted date like "Thu, Feb 13, 8:30PM"
+    var displayDateFormatted: String {
+        if let time = time {
+            return "\(formatDateModern(startDate)), \(formatTimeModern(time))"
+        }
+        return formatDateModern(startDate)
+    }
+    
     var imageURL: String? {
         images?.first?.displayURL
     }
@@ -95,6 +103,40 @@ struct Event: Codable, Identifiable {
             return timeString
         }
 
+        return timeString
+    }
+    
+    private func formatDateModern(_ dateString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        if let date = formatter.date(from: dateString) {
+            formatter.dateFormat = "EEE, MMM d"
+            return formatter.string(from: date)
+        }
+        return dateString
+    }
+    
+    private func formatTimeModern(_ timeString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        
+        if let date = formatter.date(from: timeString) {
+            formatter.dateFormat = "h:mma"
+            formatter.amSymbol = "AM"
+            formatter.pmSymbol = "PM"
+            return formatter.string(from: date)
+        }
+        
+        // Fallback for HH:mm input
+        formatter.dateFormat = "HH:mm"
+        if let date = formatter.date(from: timeString) {
+            formatter.dateFormat = "h:mma"
+            formatter.amSymbol = "AM"
+            formatter.pmSymbol = "PM"
+            return formatter.string(from: date)
+        }
+        
         return timeString
     }
 }

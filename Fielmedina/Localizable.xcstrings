@@ -113,6 +113,9 @@
         }
       }
     },
+    "From" : {
+
+    },
     "hiking_button" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -227,6 +230,7 @@
       }
     },
     "Price" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
