@@ -12,8 +12,6 @@ struct TipsCarousel: View {
     @State private var isLoading = true
     @State private var currentPageIndex = 0
     
-    let cardBackgroundColor = Color(red: 168/255, green: 108/255, blue: 82/255)
-    
     var body: some View {
         Group {
             if isLoading {
@@ -35,7 +33,7 @@ struct TipsCarousel: View {
                         TabView(selection: $currentPageIndex) {
                             ForEach(Array(tips.enumerated()), id: \.element.id) { index, tip in
                                 VStack {
-                                    Text(tip.displayDescription)
+                                    Text(tip.displayDescription.htmlToMarkdown())
                                         .font(.body)
                                         .foregroundColor(.white)
                                         .multilineTextAlignment(.leading)
@@ -60,7 +58,7 @@ struct TipsCarousel: View {
                         .padding(.bottom, 24)
                     }
                     .frame(height: 240)
-                    .background(cardBackgroundColor)
+                    .background(Color.accentColor)
                     .cornerRadius(20)
                     .padding(.horizontal)
                 }
