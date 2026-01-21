@@ -129,11 +129,13 @@ struct CarouselListEvent: View {
                             .padding(.horizontal)
                         }
                         .scrollClipDisabled()
+                        .transition(.opacity.animation(.easeIn(duration: 0.3)))
                     }
                 }
                 .padding(.bottom, bottomPadding)
             }
         }
+        .animation(.easeIn(duration: 0.3), value: isLoading)
         .task {
             await loadEvents()
         }

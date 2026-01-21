@@ -119,8 +119,10 @@ struct CarouselListLocations: View {
                     .padding(.horizontal)
                 }
                 .scrollClipDisabled()
+                .transition(.opacity.animation(.easeIn(duration: 0.3)))
             }
         }
+        .animation(.easeIn(duration: 0.3), value: isLoading)
         .task {
             await loadLocations()
         }

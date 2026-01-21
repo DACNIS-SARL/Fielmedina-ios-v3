@@ -8,16 +8,25 @@
 import SwiftUI
 
 struct TipsCarousel: View {
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var tips: [Tip] = []
     @State private var isLoading = true
     @State private var currentPageIndex = 0
+    
+    private var cardHeight: CGFloat {
+        sizeClass == .regular ? 340 : 240
+    }
+    
+    private var tipFont: Font {
+        sizeClass == .regular ? .title2 : .body
+    }
     
     var body: some View {
         Group {
             if isLoading {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color(.systemGray5))
-                    .frame(height: 240)
+                    .frame(height: cardHeight)
                     .padding(.horizontal, 24)
                     .redacted(reason: .placeholder)
             } else if tips.isEmpty {
@@ -34,7 +43,7 @@ struct TipsCarousel: View {
                             ForEach(Array(tips.enumerated()), id: \.element.id) { index, tip in
                                 VStack {
                                     Text(tip.displayDescription.htmlToMarkdown())
-                                        .font(.body)
+                                        .font(tipFont)
                                         .foregroundColor(.white)
                                         .multilineTextAlignment(.leading)
                                         .padding(.top, 32)
@@ -57,7 +66,7 @@ struct TipsCarousel: View {
                         }
                         .padding(.bottom, 24)
                     }
-                    .frame(height: 240)
+                    .frame(height: cardHeight)
                     .background(Color.accentColor)
                     .cornerRadius(20)
                     .padding(.horizontal)
