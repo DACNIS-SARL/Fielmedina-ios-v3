@@ -14,19 +14,18 @@ struct EventCardView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Background Image
             FielmedinaImage(url: event.imageURL, contentMode: .fill)
                 .frame(width: cardWidth, height: cardHeight)
                 .clipped()
             
-            // Bottom gradient overlay
+            
             LinearGradient(
                 colors: [.clear, .black.opacity(0.7), .black.opacity(0.85)],
                 startPoint: .center,
                 endPoint: .bottom
             )
             
-            // Price badge - top left
+           
             VStack {
                 HStack {
                     PriceBadge(price: event.displayPrice, isFree: event.isFree)
@@ -36,7 +35,7 @@ struct EventCardView: View {
             }
             .padding(16)
             
-            // Title and date - bottom
+            
             VStack(alignment: .leading, spacing: 8) {
                 Text(event.displayName)
                     .font(.title3.weight(.bold))
@@ -57,7 +56,6 @@ struct EventCardView: View {
     }
 }
 
-// MARK: - Price Badge Component
 
 private struct PriceBadge: View {
     let price: String

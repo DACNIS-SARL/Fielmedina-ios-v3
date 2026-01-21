@@ -118,6 +118,7 @@ struct CarouselListLocations: View {
                     }
                     .padding(.horizontal)
                 }
+                .scrollClipDisabled()
             }
         }
         .task {

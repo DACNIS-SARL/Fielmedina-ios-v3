@@ -128,6 +128,7 @@ struct CarouselListEvent: View {
                             }
                             .padding(.horizontal)
                         }
+                        .scrollClipDisabled()
                     }
                 }
                 .padding(.bottom, bottomPadding)
