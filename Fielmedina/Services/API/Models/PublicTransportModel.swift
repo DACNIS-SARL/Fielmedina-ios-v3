@@ -16,6 +16,7 @@ struct PublicTransport: Codable, Identifiable {
     let toRegionEn: String
     let toRegionFr: String
     let times: [TransportTime]?
+    let city: TransportCity?
     
     var displayType: String {
         publicTransportType.displayName
@@ -25,6 +26,10 @@ struct PublicTransport: Codable, Identifiable {
         let from = fromRegionFr.isEmpty ? fromRegionEn : fromRegionFr
         let to = toRegionFr.isEmpty ? toRegionEn : toRegionFr
         return "\(from) → \(to)"
+    }
+
+    var displayCity: String? {
+        city?.displayName
     }
     
     var displayTimes: [String] {
@@ -36,6 +41,16 @@ struct TransportType: Codable {
     let nameEn: String
     let nameFr: String
     
+    var displayName: String {
+        nameFr.isEmpty ? nameEn : nameFr
+    }
+}
+
+struct TransportCity: Codable, Identifiable {
+    let id: String
+    let nameEn: String
+    let nameFr: String
+
     var displayName: String {
         nameFr.isEmpty ? nameEn : nameFr
     }

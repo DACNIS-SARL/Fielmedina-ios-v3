@@ -227,6 +227,9 @@
         }
       }
     },
+    "Info" : {
+
+    },
     "Loading events..." : {
       "localizations" : {
         "fr" : {
@@ -246,6 +249,9 @@
           }
         }
       }
+    },
+    "Loading routes..." : {
+
     },
     "Loading trails..." : {
 
@@ -344,6 +350,9 @@
         }
       }
     },
+    "No routes available" : {
+
+    },
     "Open Settings" : {
       "localizations" : {
         "fr" : {
@@ -371,7 +380,7 @@
         }
       }
     },
-    "Public Transport" : {
+    "Public transport" : {
 
     },
     "Public Transport list" : {
@@ -408,9 +417,6 @@
         }
       }
     },
-    "Routes and schedules coming soon!" : {
-
-    },
     "Settings" : {
       "localizations" : {
         "fr" : {
@@ -432,6 +438,9 @@
       }
     },
     "Start Hiking" : {
+
+    },
+    "Take public transport for an easy and budget-friendly trip to the Medina. A great choice for local vibes and saving money." : {
 
     },
     "Tap any contact to call immediately" : {
@@ -516,6 +525,9 @@
           }
         }
       }
+    },
+    "Transport mode" : {
+
     },
     "Try Again" : {
       "localizations" : {

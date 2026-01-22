@@ -180,6 +180,11 @@ query GetTransports($cityId: Int, $limit: Int, $offset: Int) {
       nameEn
       nameFr
     }
+    city {
+      id
+      nameEn
+      nameFr
+    }
     fromRegionEn
     fromRegionFr
     toRegionEn
