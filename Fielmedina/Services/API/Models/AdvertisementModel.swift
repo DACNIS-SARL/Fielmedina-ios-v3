@@ -24,9 +24,8 @@ struct Advertisement: Codable, Identifiable {
     var displayImage: String? {
         if UIDevice.current.userInterfaceIdiom == .pad {
             return imageTablet?.url ?? imageMobile?.url
-        } else {
-            return imageMobile?.url ?? imageTablet?.url
         }
+        return imageMobile?.url ?? imageTablet?.url
     }
 }
 
