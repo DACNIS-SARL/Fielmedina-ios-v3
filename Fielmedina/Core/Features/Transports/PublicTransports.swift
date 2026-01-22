@@ -51,7 +51,7 @@ struct PublicTransports: View {
                 
                 VStack(spacing: 24) {
                     infoCard
-                        .padding(.top, -60)
+                        .padding(.top, -80)
                     
                     VStack(spacing: 24) {
                         modePicker
@@ -60,10 +60,10 @@ struct PublicTransports: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
                     .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                    .padding(.top, -20)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 }
             }
+            .padding(.bottom, 100)
         }
         .ignoresSafeArea(edges: .top)
         .background(Color(.systemGroupedBackground))
@@ -81,41 +81,41 @@ struct PublicTransports: View {
     }
 
     private var heroSection: some View {
-        ZStack(alignment: .top) {
-            Image("public-transports")
-                .resizable()
-                .scaledToFill()
-                .frame(height: 360)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .overlay {
-                    LinearGradient(
-                        colors: [.black.opacity(0.4), .clear, .black.opacity(0.2)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                }
-        }
+        Image("public-transports")
+            .resizable()
+            .scaledToFill()
+            .containerRelativeFrame(.horizontal)
+            .frame(height: 320)
+            .clipped()
+            .overlay {
+                LinearGradient(
+                    colors: [.black.opacity(0.5), .clear, .black.opacity(0.3)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
     }
 
     private var infoCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("A tip")
-                .font(.title3)
-                .bold()
+                .font(.system(size: 26, weight: .bold))
                 .foregroundStyle(.white)
             
-            Text("Take public transport for an easy and budget-friendly trip to the Medina.\nA great choice for local vibes and saving money.")
-                .font(.system(size: 16))
-                .lineSpacing(4)
-                .foregroundStyle(.white.opacity(0.9))
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Take public transport for an easy and budget-friendly trip to the Medina.")
+                    .font(.system(size: 16))
+                Text("A great choice for local vibes and saving money.")
+                    .font(.system(size: 16))
+            }
+            .foregroundStyle(.white.opacity(0.95))
         }
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.15, green: 0.15, blue: 0.15))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(Color(red: 0.2, green: 0.2, blue: 0.2))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .padding(.horizontal, 16)
-        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+        .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
     }
 
     private var modePicker: some View {
@@ -126,13 +126,16 @@ struct PublicTransports: View {
                         selectedMode = mode
                     }
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: mode.iconName)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                         Text(mode.title)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                     .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
                     .frame(maxWidth: .infinity)
                     .background {
                         if selectedMode == mode {
@@ -205,7 +208,6 @@ struct PublicTransports: View {
                 .transition(.opacity)
             }
         }
-        .frame(minHeight: 300) // Stabilize layout
         .animation(.smooth(duration: 0.3), value: selectedMode)
         .animation(.smooth(duration: 0.3), value: isLoading)
     }
@@ -241,7 +243,6 @@ struct PublicTransports: View {
         for route in routes {
             if processedIds.contains(route.id) { continue }
 
-            // Look for a reverse route
             let reverse = routes.first { other in
                 !processedIds.contains(other.id) &&
                 other.id != route.id &&
@@ -295,13 +296,9 @@ struct TransportCitySection: View {
 
 struct TransportRouteCard: View {
     let pair: TransportPair
-
-    private func getName(from: String, to: String) -> (String, String) {
-        return (from, to)
-    }
+    @Environment(\.horizontalSizeClass) var sizeClass
 
     private func formatTime(_ time: String) -> String {
-        // If time is HH:mm:ss, take first 5 chars
         if time.count >= 5 {
             return String(time.prefix(5))
         }
@@ -309,52 +306,76 @@ struct TransportRouteCard: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Forward Route
-            VStack(alignment: .leading, spacing: 12) {
-                routeHeader(from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
-                           to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr)
-                
-                timeGrid(times: pair.forward.displayTimes)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        ViewThatFits {
+            // Try horizontal layout first
+            horizontalLayout
             
-            // Backward Route
-            if let backward = pair.backward {
-                VStack(alignment: .leading, spacing: 12) {
-                    routeHeader(from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
-                               to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr)
-                    
-                    timeGrid(times: backward.displayTimes)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                Spacer()
-                    .frame(maxWidth: .infinity)
-            }
+            // Fall back to vertical layout on small screens
+            verticalLayout
         }
         .padding(.vertical, 8)
     }
 
-    @ViewBuilder
-    private func routeHeader(from: String, to: String) -> some View {
-        HStack(spacing: 6) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(from)
-                Text(to)
-            }
-            .font(.system(size: 15, weight: .bold))
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+    private var horizontalLayout: some View {
+        HStack(alignment: .top, spacing: 12) {
+            routeSection(
+                from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
+                to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr,
+                times: pair.forward.displayTimes
+            )
             
-            Image(systemName: "arrow.turn.down.right")
-                .font(.system(size: 14, weight: .semibold))
+            if let backward = pair.backward {
+                routeSection(
+                    from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
+                    to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr,
+                    times: backward.displayTimes
+                )
+            }
         }
+    }
+
+    private var verticalLayout: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            routeSection(
+                from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
+                to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr,
+                times: pair.forward.displayTimes
+            )
+            
+            if let backward = pair.backward {
+                routeSection(
+                    from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
+                    to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr,
+                    times: backward.displayTimes
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func routeSection(from: String, to: String, times: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(from)
+                    Text(to)
+                }
+                .font(.system(size: 15, weight: .bold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                
+                Image(systemName: "arrow.turn.down.right")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            
+            timeGrid(times: times)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     @ViewBuilder
     private func timeGrid(times: [String]) -> some View {
-        let columns = [GridItem(.fixed(65)), GridItem(.fixed(65))]
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 2)
         LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
             ForEach(times, id: \.self) { time in
                 HStack(spacing: 4) {

@@ -4,6 +4,9 @@
     "%@ TND" : {
 
     },
+    "A great choice for local vibes and saving money." : {
+
+    },
     "A tip" : {
       "localizations" : {
         "fr" : {
@@ -495,15 +498,8 @@
         }
       }
     },
-    "Take public transport for an easy and budget-friendly trip to the Medina.\nA great choice for local vibes and saving money." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prenez les transports en commun pour vous rendre facilement et à moindre coût à la médina.\nUn excellent choix pour découvrir l'ambiance locale et faire des économies."
-          }
-        }
-      }
+    "Take public transport for an easy and budget-friendly trip to the Medina." : {
+
     },
     "Tap any contact to call immediately" : {
       "localizations" : {
