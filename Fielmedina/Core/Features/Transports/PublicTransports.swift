@@ -140,16 +140,16 @@ struct PublicTransports: View {
                     .background {
                         if selectedMode == mode {
                             Capsule()
-                                .fill(.white)
+                                .fill(Color(.systemBackground))
                                 .shadow(color: .black.opacity(0.1), radius: 4)
                         }
                     }
-                    .foregroundStyle(.black)
+                    .foregroundStyle(selectedMode == mode ? .primary : .secondary)
                 }
             }
         }
         .padding(4)
-        .background(Color(.systemGray6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(Capsule())
     }
 
@@ -307,10 +307,7 @@ struct TransportRouteCard: View {
 
     var body: some View {
         ViewThatFits {
-            // Try horizontal layout first
             horizontalLayout
-            
-            // Fall back to vertical layout on small screens
             verticalLayout
         }
         .padding(.vertical, 8)
