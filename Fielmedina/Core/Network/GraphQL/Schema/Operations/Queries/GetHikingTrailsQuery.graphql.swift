@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetHikingTrails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude } } } }"#,
+        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr city { __typename id nameEn nameFr } latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude } } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -66,6 +66,7 @@ extension FielmedinaAPI {
           .field("nameFr", String.self),
           .field("descriptionEn", String.self),
           .field("descriptionFr", String.self),
+          .field("city", City?.self),
           .field("latitude", Double?.self),
           .field("longitude", Double?.self),
           .field("images", [Image].self),
@@ -80,10 +81,34 @@ extension FielmedinaAPI {
         var nameFr: String { __data["nameFr"] }
         var descriptionEn: String { __data["descriptionEn"] }
         var descriptionFr: String { __data["descriptionFr"] }
+        var city: City? { __data["city"] }
         var latitude: Double? { __data["latitude"] }
         var longitude: Double? { __data["longitude"] }
         var images: [Image] { __data["images"] }
         var locations: [Location] { __data["locations"] }
+
+        /// Hiking.City
+        ///
+        /// Parent Type: `CityType`
+        struct City: FielmedinaAPI.SelectionSet {
+          let __data: DataDict
+          init(_dataDict: DataDict) { __data = _dataDict }
+
+          static var __parentType: any ApolloAPI.ParentType { FielmedinaAPI.Objects.CityType }
+          static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
+            .field("id", FielmedinaAPI.ID.self),
+            .field("nameEn", String?.self),
+            .field("nameFr", String?.self),
+          ] }
+          static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            GetHikingTrailsQuery.Data.Hiking.City.self
+          ] }
+
+          var id: FielmedinaAPI.ID { __data["id"] }
+          var nameEn: String? { __data["nameEn"] }
+          var nameFr: String? { __data["nameFr"] }
+        }
 
         /// Hiking.Image
         ///

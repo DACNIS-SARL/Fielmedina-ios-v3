@@ -13,6 +13,7 @@ struct Hiking: Codable, Identifiable {
     let nameFr: String
     let descriptionEn: String?
     let descriptionFr: String?
+    let city: TrailCity?
     let latitude: Double
     let longitude: Double
     let images: [ImageContainer]?
@@ -24,6 +25,10 @@ struct Hiking: Codable, Identifiable {
     
     var displayDescription: String? {
         descriptionFr ?? descriptionEn
+    }
+
+    var cityName: String? {
+        city?.displayName
     }
     
     var imageURL: String? {
@@ -90,6 +95,16 @@ struct TrailLocation: Codable, Identifiable {
     let latitude: Double
     let longitude: Double
     
+    var displayName: String {
+        nameFr.isEmpty ? nameEn : nameFr
+    }
+}
+
+struct TrailCity: Codable, Identifiable {
+    let id: String
+    let nameEn: String
+    let nameFr: String
+
     var displayName: String {
         nameFr.isEmpty ? nameEn : nameFr
     }

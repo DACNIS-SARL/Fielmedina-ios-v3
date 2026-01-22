@@ -87,7 +87,7 @@
         }
       }
     },
-    "Discover beautiful trails coming soon!" : {
+    "Discover Tunisia through guided walking tours" : {
 
     },
     "Done" : {
@@ -190,7 +190,7 @@
         }
       }
     },
-    "Hiking Trails" : {
+    "Hiking Routes" : {
 
     },
     "hiking_button" : {
@@ -246,6 +246,9 @@
           }
         }
       }
+    },
+    "Loading trails..." : {
+
     },
     "Location Access Required" : {
       "localizations" : {
@@ -427,6 +430,9 @@
           }
         }
       }
+    },
+    "Start Hiking" : {
+
     },
     "Tap any contact to call immediately" : {
       "localizations" : {
