@@ -38,6 +38,8 @@ struct AllEventsListView: View {
                         isBoostedOnly: true,
                         bottomPadding: 8
                     )
+                    
+                    AdsCarousel()
 
                     HStack {
                         Text("ALL EVENTS")
@@ -234,4 +236,3 @@ struct CategoryFilterView: View {
 #Preview {
     AllEventsListView()
 }
-

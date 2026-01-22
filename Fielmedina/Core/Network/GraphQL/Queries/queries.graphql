@@ -72,6 +72,7 @@ query GetAds($countryId: Int, $cityId: Int, $limit: Int) {
     id
     name
     link
+    shortLink
     country {
       id
       name

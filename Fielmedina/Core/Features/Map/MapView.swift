@@ -35,7 +35,6 @@ struct MapView: View {
                         Spacer()
                         locationButton
                     }
-                    // .padding(.trailing, 16)
                     .safeAreaPadding(.trailing)
                     .padding(.bottom, 50)
                 }

@@ -36,6 +36,8 @@ struct HomeView: View {
                         )
                         .padding(.top, 24)
                         
+                        AdsCarousel()
+                        
                         CarouselListEvent(
                             title: "Best Experiences",
                             subtitle: "Top events"

@@ -24,6 +24,8 @@ struct PublicTransports: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
+                
+                AdsCarousel()
             }
             Spacer()
         }

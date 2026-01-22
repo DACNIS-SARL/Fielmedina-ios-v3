@@ -63,6 +63,8 @@ struct UtilView: View {
                     .padding(.horizontal, 24)
                     
                     EmergencyWarningCard()
+                    
+                    AdsCarousel()
                 }
             }
             .toolbar {

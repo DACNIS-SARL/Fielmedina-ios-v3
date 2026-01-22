@@ -11,10 +11,15 @@ struct Advertisement: Codable, Identifiable {
     let id: String
     let name: String
     let link: String?
+    let shortLink: String?
     let country: AdCountry?
     let city: AdCity?
     let imageMobile: ImageField?
     let imageTablet: ImageField?
+
+    var resolvedLink: String? {
+        shortLink
+    }
     
     var displayImage: String? {
         if UIDevice.current.userInterfaceIdiom == .pad {

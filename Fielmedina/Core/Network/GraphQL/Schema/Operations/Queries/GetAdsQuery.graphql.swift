@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetAds"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetAds($countryId: Int, $cityId: Int, $limit: Int) { ads(countryId: $countryId, cityId: $cityId, isActive: true, limit: $limit) { __typename id name link country { __typename id name } city { __typename id nameEn } imageMobile { __typename ...ImageFields } imageTablet { __typename ...ImageFields } } }"#,
+        #"query GetAds($countryId: Int, $cityId: Int, $limit: Int) { ads(countryId: $countryId, cityId: $cityId, isActive: true, limit: $limit) { __typename id name link shortLink country { __typename id name } city { __typename id nameEn } imageMobile { __typename ...ImageFields } imageTablet { __typename ...ImageFields } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -65,6 +65,7 @@ extension FielmedinaAPI {
           .field("id", FielmedinaAPI.ID.self),
           .field("name", String?.self),
           .field("link", String.self),
+          .field("shortLink", String?.self),
           .field("country", Country?.self),
           .field("city", City?.self),
           .field("imageMobile", ImageMobile?.self),
@@ -77,6 +78,7 @@ extension FielmedinaAPI {
         var id: FielmedinaAPI.ID { __data["id"] }
         var name: String? { __data["name"] }
         var link: String { __data["link"] }
+        var shortLink: String? { __data["shortLink"] }
         var country: Country? { __data["country"] }
         var city: City? { __data["city"] }
         var imageMobile: ImageMobile? { __data["imageMobile"] }

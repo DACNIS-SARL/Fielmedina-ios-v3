@@ -37,6 +37,8 @@ struct AllLocationListView: View {
                         isBoostedOnly: true,
                         bottomPadding: 8
                     )
+                    
+                    AdsCarousel()
 
                     HStack {
                         Text("ALL LOCATIONS")
