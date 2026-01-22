@@ -44,27 +44,25 @@ struct PublicTransports: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    heroSection
-                    infoCard
-                    modePicker
-                    contentSection
-                }
-                .padding(.bottom, 32)
+        ScrollView {
+            VStack(spacing: 20) {
+                heroSection
+                infoCard
+                modePicker
+                contentSection
             }
-            .background(Color(.systemGroupedBackground))
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SettingsButton()
-                }
+            .padding(.bottom, 32)
+        }
+        .background(Color(.systemGroupedBackground))
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                SettingsButton()
             }
-            .toolbarBackground(.visible, for: .navigationBar)
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await loadTransports()
-            }
+        }
+        .toolbarBackground(.visible, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await loadTransports()
         }
     }
 
