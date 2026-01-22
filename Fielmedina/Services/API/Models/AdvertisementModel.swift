@@ -22,10 +22,7 @@ struct Advertisement: Codable, Identifiable {
     }
     
     var displayImage: String? {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return imageTablet?.url ?? imageMobile?.url
-        }
-        return imageMobile?.url ?? imageTablet?.url
+        ImageContainer(image: imageTablet, imageMobile: imageMobile).displayURL
     }
 }
 

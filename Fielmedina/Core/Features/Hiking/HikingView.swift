@@ -195,7 +195,7 @@ struct HikingCardView: View {
         VStack(alignment: .leading, spacing: 12) {
             ZStack(alignment: .bottomTrailing) {
                 FielmedinaImage(url: hiking.imageURL, contentMode: .fill)
-                    .frame(height: 220)
+                    .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 220)
                     .clipped()
 
                 Circle()
@@ -218,6 +218,7 @@ struct HikingCardView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             HStack(alignment: .top) {
@@ -265,6 +266,7 @@ struct HikingCardView: View {
             .buttonStyle(.plain)
         }
         .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color(.systemBackground))

@@ -44,7 +44,6 @@
 		BE059AA82F0EA7F400A609D5 /* FielmedinaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AB22F0EA7F400A609D5 /* FielmedinaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AD62F0EB05F00A609D5 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
-		BE2025952F222D1C0011326F /* Sousse2.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Sousse2.gpx; path = ../Sousse2.gpx; sourceTree = "<group>"; };
 		BE985BE22F11C47400FC6061 /* SousseLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = SousseLocation.gpx; path = ../SousseLocation.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -119,7 +118,6 @@
 		BE059A902F0EA7EF00A609D5 = {
 			isa = PBXGroup;
 			children = (
-				BE2025952F222D1C0011326F /* Sousse2.gpx */,
 				BE985BE22F11C47400FC6061 /* SousseLocation.gpx */,
 				BE059AD62F0EB05F00A609D5 /* Readme.md */,
 				BE059A9B2F0EA7EF00A609D5 /* Fielmedina */,
