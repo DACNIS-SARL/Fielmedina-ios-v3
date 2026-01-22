@@ -82,10 +82,27 @@ struct AdsCarousel: View {
         let previousAds = ads
         do {
             ads = try await AdService.shared.fetchAds(limit: 10)
+            await prefetchImages(for: ads)
         } catch {
             ads = previousAds
         }
         isLoading = false
+    }
+
+    private func prefetchImages(for ads: [Advertisement]) async {
+        let urls = ads.compactMap { $0.displayImage }.compactMap(URL.init)
+        await withTaskGroup(of: Void.self) { group in
+            for url in urls {
+                group.addTask {
+                    let request = URLRequest(
+                        url: url,
+                        cachePolicy: .returnCacheDataElseLoad,
+                        timeoutInterval: 30
+                    )
+                    _ = try? await URLSession.shared.data(for: request)
+                }
+            }
+        }
     }
 
     private func openAd(_ ad: Advertisement) {
