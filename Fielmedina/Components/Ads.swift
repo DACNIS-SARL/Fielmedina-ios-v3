@@ -11,9 +11,16 @@ struct AdsCarousel: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.openURL) private var openURL
 
+    private let startIndex: Int
+
     @State private var ads: [Advertisement] = []
     @State private var isLoading = true
-    @State private var currentIndex = 0
+    @State private var currentIndex: Int
+
+    init(startIndex: Int = 0) {
+        self.startIndex = startIndex
+        _currentIndex = State(initialValue: startIndex)
+    }
 
     private var adHeight: CGFloat {
         sizeClass == .regular ? 90 : 50
@@ -82,6 +89,7 @@ struct AdsCarousel: View {
         let previousAds = ads
         do {
             ads = try await AdService.shared.fetchAds(limit: 10)
+            currentIndex = ads.isEmpty ? 0 : currentIndex % ads.count
             await prefetchImages(for: ads)
         } catch {
             ads = previousAds

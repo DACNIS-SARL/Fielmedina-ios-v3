@@ -51,7 +51,7 @@ struct HikingView: View {
                                 )
 
                                 if index < trails.count - 1 {
-                                    AdsCarousel()
+                                    AdsCarousel(startIndex: index + 1)
                                         .padding(.top, 4)
                                 }
                             }
