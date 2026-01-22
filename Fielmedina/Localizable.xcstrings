@@ -4,6 +4,16 @@
     "%@ TND" : {
 
     },
+    "A tip" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un conseil"
+          }
+        }
+      }
+    },
     "All Events" : {
       "localizations" : {
         "fr" : {
@@ -74,6 +84,16 @@
         }
       }
     },
+    "Check back later for updated schedules." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenez plus tard pour consulter les horaires mis à jour."
+          }
+        }
+      }
+    },
     "Coming soon!" : {
 
     },
@@ -88,7 +108,14 @@
       }
     },
     "Discover Tunisia through guided walking tours" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découvrez la Tunisie grâce à des visites guidées à pied"
+          }
+        }
+      }
     },
     "Done" : {
       "localizations" : {
@@ -191,7 +218,14 @@
       }
     },
     "Hiking Routes" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentiers de randonnée"
+          }
+        }
+      }
     },
     "hiking_button" : {
       "extractionState" : "manual",
@@ -227,9 +261,6 @@
         }
       }
     },
-    "Info" : {
-
-    },
     "Loading events..." : {
       "localizations" : {
         "fr" : {
@@ -251,10 +282,24 @@
       }
     },
     "Loading routes..." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement des itinéraires..."
+          }
+        }
+      }
     },
     "Loading trails..." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement des pistes..."
+          }
+        }
+      }
     },
     "Location Access Required" : {
       "localizations" : {
@@ -350,8 +395,15 @@
         }
       }
     },
-    "No routes available" : {
-
+    "No trips available" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun voyage disponible"
+          }
+        }
+      }
     },
     "Open Settings" : {
       "localizations" : {
@@ -381,15 +433,11 @@
       }
     },
     "Public transport" : {
-
-    },
-    "Public Transport list" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Liste des transports publics"
+            "value" : "Transports publics"
           }
         }
       }
@@ -438,10 +486,24 @@
       }
     },
     "Start Hiking" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencer la randonnée"
+          }
+        }
+      }
     },
-    "Take public transport for an easy and budget-friendly trip to the Medina. A great choice for local vibes and saving money." : {
-
+    "Take public transport for an easy and budget-friendly trip to the Medina.\nA great choice for local vibes and saving money." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prenez les transports en commun pour vous rendre facilement et à moindre coût à la médina.\nUn excellent choix pour découvrir l'ambiance locale et faire des économies."
+          }
+        }
+      }
     },
     "Tap any contact to call immediately" : {
       "localizations" : {
@@ -454,7 +516,14 @@
       }
     },
     "Taxi Booking" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réservation de taxi"
+          }
+        }
+      }
     },
     "There are no events in this category yet.\nCheck back soon!" : {
       "localizations" : {
@@ -526,8 +595,56 @@
         }
       }
     },
-    "Transport mode" : {
-
+    "transport_bus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus"
+          }
+        }
+      }
+    },
+    "transport_metro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Métro"
+          }
+        }
+      }
+    },
+    "transport_train" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train"
+          }
+        }
+      }
     },
     "Try Again" : {
       "localizations" : {

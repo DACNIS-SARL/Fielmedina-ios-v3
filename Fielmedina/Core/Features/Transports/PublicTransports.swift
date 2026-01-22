@@ -17,27 +17,28 @@ enum TransportMode: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .bus:
-            return "Bus"
+            return String(localized: "transport_bus")
         case .train:
-            return "Train"
+            return String(localized: "transport_train")
         case .metro:
-            return "Metro"
+            return String(localized: "transport_metro")
         }
     }
 
     var iconName: String {
         switch self {
         case .bus:
-            return "bus.fill"
+            return "bus"
         case .train:
-            return "train.side.front.car"
+            return "train.side.rear.car"
         case .metro:
-            return "tram.fill"
+            return "train.side.front.car"
         }
     }
 }
 
 struct PublicTransports: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedMode: TransportMode = .bus
     @State private var transports: [PublicTransport] = []
     @State private var isLoading = true
@@ -45,121 +46,168 @@ struct PublicTransports: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
                 heroSection
-                infoCard
-                modePicker
-                contentSection
+                
+                VStack(spacing: 24) {
+                    infoCard
+                        .padding(.top, -60)
+                    
+                    VStack(spacing: 24) {
+                        modePicker
+                        contentSection
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 24)
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                    .padding(.top, -20)
+                }
             }
-            .padding(.bottom, 32)
         }
+        .ignoresSafeArea(edges: .top)
         .background(Color(.systemGroupedBackground))
+        .navigationTitle("Public transport")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 SettingsButton()
             }
         }
-        .toolbarBackground(.visible, for: .navigationBar)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             await loadTransports()
         }
     }
 
     private var heroSection: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Image("public-transports")
                 .resizable()
                 .scaledToFill()
-                .frame(height: 260)
+                .frame(height: 360)
+                .frame(maxWidth: .infinity)
                 .clipped()
-
-            VStack {
-                Text("Public transport")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Capsule())
-            }
+                .overlay {
+                    LinearGradient(
+                        colors: [.black.opacity(0.4), .clear, .black.opacity(0.2)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
     }
 
     private var infoCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Info")
-                .font(.headline)
-            Text("Take public transport for an easy and budget-friendly trip to the Medina. A great choice for local vibes and saving money.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("A tip")
+                .font(.title3)
+                .bold()
+                .foregroundStyle(.white)
+            
+            Text("Take public transport for an easy and budget-friendly trip to the Medina.\nA great choice for local vibes and saving money.")
+                .font(.system(size: 16))
+                .lineSpacing(4)
+                .foregroundStyle(.white.opacity(0.9))
         }
-        .padding(16)
+        .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(Color(red: 0.15, green: 0.15, blue: 0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .padding(.horizontal, 16)
+        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
     }
 
     private var modePicker: some View {
-        Picker("Transport mode", selection: $selectedMode) {
+        HStack(spacing: 0) {
             ForEach(TransportMode.allCases) { mode in
-                Label(mode.title, systemImage: mode.iconName)
-                    .tag(mode)
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedMode = mode
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: mode.iconName)
+                            .font(.system(size: 16, weight: .semibold))
+                        Text(mode.title)
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background {
+                        if selectedMode == mode {
+                            Capsule()
+                                .fill(.white)
+                                .shadow(color: .black.opacity(0.1), radius: 4)
+                        }
+                    }
+                    .foregroundStyle(.black)
+                }
             }
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .onChange(of: selectedMode) { _, _ in
-            Task { await loadTransports() }
-        }
+        .padding(4)
+        .background(Color(.systemGray6))
+        .clipShape(Capsule())
     }
 
     @ViewBuilder
     private var contentSection: some View {
-        if isLoading {
-            ProgressView("Loading routes...")
-                .padding(.top, 24)
-        } else if let errorMessage {
-            VStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.red)
-                Text(errorMessage)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Button("Retry") {
-                    Task { await loadTransports() }
+        Group {
+            if isLoading {
+                VStack {
+                    ProgressView("Loading routes...")
+                        .padding(.top, 40)
                 }
-                .buttonStyle(.bordered)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 24)
-        } else if transports.isEmpty {
-            VStack(spacing: 12) {
-                Image(systemName: "bus")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
-                Text("No routes available")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 24)
-        } else {
-            VStack(spacing: 16) {
-                ForEach(groupedTransports, id: \.cityName) { cityGroup in
-                    TransportCitySection(city: cityGroup.cityName, routes: cityGroup.routes)
+                .frame(maxWidth: .infinity)
+                .transition(.opacity)
+            } else if let errorMessage {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.red)
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Retry") {
+                        Task { await loadTransports() }
+                    }
+                    .buttonStyle(.bordered)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
+                .transition(.opacity)
+            } else if filteredTransports.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "bus.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.secondary.opacity(0.5))
+                    
+                    Text("No trips available")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("Check back later for updated schedules.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 60)
+                .padding(.bottom, 20)
+                .transition(.opacity)
+            } else {
+                VStack(spacing: 32) {
+                    ForEach(groupedTransports, id: \.cityName) { cityGroup in
+                        TransportCitySection(city: cityGroup.cityName, routePairs: groupRoutesIntoPairs(cityGroup.routes))
+                    }
+                }
+                .transition(.opacity)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
         }
+        .frame(minHeight: 300) // Stabilize layout
+        .animation(.smooth(duration: 0.3), value: selectedMode)
+        .animation(.smooth(duration: 0.3), value: isLoading)
     }
 
     private var groupedTransports: [TransportCityGroup] {
@@ -185,6 +233,39 @@ struct PublicTransports: View {
         }
         isLoading = false
     }
+
+    private func groupRoutesIntoPairs(_ routes: [PublicTransport]) -> [TransportPair] {
+        var pairs: [TransportPair] = []
+        var processedIds = Set<String>()
+
+        for route in routes {
+            if processedIds.contains(route.id) { continue }
+
+            // Look for a reverse route
+            let reverse = routes.first { other in
+                !processedIds.contains(other.id) &&
+                other.id != route.id &&
+                other.fromRegionEn == route.toRegionEn &&
+                other.toRegionEn == route.fromRegionEn
+            }
+
+            if let reverseRoute = reverse {
+                pairs.append(TransportPair(forward: route, backward: reverseRoute))
+                processedIds.insert(route.id)
+                processedIds.insert(reverseRoute.id)
+            } else {
+                pairs.append(TransportPair(forward: route, backward: nil))
+                processedIds.insert(route.id)
+            }
+        }
+        return pairs
+    }
+}
+
+struct TransportPair: Identifiable {
+    var id: String { forward.id }
+    let forward: PublicTransport
+    let backward: PublicTransport?
 }
 
 struct TransportCityGroup: Identifiable {
@@ -196,74 +277,95 @@ struct TransportCityGroup: Identifiable {
 
 struct TransportCitySection: View {
     let city: String
-    let routes: [PublicTransport]
-
-    private let timeColumns = [GridItem(.flexible()), GridItem(.flexible())]
+    let routePairs: [TransportPair]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 20) {
             Text(city)
-                .font(.title3)
+                .font(.title2)
                 .bold()
 
-            ForEach(routes) { route in
-                TransportRouteCard(route: route, timeColumns: timeColumns)
+            ForEach(routePairs) { pair in
+                TransportRouteCard(pair: pair)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(.systemBackground))
-        )
     }
 }
 
 struct TransportRouteCard: View {
-    let route: PublicTransport
-    let timeColumns: [GridItem]
+    let pair: TransportPair
 
-    private var fromName: String {
-        route.fromRegionFr.isEmpty ? route.fromRegionEn : route.fromRegionFr
+    private func getName(from: String, to: String) -> (String, String) {
+        return (from, to)
     }
 
-    private var toName: String {
-        route.toRegionFr.isEmpty ? route.toRegionEn : route.toRegionFr
-    }
-
-    private var times: [String] {
-        route.displayTimes
+    private func formatTime(_ time: String) -> String {
+        // If time is HH:mm:ss, take first 5 chars
+        if time.count >= 5 {
+            return String(time.prefix(5))
+        }
+        return time
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(fromName)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text(toName)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                }
-
-                Spacer()
-
-                Image(systemName: "arrow.triangle.swap")
-                    .font(.system(size: 18, weight: .semibold))
+        HStack(alignment: .top, spacing: 16) {
+            // Forward Route
+            VStack(alignment: .leading, spacing: 12) {
+                routeHeader(from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
+                           to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr)
+                
+                timeGrid(times: pair.forward.displayTimes)
             }
-
-            LazyVGrid(columns: timeColumns, alignment: .leading, spacing: 6) {
-                ForEach(times, id: \.self) { time in
-                    Label(time, systemImage: "clock")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Backward Route
+            if let backward = pair.backward {
+                VStack(alignment: .leading, spacing: 12) {
+                    routeHeader(from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
+                               to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr)
+                    
+                    timeGrid(times: backward.displayTimes)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Spacer()
+                    .frame(maxWidth: .infinity)
             }
         }
-        .padding(12)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func routeHeader(from: String, to: String) -> some View {
+        HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(from)
+                Text(to)
+            }
+            .font(.system(size: 15, weight: .bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            
+            Image(systemName: "arrow.turn.down.right")
+                .font(.system(size: 14, weight: .semibold))
+        }
+    }
+    
+    @ViewBuilder
+    private func timeGrid(times: [String]) -> some View {
+        let columns = [GridItem(.fixed(65)), GridItem(.fixed(65))]
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
+            ForEach(times, id: \.self) { time in
+                HStack(spacing: 4) {
+                    Image(systemName: "clock.badge")
+                        .font(.system(size: 10))
+                    Text(formatTime(time))
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
