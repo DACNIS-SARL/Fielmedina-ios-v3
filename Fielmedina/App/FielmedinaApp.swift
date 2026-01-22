@@ -38,8 +38,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
     
-    // MARK: - APNS Token Handling
-    
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         LogUtils.d("AppDelegate", "✅ APNS token received successfully")
@@ -94,7 +92,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                                 "payload": userInfo
                                             ])
         } else {
-            // Post generic payload so listeners can decide how to handle it
             NotificationCenter.default.post(name: .pushDeepLink,
                                             object: nil,
                                             userInfo: [
@@ -107,11 +104,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 }
 
 extension Notification.Name {
-    /// Posted when a push notification is tapped and the app should navigate based on payload.
     static let pushDeepLink = Notification.Name("push_deep_link")
 }
 
-// MARK: - Main App
 
 @main
 struct FielmedinaApp: App {
