@@ -150,23 +150,6 @@ struct LocationDetailView: View {
         .contentMargins(.horizontal, 16, for: .scrollContent)
     }
     
-    // private var imageCarousel: some View {
-    //     let images = location.images ?? []
-    //     return TabView(selection: $selectedImageIndex) {
-    //         ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-    //             ZStack {
-    //                 FielmedinaImage(url: image.displayURL, contentMode: .fill)
-    //                     .frame(height: 260)
-    //                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    //             }
-    //             .tag(index)
-    //         }
-    //     }
-    //     .frame(height: 260)
-    //     .tabViewStyle(.page(indexDisplayMode: .automatic))
-    //     .animation(.easeInOut, value: selectedImageIndex)
-    // }
-    
     private func detailBadge(title: String, value: String, systemImage: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
