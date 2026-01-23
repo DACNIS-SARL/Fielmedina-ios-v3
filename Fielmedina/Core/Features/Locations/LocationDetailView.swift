@@ -10,16 +10,16 @@ import AVFoundation
 
 struct LocationDetailView: View {
     let location: Location
-
+    
     @State private var selectedImageIndex = 0
     @State private var speechManager = LocationSpeechManager()
-
+    
     var body: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 0) {
                 HeroBanner(imageURL: location.imageURL, showText: false)
                     .frame(maxWidth: .infinity)
-
+                
                 detailsCard
             }
             .frame(maxWidth: .infinity)
@@ -36,7 +36,7 @@ struct LocationDetailView: View {
             }
         }
     }
-
+    
     private var detailsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(location.displayName)
@@ -44,7 +44,7 @@ struct LocationDetailView: View {
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
-
+            
             HStack(spacing: 12) {
                 Button {
                     FirebaseUtils.trackButtonTap(buttonName: "start_navigation", screenName: "LocationDetail")
@@ -58,23 +58,23 @@ struct LocationDetailView: View {
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
-
+                
                 Button {
                     FirebaseUtils.trackButtonTap(buttonName: "open_ar", screenName: "LocationDetail")
                 } label: {
                     Image(systemName: "cube.transparent")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 44, height: 44)
+                        .font(.system(size: 22, weight: .semibold))
+                        .frame(width: 52, height: 52)
                         .background(Color(.systemGray6))
-                        .clipShape(Circle())
+                        .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
-
+            
             imageCarousel
-
+            
             AdsCarousel()
-
+            
             if let category = location.category?.displayName {
                 Text(category.uppercased())
                     .font(.caption)
@@ -85,30 +85,34 @@ struct LocationDetailView: View {
                     .foregroundStyle(.white)
                     .clipShape(Capsule())
             }
-
+            
             HStack(spacing: 16) {
-                if let schedule = location.displaySchedule {
-                    detailBadge(title: "Opening Hours", value: schedule, systemImage: "clock")
+                VStack(alignment: .leading, spacing: 12) {
+                    if let schedule = location.displaySchedule {
+                        detailBadge(title: "Opening Hours", value: schedule, systemImage: "clock")
+                    }
+                    if let admission = location.displayAdmission {
+                        detailBadge(title: "Admission Fee", value: "\(admission) TND", systemImage: "dollarsign.circle")
+                    }
                 }
-                if let admission = location.displayAdmission {
-                    detailBadge(title: "Admission Fee", value: "\(admission) TND", systemImage: "dollarsign.circle")
-                }
-
+                
+                Spacer(minLength: 0)
+                
                 Button {
                     if let story = location.displayStory {
                         speechManager.speak(text: story)
                     }
                 } label: {
                     Image(systemName: "waveform")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 44, height: 44)
+                        .font(.system(size: 22, weight: .semibold))
+                        .frame(width: 56, height: 56)
                         .background(Color(red: 0.72, green: 0.41, blue: 0.25))
                         .foregroundStyle(.white)
-                        .clipShape(Circle())
+                        .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
-
+            
             if let story = location.displayStory {
                 Text(story.htmlToMarkdown())
                     .font(.subheadline)
@@ -122,24 +126,47 @@ struct LocationDetailView: View {
         .padding(.top, -24)
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
-
     private var imageCarousel: some View {
         let images = location.images ?? []
-        return TabView(selection: $selectedImageIndex) {
-            ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                ZStack {
+        
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 12) {
+                ForEach(Array(images.enumerated()), id: \.offset) { index, image in
                     FielmedinaImage(url: image.displayURL, contentMode: .fill)
-                        .frame(height: 200)
+                        .containerRelativeFrame(.horizontal)
+                        .aspectRatio(16/9, contentMode: .fill)
+                        .frame(maxHeight: 450)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1 : 0.9)
+                                .blur(radius: phase.isIdentity ? 0 : 2)
+                        }
                 }
-                .tag(index)
             }
+            .scrollTargetLayout()
         }
-        .frame(height: 200)
-        .tabViewStyle(.page(indexDisplayMode: .automatic))
-        .animation(.easeInOut, value: selectedImageIndex)
+        .scrollTargetBehavior(.viewAligned)
+        .contentMargins(.horizontal, 16, for: .scrollContent)
     }
-
+    
+    // private var imageCarousel: some View {
+    //     let images = location.images ?? []
+    //     return TabView(selection: $selectedImageIndex) {
+    //         ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+    //             ZStack {
+    //                 FielmedinaImage(url: image.displayURL, contentMode: .fill)
+    //                     .frame(height: 260)
+    //                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    //             }
+    //             .tag(index)
+    //         }
+    //     }
+    //     .frame(height: 260)
+    //     .tabViewStyle(.page(indexDisplayMode: .automatic))
+    //     .animation(.easeInOut, value: selectedImageIndex)
+    // }
+    
     private func detailBadge(title: String, value: String, systemImage: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
@@ -153,12 +180,12 @@ struct LocationDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
-
+    
 }
 
 final class LocationSpeechManager {
     private let synthesizer = AVSpeechSynthesizer()
-
+    
     func speak(text: String) {
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)

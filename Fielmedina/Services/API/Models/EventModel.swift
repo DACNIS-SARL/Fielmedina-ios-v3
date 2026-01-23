@@ -38,11 +38,19 @@ struct Event: Codable, Identifiable {
     let category: EventCategory?
     
     var displayName: String {
-        nameFr ?? nameEn
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let nameFr, !nameFr.isEmpty {
+            return nameFr
+        }
+        return nameEn
     }
 
     var displayDescription: String? {
-        descriptionFr ?? descriptionEn
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let descriptionFr, !descriptionFr.isEmpty {
+            return descriptionFr
+        }
+        return descriptionEn
     }
 
     var resolvedLink: String? {

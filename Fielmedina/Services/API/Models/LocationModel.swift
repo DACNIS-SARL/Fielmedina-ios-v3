@@ -23,11 +23,19 @@ struct Location: Codable, Identifiable {
     let closedDays: [ClosedDay]?
     
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench && !nameFr.isEmpty {
+            return nameFr
+        }
+        return nameEn
     }
     
     var displayStory: String? {
-        storyFr ?? storyEn
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let storyFr, !storyFr.isEmpty {
+            return storyFr
+        }
+        return storyEn
     }
     
     var imageURL: String? {
