@@ -45,9 +45,13 @@ struct PublicTransports: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                heroSection
+        ScrollView(showsIndicators: false) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                HeroBanner(
+                    imageName: "public-transports",
+                    showText: false
+                )
+                .frame(maxWidth: .infinity)
                 
                 VStack(spacing: 24) {
                     infoCard
@@ -57,15 +61,18 @@ struct PublicTransports: View {
                         modePicker
                         contentSection
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
+                    .padding(26)
                     .background(Color(.systemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .padding(.horizontal, 16)
                 }
+                .padding(.bottom, 100)
             }
-            .padding(.bottom, 100)
+            .frame(maxWidth: .infinity)
         }
+        .coordinateSpace(name: "scroll")
         .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea(edges: .horizontal)
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Public transport")
         .navigationBarTitleDisplayMode(.inline)
@@ -78,22 +85,6 @@ struct PublicTransports: View {
         .task {
             await loadTransports()
         }
-    }
-
-    private var heroSection: some View {
-        Image("public-transports")
-            .resizable()
-            .scaledToFill()
-            .containerRelativeFrame(.horizontal)
-            .frame(height: 320)
-            .clipped()
-            .overlay {
-                LinearGradient(
-                    colors: [.black.opacity(0.5), .clear, .black.opacity(0.3)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
     }
 
     private var infoCard: some View {
@@ -377,9 +368,9 @@ struct TransportRouteCard: View {
             ForEach(times, id: \.self) { time in
                 HStack(spacing: 4) {
                     Image(systemName: "clock.badge")
-                        .font(.system(size: 10))
+                        .font(.system(size: 13))
                     Text(formatTime(time))
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
                 }
                 .foregroundStyle(.secondary)
             }

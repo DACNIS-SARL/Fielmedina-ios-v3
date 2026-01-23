@@ -2,10 +2,24 @@
   "sourceLanguage" : "en",
   "strings" : {
     "%@ TND" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ TND"
+          }
+        }
+      }
     },
     "A great choice for local vibes and saving money." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un excellent choix pour profiter de l'ambiance locale et faire des économies."
+          }
+        }
+      }
     },
     "A tip" : {
       "localizations" : {
@@ -98,7 +112,14 @@
       }
     },
     "Coming soon!" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À venir bientôt !"
+          }
+        }
+      }
     },
     "Did you know?" : {
       "localizations" : {
@@ -216,6 +237,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Astuces et conseils"
+          }
+        }
+      }
+    },
+    "hero_tunisia_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunisia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunisia"
+          }
+        }
+      }
+    },
+    "hero_welcome_subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue"
           }
         }
       }
@@ -499,7 +554,14 @@
       }
     },
     "Take public transport for an easy and budget-friendly trip to the Medina." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prenez les transports en commun pour vous rendre facilement et à moindre coût à la médina."
+          }
+        }
+      }
     },
     "Tap any contact to call immediately" : {
       "localizations" : {
@@ -652,16 +714,6 @@
         }
       }
     },
-    "Tunisia" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tunisie"
-          }
-        }
-      }
-    },
     "Upcoming events" : {
       "localizations" : {
         "fr" : {
@@ -691,16 +743,6 @@
     },
     "Voice Tester" : {
 
-    },
-    "welcome" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "bienvenue"
-          }
-        }
-      }
     }
   },
   "version" : "1.1"
