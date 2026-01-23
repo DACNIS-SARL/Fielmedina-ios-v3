@@ -23,6 +23,8 @@ struct MapView: View {
     @State private var locations: [Location] = []
     @State private var selectedLocation: Location?
     @State private var showLocationDetail = false
+    @State private var showFilterSheet = false
+    @State private var selectedCategoryIds: Set<String> = []
     
     var body: some View {
         NavigationStack {
@@ -30,7 +32,7 @@ struct MapView: View {
                 Map(viewport: $viewport) {
                     Puck2D(bearing: .heading)
 
-                    PointAnnotationGroup(locations, id: \.id) { location in
+                    PointAnnotationGroup(filteredLocations, id: \.id) { location in
                         var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(
                             latitude: location.latitude,
                             longitude: location.longitude
@@ -61,21 +63,22 @@ struct MapView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Filter")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 12)
-                            .clipShape(Capsule())
+                    Button {
+                        showFilterSheet = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Filter")
+                                .font(.system(size: 16, weight: .semibold))
                         }
-                        .buttonStyle(.plain)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 12)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
                     }
+                    .buttonStyle(.plain)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
                 }
@@ -91,6 +94,13 @@ struct MapView: View {
             }
             .task {
                 await loadLocations()
+            }
+            .sheet(isPresented: $showFilterSheet) {
+                MapFilterSheet(
+                    categories: availableCategories,
+                    selectedCategoryIds: $selectedCategoryIds
+                )
+                .presentationDetents([.medium, .large])
             }
             .alert("Location Access Required", isPresented: $showLocationAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -109,9 +119,30 @@ struct MapView: View {
     private func loadLocations() async {
         do {
             locations = try await LocationService.shared.fetchLocations(limit: 200)
+            if selectedCategoryIds.isEmpty {
+                selectedCategoryIds = Set(availableCategories.map { $0.id })
+            }
         } catch {
             locations = []
         }
+    }
+
+    private var filteredLocations: [Location] {
+        guard !selectedCategoryIds.isEmpty else { return locations }
+        return locations.filter { location in
+            guard let categoryId = location.category?.id else { return false }
+            return selectedCategoryIds.contains(categoryId)
+        }
+    }
+
+    private var availableCategories: [LocationCategory] {
+        var seen = Set<String>()
+        let categories = locations.compactMap { $0.category }.filter { category in
+            if seen.contains(category.id) { return false }
+            seen.insert(category.id)
+            return true
+        }
+        return categories.sorted { $0.displayName < $1.displayName }
     }
     
     @ViewBuilder

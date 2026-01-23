@@ -359,17 +359,6 @@
         }
       }
     },
-    "Loading trails..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement des pistes..."
-          }
-        }
-      }
-    },
     "Location Access Required" : {
       "localizations" : {
         "fr" : {
@@ -530,6 +519,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Réservez votre place"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser"
           }
         }
       }
