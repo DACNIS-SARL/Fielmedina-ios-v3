@@ -25,6 +25,9 @@ struct Event: Codable, Identifiable {
     let id: String
     let nameEn: String
     let nameFr: String?
+    let descriptionEn: String?
+    let descriptionFr: String?
+    let shortLink: String?
     let startDate: String
     let endDate: String?
     let time: String?
@@ -36,6 +39,14 @@ struct Event: Codable, Identifiable {
     
     var displayName: String {
         nameFr ?? nameEn
+    }
+
+    var displayDescription: String? {
+        descriptionFr ?? descriptionEn
+    }
+
+    var resolvedLink: String? {
+        shortLink
     }
     
     var displayPrice: String {

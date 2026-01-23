@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetEventsByCity"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int, $boost: Boolean) { events( cityId: $cityId categoryId: $categoryId limit: $limit offset: $offset boost: $boost ) { __typename id nameEn nameFr startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } boost location { __typename id nameEn nameFr } } }"#,
+        #"query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int, $boost: Boolean) { events( cityId: $cityId categoryId: $categoryId limit: $limit offset: $offset boost: $boost ) { __typename id nameEn nameFr descriptionEn descriptionFr shortLink startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } boost location { __typename id nameEn nameFr } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -74,6 +74,9 @@ extension FielmedinaAPI {
           .field("id", FielmedinaAPI.ID.self),
           .field("nameEn", String.self),
           .field("nameFr", String.self),
+          .field("descriptionEn", String.self),
+          .field("descriptionFr", String.self),
+          .field("shortLink", String?.self),
           .field("startDate", FielmedinaAPI.Date.self),
           .field("endDate", FielmedinaAPI.Date.self),
           .field("time", FielmedinaAPI.Time.self),
@@ -90,6 +93,9 @@ extension FielmedinaAPI {
         var id: FielmedinaAPI.ID { __data["id"] }
         var nameEn: String { __data["nameEn"] }
         var nameFr: String { __data["nameFr"] }
+        var descriptionEn: String { __data["descriptionEn"] }
+        var descriptionFr: String { __data["descriptionFr"] }
+        var shortLink: String? { __data["shortLink"] }
         var startDate: FielmedinaAPI.Date { __data["startDate"] }
         var endDate: FielmedinaAPI.Date { __data["endDate"] }
         var time: FielmedinaAPI.Time { __data["time"] }

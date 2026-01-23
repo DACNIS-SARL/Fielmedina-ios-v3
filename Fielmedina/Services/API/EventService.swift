@@ -43,6 +43,9 @@ class EventService {
                 id: gEvent.id,
                 nameEn: gEvent.nameEn,
                 nameFr: gEvent.nameFr,
+                descriptionEn: gEvent.descriptionEn,
+                descriptionFr: gEvent.descriptionFr,
+                shortLink: gEvent.shortLink,
                 startDate: gEvent.startDate,
                 endDate: gEvent.endDate,
                 time: gEvent.time,
@@ -64,4 +67,3 @@ class EventService {
         }
     }
 }
-
