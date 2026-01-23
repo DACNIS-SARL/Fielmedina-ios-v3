@@ -15,15 +15,19 @@ class TestSpeechManager {
     private var synthesizer = AVSpeechSynthesizer()
     
     func speak(text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
+
+        configureAudioSession()
         
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(text)
         let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en-US"
         
-        let utterance = AVSpeechUtterance(string: text)
+        let utterance = AVSpeechUtterance(string: trimmed)
         let preferredVoice = AVSpeechSynthesisVoice.speechVoices().first { voice in
             voice.language.contains(detectedLang) &&
             (voice.quality == .enhanced || voice.quality == .premium)
@@ -36,6 +40,16 @@ class TestSpeechManager {
         utterance.volume = 1.0
         
         synthesizer.speak(utterance)
+    }
+
+    private func configureAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Speech audio session error: \(error.localizedDescription)")
+        }
     }
     
     func stop() {

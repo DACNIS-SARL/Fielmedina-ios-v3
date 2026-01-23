@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import NaturalLanguage
 
 struct LocationDetailView: View {
     let location: Location
@@ -168,15 +169,45 @@ struct LocationDetailView: View {
 
 final class LocationSpeechManager {
     private let synthesizer = AVSpeechSynthesizer()
-    
+
     func speak(text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.rate = 0.5
-        utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.language.languageCode?.identifier ?? "en")
+
+        configureAudioSession()
+
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(trimmed)
+        let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en-US"
+
+        let utterance = AVSpeechUtterance(string: trimmed)
+        let preferredVoice = AVSpeechSynthesisVoice.speechVoices().first { voice in
+            voice.language.contains(detectedLang) &&
+            (voice.quality == .enhanced || voice.quality == .premium)
+        }
+        utterance.voice = preferredVoice ?? AVSpeechSynthesisVoice(language: detectedLang)
+        utterance.rate = 0.48
+        utterance.pitchMultiplier = 1.0
+        utterance.volume = 1.0
+
         synthesizer.speak(utterance)
+    }
+
+    private func configureAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Speech audio session error: \(error.localizedDescription)")
+        }
+    }
+
+    func stop() {
+        synthesizer.stopSpeaking(at: .immediate)
     }
 }
 
