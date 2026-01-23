@@ -573,6 +573,16 @@
         }
       }
     },
+    "Start Navigation" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer la navigation"
+          }
+        }
+      }
+    },
     "Take public transport for an easy and budget-friendly trip to the Medina." : {
       "localizations" : {
         "fr" : {

@@ -108,18 +108,23 @@ struct AllLocationListView: View {
                     } else {
                         VStack(spacing: 12) {
                             ForEach(filteredLocations) { location in
-                                LocationItem(location: location)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .fill(Color(.secondarySystemBackground))
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .onTapGesture {
-                                        FirebaseUtils.trackButtonTap(
-                                            buttonName: "location_item",
-                                            screenName: "AllLocations"
+                                NavigationLink {
+                                    LocationDetailView(location: location)
+                                } label: {
+                                    LocationItem(location: location)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                .fill(Color(.secondarySystemBackground))
                                         )
-                                    }
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    FirebaseUtils.trackButtonTap(
+                                        buttonName: "location_item",
+                                        screenName: "AllLocations"
+                                    )
+                                })
                             }
                         }
                         .padding(.horizontal, 16)

@@ -107,13 +107,18 @@ struct CarouselListLocations: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(displayedLocations) { location in
-                            LocationCardView(location: location)
-                                .onTapGesture {
-                                    FirebaseUtils.trackButtonTap(
-                                        buttonName: "location_card_\(title)",
-                                        screenName: "Home"
-                                    )
-                                }
+                            NavigationLink {
+                                LocationDetailView(location: location)
+                            } label: {
+                                LocationCardView(location: location)
+                            }
+                            .buttonStyle(.plain)
+                            .simultaneousGesture(TapGesture().onEnded {
+                                FirebaseUtils.trackButtonTap(
+                                    buttonName: "location_card_\(title)",
+                                    screenName: "Home"
+                                )
+                            })
                         }
                     }
                     .padding(.horizontal)

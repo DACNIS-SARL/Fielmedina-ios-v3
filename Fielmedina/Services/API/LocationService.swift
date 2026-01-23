@@ -66,8 +66,8 @@ class LocationService {
                 },
                 openFrom: gLocation.openFrom.map { formatTime($0) },
                 openTo: gLocation.openTo.map { formatTime($0) },
-                storyEn: nil,
-                storyFr: nil,
+                storyEn: gLocation.storyEn,
+                storyFr: gLocation.storyFr,
                 admissionFee: gLocation.admissionFee,
                 closedDays: nil
             )
