@@ -109,18 +109,23 @@ struct AllEventsListView: View {
                     } else {
                         VStack(spacing: 12) {
                             ForEach(filteredEvents) { event in
-                                EventItem(event: event)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .fill(Color(.secondarySystemBackground))
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .onTapGesture {
-                                        FirebaseUtils.trackButtonTap(
-                                            buttonName: "event_item",
-                                            screenName: "AllEvents"
+                                NavigationLink {
+                                    EventDetailView(event: event)
+                                } label: {
+                                    EventItem(event: event)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                .fill(Color(.secondarySystemBackground))
                                         )
-                                    }
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    FirebaseUtils.trackButtonTap(
+                                        buttonName: "event_item",
+                                        screenName: "AllEvents"
+                                    )
+                                })
                             }
                         }
                         .padding(.horizontal, 16)

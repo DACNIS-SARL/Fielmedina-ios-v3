@@ -117,13 +117,18 @@ struct CarouselListEvent: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(displayedEvents) { event in
-                                    EventCardView(event: event)
-                                        .onTapGesture {
-                                            FirebaseUtils.trackButtonTap(
-                                                buttonName: "event_card_\(title)",
-                                                screenName: "Home"
-                                            )
-                                        }
+                                    NavigationLink {
+                                        EventDetailView(event: event)
+                                    } label: {
+                                        EventCardView(event: event)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .simultaneousGesture(TapGesture().onEnded {
+                                        FirebaseUtils.trackButtonTap(
+                                            buttonName: "event_card_\(title)",
+                                            screenName: "Home"
+                                        )
+                                    })
                                 }
                             }
                             .padding(.horizontal)

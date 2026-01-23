@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HeroBanner: View {
     let imageName: String
+    let imageURL: String?
     let showText: Bool
     let primaryText: LocalizedStringResource?
     let secondaryText: LocalizedStringResource?
@@ -16,12 +17,14 @@ struct HeroBanner: View {
     
     init(
         imageName: String = "hero-bg",
+        imageURL: String? = nil,
         showText: Bool = true,
         primaryText: LocalizedStringResource? = "hero_tunisia_title",
         secondaryText: LocalizedStringResource? = "hero_welcome_subtitle",
         height: CGFloat = 320
     ) {
         self.imageName = imageName
+        self.imageURL = imageURL
         self.showText = showText
         self.primaryText = primaryText
         self.secondaryText = secondaryText
@@ -34,11 +37,17 @@ struct HeroBanner: View {
             let dynamicHeight = height + max(0, offset)
             
             ZStack(alignment: .bottom) {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: dynamicHeight)
-                    .clipped()
+                Group {
+                    if let imageURL {
+                        FielmedinaImage(url: imageURL, contentMode: .fill)
+                    } else {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                }
+                .frame(width: geo.size.width, height: dynamicHeight)
+                .clipped()
                 
                 
                 LinearGradient(
