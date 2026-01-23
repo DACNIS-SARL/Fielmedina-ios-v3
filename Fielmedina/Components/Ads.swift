@@ -10,26 +10,26 @@ import SwiftUI
 struct AdsCarousel: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.openURL) private var openURL
-
+    
     private let startIndex: Int
-
+    
     @State private var ads: [Advertisement] = []
     @State private var isLoading = true
     @State private var currentIndex: Int
-
+    
     init(startIndex: Int = 0) {
         self.startIndex = startIndex
         _currentIndex = State(initialValue: startIndex)
     }
-
+    
     private var adHeight: CGFloat {
         sizeClass == .regular ? 90 : 50
     }
-
+    
     private var adWidth: CGFloat {
         sizeClass == .regular ? 728 : 320
     }
-
+    
     var body: some View {
         Group {
             if isLoading {
@@ -66,7 +66,7 @@ struct AdsCarousel: View {
             await refreshAds()
         }
     }
-
+    
     private func refreshAds() async {
         while !Task.isCancelled {
             await loadAds()
@@ -80,7 +80,7 @@ struct AdsCarousel: View {
             try? await Task.sleep(for: .seconds(15))
         }
     }
-
+    
     private func loadAds() async {
         let shouldShowLoading = ads.isEmpty
         if shouldShowLoading {
@@ -96,7 +96,7 @@ struct AdsCarousel: View {
         }
         isLoading = false
     }
-
+    
     private func prefetchImages(for ads: [Advertisement]) async {
         let urls = ads.compactMap { $0.displayImage }.compactMap(URL.init)
         await withTaskGroup(of: Void.self) { group in
@@ -112,7 +112,7 @@ struct AdsCarousel: View {
             }
         }
     }
-
+    
     private func openAd(_ ad: Advertisement) {
         guard let link = ad.resolvedLink, let url = URL(string: link) else {
             return

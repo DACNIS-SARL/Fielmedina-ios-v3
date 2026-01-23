@@ -11,9 +11,9 @@ enum TransportMode: String, CaseIterable, Identifiable {
     case bus
     case train
     case metro
-
+    
     var id: String { rawValue }
-
+    
     var title: String {
         switch self {
         case .bus:
@@ -24,7 +24,7 @@ enum TransportMode: String, CaseIterable, Identifiable {
             return String(localized: "transport_metro")
         }
     }
-
+    
     var iconName: String {
         switch self {
         case .bus:
@@ -43,7 +43,7 @@ struct PublicTransports: View {
     @State private var transports: [PublicTransport] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-
+    
     var body: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 0) {
@@ -86,7 +86,7 @@ struct PublicTransports: View {
             await loadTransports()
         }
     }
-
+    
     private var infoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("A tip")
@@ -108,7 +108,7 @@ struct PublicTransports: View {
         .padding(.horizontal, 16)
         .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
     }
-
+    
     private var modePicker: some View {
         HStack(spacing: 0) {
             ForEach(TransportMode.allCases) { mode in
@@ -143,7 +143,7 @@ struct PublicTransports: View {
         .background(Color(.secondarySystemBackground))
         .clipShape(Capsule())
     }
-
+    
     @ViewBuilder
     private var contentSection: some View {
         Group {
@@ -202,20 +202,20 @@ struct PublicTransports: View {
         .animation(.smooth(duration: 0.3), value: selectedMode)
         .animation(.smooth(duration: 0.3), value: isLoading)
     }
-
+    
     private var groupedTransports: [TransportCityGroup] {
         let grouped = Dictionary(grouping: filteredTransports) { $0.displayCity ?? "" }
         return grouped.keys.sorted().map { key in
             TransportCityGroup(cityName: key, routes: grouped[key] ?? [])
         }
     }
-
+    
     private var filteredTransports: [PublicTransport] {
         transports.filter { transport in
             transport.publicTransportType.displayName.lowercased() == selectedMode.title.lowercased()
         }
     }
-
+    
     private func loadTransports() async {
         isLoading = true
         errorMessage = nil
@@ -226,21 +226,21 @@ struct PublicTransports: View {
         }
         isLoading = false
     }
-
+    
     private func groupRoutesIntoPairs(_ routes: [PublicTransport]) -> [TransportPair] {
         var pairs: [TransportPair] = []
         var processedIds = Set<String>()
-
+        
         for route in routes {
             if processedIds.contains(route.id) { continue }
-
+            
             let reverse = routes.first { other in
                 !processedIds.contains(other.id) &&
                 other.id != route.id &&
                 other.fromRegionEn == route.toRegionEn &&
                 other.toRegionEn == route.fromRegionEn
             }
-
+            
             if let reverseRoute = reverse {
                 pairs.append(TransportPair(forward: route, backward: reverseRoute))
                 processedIds.insert(route.id)
@@ -263,20 +263,20 @@ struct TransportPair: Identifiable {
 struct TransportCityGroup: Identifiable {
     let cityName: String
     let routes: [PublicTransport]
-
+    
     var id: String { cityName }
 }
 
 struct TransportCitySection: View {
     let city: String
     let routePairs: [TransportPair]
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(city)
                 .font(.title2)
                 .bold()
-
+            
             ForEach(routePairs) { pair in
                 TransportRouteCard(pair: pair)
             }
@@ -288,14 +288,14 @@ struct TransportCitySection: View {
 struct TransportRouteCard: View {
     let pair: TransportPair
     @Environment(\.horizontalSizeClass) var sizeClass
-
+    
     private func formatTime(_ time: String) -> String {
         if time.count >= 5 {
             return String(time.prefix(5))
         }
         return time
     }
-
+    
     var body: some View {
         ViewThatFits {
             horizontalLayout
@@ -303,45 +303,49 @@ struct TransportRouteCard: View {
         }
         .padding(.vertical, 8)
     }
-
+    
     private var horizontalLayout: some View {
         HStack(alignment: .top, spacing: 12) {
             routeSection(
                 from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
                 to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr,
-                times: pair.forward.displayTimes
+                times: pair.forward.displayTimes,
+                busNumber: pair.forward.busNumber
             )
             
             if let backward = pair.backward {
                 routeSection(
                     from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
                     to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr,
-                    times: backward.displayTimes
+                    times: backward.displayTimes,
+                    busNumber: backward.busNumber
                 )
             }
         }
     }
-
+    
     private var verticalLayout: some View {
         VStack(alignment: .leading, spacing: 16) {
             routeSection(
                 from: pair.forward.fromRegionFr.isEmpty ? pair.forward.fromRegionEn : pair.forward.fromRegionFr,
                 to: pair.forward.toRegionFr.isEmpty ? pair.forward.toRegionEn : pair.forward.toRegionFr,
-                times: pair.forward.displayTimes
+                times: pair.forward.displayTimes,
+                busNumber: pair.forward.busNumber
             )
             
             if let backward = pair.backward {
                 routeSection(
                     from: backward.fromRegionFr.isEmpty ? backward.fromRegionEn : backward.fromRegionFr,
                     to: backward.toRegionFr.isEmpty ? backward.toRegionEn : backward.toRegionFr,
-                    times: backward.displayTimes
+                    times: backward.displayTimes,
+                    busNumber: backward.busNumber
                 )
             }
         }
     }
-
+    
     @ViewBuilder
-    private func routeSection(from: String, to: String, times: [String]) -> some View {
+    private func routeSection(from: String, to: String, times: [String], busNumber: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -352,8 +356,19 @@ struct TransportRouteCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 
-                Image(systemName: "arrow.turn.down.right")
+                Image(systemName: "arrow.turn.down.left")
                     .font(.system(size: 14, weight: .semibold))
+                    .rotationEffect(.degrees(-20))
+                
+                Spacer(minLength: 0)
+                
+                Text("Bus \(busNumber)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color(.systemGray6))
+                    .clipShape(Capsule())
             }
             
             timeGrid(times: times)

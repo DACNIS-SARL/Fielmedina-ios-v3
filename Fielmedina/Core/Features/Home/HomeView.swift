@@ -20,7 +20,7 @@ struct HomeView: View {
     @State private var scrollOffset: CGFloat = 0
     
     private let buttonStickyThreshold: CGFloat = 180
-
+    
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {

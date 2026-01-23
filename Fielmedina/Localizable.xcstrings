@@ -91,6 +91,9 @@
         }
       }
     },
+    "Bus %@" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "fr" : {

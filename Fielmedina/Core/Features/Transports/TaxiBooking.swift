@@ -8,28 +8,34 @@
 import SwiftUI
 
 struct TaxiBooking: View {
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    
     var body: some View {
         ScrollView(showsIndicators: false){
             LazyVStack(alignment: .leading, spacing: 0) {
                 HeroBanner(imageName: "booking-taxi", showText: false)
                     .frame(maxWidth: .infinity)
                 
-                Spacer()
-                
-                VStack(spacing: 16){
-                    Image(systemName: "car.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.yellow)
-                    
-                    Text("Taxi Booking")
-                        .font(.system(size: 24, weight: .bold))
-
-                    Text("Coming soon!")
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
-                    
+                VStack {
+                    VStack(spacing: 16){
+                        Image(systemName: "car.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.yellow)
+                        
+                        Text("Taxi Booking")
+                            .font(.system(size: 24, weight: .bold))
+                        
+                        Text("Coming soon!")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                        
+                    }
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .center)
+                .containerRelativeFrame(.vertical){
+                    size, axis in
+                    size - (verticalSizeClass == .compact ? 180.0 : 320.0)
+                }
                 
             }
             .frame(maxWidth: .infinity)
@@ -44,35 +50,6 @@ struct TaxiBooking: View {
                 SettingsButton()
             }
         }
-        
-        
-        
-//        VStack {
-//            Spacer()
-//            VStack(spacing: 16) {
-//                Image(systemName: "car.fill")
-//                    .font(.system(size: 60))
-//                    .foregroundColor(.yellow)
-//                
-//                Text("Taxi Booking")
-//                    .font(.system(size: 24, weight: .bold))
-//                
-//                Text("Coming soon!")
-//                    .font(.system(size: 16))
-//                    .foregroundColor(.secondary)
-//            }
-//            Spacer()
-//        }
-//        .navigationTitle("Book a Taxi")
-//        .navigationBarTitleDisplayMode(.inline)
-//        .toolbar {
-//            ToolbarItem(placement: .topBarTrailing) {
-//                SettingsButton()
-//            }
-//        }
-        
-        
-        
         
     }
 }
