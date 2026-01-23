@@ -23,9 +23,7 @@ struct HikingView: View {
                     header
 
                     if isLoading {
-                        ProgressView("Loading trails...")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 40)
+                        HikingSkeletonList()
                     } else if let errorMessage {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")
@@ -157,6 +155,65 @@ struct HikingView: View {
                 }
             }
         }
+    }
+}
+
+struct HikingSkeletonList: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            ForEach(0..<3, id: \.self) { _ in
+                HikingSkeletonCard()
+            }
+        }
+        .redacted(reason: .placeholder)
+    }
+}
+
+struct HikingSkeletonCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(.systemGray5))
+                .frame(height: 220)
+
+            HStack(spacing: 8) {
+                ForEach(0..<4, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color(.systemGray5))
+                        .frame(width: 64, height: 48)
+                }
+            }
+
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.systemGray5))
+                .frame(height: 22)
+
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.systemGray5))
+                .frame(height: 16)
+
+            HStack(spacing: 24) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 80, height: 16)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 80, height: 16)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 80, height: 16)
+            }
+
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.systemGray5))
+                .frame(height: 46)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        )
     }
 }
 

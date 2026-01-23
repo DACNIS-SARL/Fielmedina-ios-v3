@@ -360,6 +360,7 @@
       }
     },
     "Loading trails..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
