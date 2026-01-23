@@ -88,35 +88,33 @@ struct LocationDetailView: View {
             }
             
             HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let schedule = location.displaySchedule {
-                        detailBadge(title: "Opening Hours", value: schedule, systemImage: "clock")
-                    }
-                    if let admission = location.displayAdmission {
-                        detailBadge(title: "Admission Fee", value: "\(admission) TND", systemImage: "dollarsign.circle")
-                    }
+                if let schedule = location.displaySchedule {
+                    detailBadge(title: "Opening Hours", value: schedule, systemImage: "clock")
                 }
-                
+                if let admission = location.displayAdmission {
+                    detailBadge(title: "Admission Fee", value: "\(admission) TND", systemImage: "dollarsign.circle")
+                }
                 Spacer(minLength: 0)
                 
-                Button {
-                    if let story = location.displayStory {
-                        speechManager.speak(text: story)
-                    }
-                } label: {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 22, weight: .semibold))
-                        .frame(width: 56, height: 56)
-                        .background(Color(red: 0.72, green: 0.41, blue: 0.25))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
-                }
-                .buttonStyle(.plain)
             }
+            Button {
+                if let story = location.displayStory {
+                    speechManager.speak(text: story)
+                }
+            } label: {
+                Image(systemName: "waveform")
+                    .font(.system(size: 22, weight: .semibold))
+                    .frame(width: 56, height: 56)
+                    .background(Color(red: 0.72, green: 0.41, blue: 0.25))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .trailing)
             
             if let story = location.displayStory {
                 Text(story.htmlToMarkdown())
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
@@ -169,21 +167,21 @@ struct LocationDetailView: View {
 
 final class LocationSpeechManager {
     private let synthesizer = AVSpeechSynthesizer()
-
+    
     func speak(text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
-
+        
         configureAudioSession()
-
+        
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(trimmed)
         let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en"
         let normalizedLang = normalizedLanguage(from: detectedLang)
-
+        
         let selectedVoice = preferredVoice(for: normalizedLang) ?? AVSpeechSynthesisVoice(language: normalizedLang)
         let spokenText = sanitizedText(trimmed, language: normalizedLang, voice: selectedVoice)
         let utterance = AVSpeechUtterance(string: spokenText)
@@ -191,10 +189,10 @@ final class LocationSpeechManager {
         utterance.rate = 0.48
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
-
+        
         synthesizer.speak(utterance)
     }
-
+    
     private func configureAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
@@ -204,7 +202,7 @@ final class LocationSpeechManager {
             print("Speech audio session error: \(error.localizedDescription)")
         }
     }
-
+    
     private func preferredVoice(for language: String) -> AVSpeechSynthesisVoice? {
         let prefix = String(language.prefix(2))
         let candidates = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(prefix) }
@@ -215,7 +213,7 @@ final class LocationSpeechManager {
         }
         return candidates.first
     }
-
+    
     private func normalizedLanguage(from detected: String) -> String {
         let prefix = String(detected.prefix(2))
         switch prefix {
@@ -227,7 +225,7 @@ final class LocationSpeechManager {
             return detected
         }
     }
-
+    
     private func sanitizedText(_ text: String, language: String, voice: AVSpeechSynthesisVoice?) -> String {
         let prefix = String(language.prefix(2))
         guard prefix == "fr", voice?.quality == .default else {
@@ -238,7 +236,7 @@ final class LocationSpeechManager {
             .replacingOccurrences(of: "œ", with: "oe")
             .replacingOccurrences(of: "Œ", with: "OE")
     }
-
+    
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
     }
