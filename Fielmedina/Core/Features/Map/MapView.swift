@@ -20,12 +20,32 @@ struct MapView: View {
         pitch: 40
     )
     @State private var showLocationAlert = false
+    @State private var locations: [Location] = []
+    @State private var selectedLocation: Location?
+    @State private var showLocationDetail = false
     
     var body: some View {
         NavigationStack {
             ZStack {
                 Map(viewport: $viewport) {
                     Puck2D(bearing: .heading)
+
+                    PointAnnotationGroup(locations, id: \.id) { location in
+                        var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(
+                            latitude: location.latitude,
+                            longitude: location.longitude
+                        ))
+                        annotation = annotation
+                            .image(named: markerName(for: location))
+                            .iconAnchor(.bottom)
+                            .iconSize(0.25)
+                        annotation.tapHandler = { _ in
+                            selectedLocation = location
+                            showLocationDetail = true
+                            return true
+                        }
+                        return annotation
+                    }
                 }
                 .ignoresSafeArea()
                 
@@ -45,8 +65,16 @@ struct MapView: View {
                 }
             }
             .toolbarBackground(.visible, for: .navigationBar)
+            .navigationDestination(isPresented: $showLocationDetail) {
+                if let selectedLocation {
+                    LocationDetailView(location: selectedLocation)
+                }
+            }
             .onAppear {
                 locationManager.requestPermission()
+            }
+            .task {
+                await loadLocations()
             }
             .alert("Location Access Required", isPresented: $showLocationAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -59,6 +87,14 @@ struct MapView: View {
             } message: {
                 Text("To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'.")
             }
+        }
+    }
+
+    private func loadLocations() async {
+        do {
+            locations = try await LocationService.shared.fetchLocations(limit: 200)
+        } catch {
+            locations = []
         }
     }
     
@@ -118,6 +154,55 @@ struct MapView: View {
                 .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
             }
         }
+    }
+
+    private func markerName(for location: Location) -> String {
+        if let categoryId = location.category?.id, let marker = markerNamesById[categoryId] {
+            return marker
+        }
+        let categoryName = (location.category?.nameEn ?? location.category?.nameFr ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return markerNamesByName[categoryName] ?? "location-marker"
+    }
+
+    private var markerNamesById: [String: String] {
+        [
+            "1": "location-marker",
+            "2": "moaque-marker",
+            "3": "museum-marker",
+            "4": "handcrafts-marker",
+            "5": "restaurant-marker",
+            "6": "coffee-shop-marker",
+            "7": "gest-house-marker",
+            "8": "medina-gate-marker",
+            "9": "hotel-marker",
+            "10": "arch-site-marker",
+            "11": "monument-marker",
+            "12": "market-marker",
+            "13": "zaouia-marker"
+        ]
+    }
+
+    private var markerNamesByName: [String: String] {
+        [
+            "location": "location-marker",
+            "mosque": "moaque-marker",
+            "museum": "museum-marker",
+            "handicrafts": "handcrafts-marker",
+            "restaurant": "restaurant-marker",
+            "coffee shop": "coffee-shop-marker",
+            "guest house": "gest-house-marker",
+            "medina gate": "medina-gate-marker",
+            "hotel": "hotel-marker",
+            "archaeological site": "arch-site-marker",
+            "monument": "monument-marker",
+            "souk / market": "market-marker",
+            "souk/market": "market-marker",
+            "market": "market-marker",
+            "souk": "market-marker",
+            "zaouia": "zaouia-marker"
+        ]
     }
 }
 
