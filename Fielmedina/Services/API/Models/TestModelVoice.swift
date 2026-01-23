@@ -24,16 +24,14 @@ class TestSpeechManager {
         configureAudioSession()
         
         let recognizer = NLLanguageRecognizer()
-        recognizer.processString(text)
-        let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en-US"
+        recognizer.processString(trimmed)
+        let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en"
+        let normalizedLang = normalizedLanguage(from: detectedLang)
         
-        let utterance = AVSpeechUtterance(string: trimmed)
-        let preferredVoice = AVSpeechSynthesisVoice.speechVoices().first { voice in
-            voice.language.contains(detectedLang) &&
-            (voice.quality == .enhanced || voice.quality == .premium)
-        }
-        
-        utterance.voice = preferredVoice ?? AVSpeechSynthesisVoice(language: detectedLang)
+        let selectedVoice = preferredVoice(for: normalizedLang) ?? AVSpeechSynthesisVoice(language: normalizedLang)
+        let spokenText = sanitizedText(trimmed, language: normalizedLang, voice: selectedVoice)
+        let utterance = AVSpeechUtterance(string: spokenText)
+        utterance.voice = selectedVoice
         
         utterance.rate = 0.48
         utterance.pitchMultiplier = 1.0
@@ -50,6 +48,40 @@ class TestSpeechManager {
         } catch {
             print("Speech audio session error: \(error.localizedDescription)")
         }
+    }
+
+    private func preferredVoice(for language: String) -> AVSpeechSynthesisVoice? {
+        let prefix = String(language.prefix(2))
+        let candidates = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(prefix) }
+        for quality in [AVSpeechSynthesisVoiceQuality.premium, .enhanced, .default] {
+            if let voice = candidates.first(where: { $0.quality == quality }) {
+                return voice
+            }
+        }
+        return candidates.first
+    }
+
+    private func normalizedLanguage(from detected: String) -> String {
+        let prefix = String(detected.prefix(2))
+        switch prefix {
+        case "fr":
+            return "fr-FR"
+        case "en":
+            return "en-US"
+        default:
+            return detected
+        }
+    }
+
+    private func sanitizedText(_ text: String, language: String, voice: AVSpeechSynthesisVoice?) -> String {
+        let prefix = String(language.prefix(2))
+        guard prefix == "fr", voice?.quality == .default else {
+            return text
+        }
+        let folded = text.folding(options: [.diacriticInsensitive, .widthInsensitive], locale: Locale(identifier: "fr"))
+        return folded
+            .replacingOccurrences(of: "œ", with: "oe")
+            .replacingOccurrences(of: "Œ", with: "OE")
     }
     
     func stop() {
