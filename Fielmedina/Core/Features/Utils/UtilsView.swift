@@ -65,6 +65,7 @@ struct UtilView: View {
                     EmergencyWarningCard()
                     
                     AdsCarousel()
+                    Spacer()
                 }
             }
             .toolbar {
@@ -211,7 +212,7 @@ struct EmergencyWarningCard: View {
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
         .padding(.horizontal, 24)
         .padding(.top, 70)
-        .padding(.bottom, 100)
+        .padding(.bottom, 50)
     }
 }
 
