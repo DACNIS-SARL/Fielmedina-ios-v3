@@ -61,6 +61,22 @@ struct MapView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "slider.horizontal.3")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Filter")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 12)
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                ToolbarItem(placement: .topBarTrailing) {
                     SettingsButton()
                 }
             }
