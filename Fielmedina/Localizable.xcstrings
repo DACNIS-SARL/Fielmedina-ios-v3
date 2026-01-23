@@ -92,7 +92,14 @@
       }
     },
     "Bus %@" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus %@"
+          }
+        }
+      }
     },
     "Cancel" : {
       "localizations" : {
@@ -517,7 +524,14 @@
 
     },
     "Reserve Your Spot" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réservez votre place"
+          }
+        }
+      }
     },
     "Retry" : {
       "localizations" : {
