@@ -9,6 +9,7 @@ import SwiftUI
 import MapboxMaps
 
 struct MapView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var locationManager = LocationManager()
     @State private var viewport: Viewport = .camera(
         center: CLLocationCoordinate2D(
@@ -25,6 +26,10 @@ struct MapView: View {
     @State private var showLocationDetail = false
     @State private var showFilterSheet = false
     @State private var selectedCategoryIds: Set<String> = []
+
+    private var standardLightPreset: StandardLightPreset {
+        colorScheme == .light ? .day : .night
+    }
     
     var body: some View {
         NavigationStack {
@@ -49,6 +54,7 @@ struct MapView: View {
                         return annotation
                     }
                 }
+                .mapStyle(.standard(lightPreset: standardLightPreset))
                 .ignoresSafeArea()
                 
                 VStack {
