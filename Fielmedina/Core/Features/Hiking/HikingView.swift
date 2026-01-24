@@ -303,16 +303,16 @@ struct HikingCardView: View {
             }
 
             HStack(spacing: 24) {
-                HikingMetricView(title: "Distance", value: distanceText)
-                HikingMetricView(title: "Duration", value: durationText)
-                HikingMetricView(title: "Stops", value: "\(hiking.orderedLocations.count)")
+                HikingMetricView(title: String(localized: "Distance"), value: distanceText)
+                HikingMetricView(title: String(localized: "Duration"), value: durationText)
+                HikingMetricView(title: String(localized: "Waypoints"), value: "\(hiking.orderedLocations.count)")
             }
             .padding(.top, 8)
 
             Button {
                 FirebaseUtils.trackButtonTap(buttonName: "start_hiking", screenName: "Hiking")
             } label: {
-                Label("Start Hiking", systemImage: "figure.hiking")
+                Label(String(localized: "Start Hiking"), systemImage: "figure.hiking")
                     .font(.headline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
