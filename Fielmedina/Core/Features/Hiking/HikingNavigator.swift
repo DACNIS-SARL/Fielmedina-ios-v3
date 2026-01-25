@@ -57,6 +57,9 @@ struct HikingNavigator: View {
                     },
                     onWaypointTapped: { waypoint in
                         selectedWaypoint = waypoint
+                    },
+                    onProgressUpdate: { index in
+                        updateProgressIndex(index)
                     }
                 )
                 .ignoresSafeArea()
@@ -144,6 +147,13 @@ struct HikingNavigator: View {
     private func markWaypointCompleted(_ index: Int) {
         completedWaypoints.insert(index)
         currentWaypointIndex = index + 1
+        saveNavigationProgress()
+    }
+
+    private func updateProgressIndex(_ index: Int) {
+        guard index >= 0 else { return }
+        currentWaypointIndex = index
+        hasStartedNavigation = true
         saveNavigationProgress()
     }
     

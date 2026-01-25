@@ -19,6 +19,7 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
     let onDismiss: () -> Void
     let onWaypointCompleted: (Int) -> Void
     let onWaypointTapped: (TrailWaypoint) -> Void
+    let onProgressUpdate: (Int) -> Void
     
     func makeUIViewController(context: Context) -> NavigationViewController {
         let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
@@ -248,6 +249,10 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
             }
             
             return true // Continue navigation
+        }
+
+        func navigationViewController(_ navigationViewController: NavigationViewController, didUpdate progress: RouteProgress) {
+            parent.onProgressUpdate(progress.legIndex)
         }
         
         private func updateMarkerToCompleted(index: Int) {
