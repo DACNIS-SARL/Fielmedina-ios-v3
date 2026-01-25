@@ -35,6 +35,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         FirebaseUtils.initializeFirebase()
         FirebaseUtils.initializeFCM()
         
+        // Warm up Mapbox Navigation SDK for faster navigation startup
+        _ = MapboxNavigationProviderStore.shared
+        
         return true
     }
     
@@ -119,7 +122,6 @@ struct FielmedinaApp: App {
             MainNavigationView().environment(locationManager)
                 .onAppear {
                     locationManager.requestPermission()
-                    _ = MapboxNavigationProviderStore.shared
                 }
         }
     }

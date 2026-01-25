@@ -369,9 +369,6 @@
         }
       }
     },
-    "Loading navigation..." : {
-
-    },
     "Loading routes..." : {
       "localizations" : {
         "fr" : {
@@ -518,6 +515,9 @@
           }
         }
       }
+    },
+    "Preparing navigation to" : {
+
     },
     "Public transport" : {
       "localizations" : {

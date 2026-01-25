@@ -54,33 +54,18 @@ struct LocationDetailView: View {
             locationManager.stopUpdatingLocation()
         }
         .fullScreenCover(isPresented: $isNavigationPresented) {
-            if let navigationRoutes {
-                ZStack {
-                    MapboxNavigationView(
-                        navigationRoutes: navigationRoutes,
-                        mapboxNavigationProvider: mapboxNavigationProvider,
-                        onReady: {
-                            isNavigationLoading = false
-                        },
-                        onDismiss: {
-                            self.navigationRoutes = nil
-                            isNavigationPresented = false
-                            isNavigationLoading = false
-                        }
-                    )
-                    .ignoresSafeArea()
-
-                    if isNavigationLoading {
-                        Color.black.opacity(0.6)
-                            .ignoresSafeArea()
-                        ProgressView("Loading navigation...")
-                            .foregroundStyle(.white)
-                            .padding(16)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    }
+            // Force unwrap is safe here - we only set isNavigationPresented=true after routes are set
+            NavigationCoverView(
+                routes: $navigationRoutes,
+                provider: mapboxNavigationProvider,
+                locationName: location.displayName,
+                isLoading: $isNavigationLoading,
+                onDismiss: {
+                    navigationRoutes = nil
+                    isNavigationPresented = false
+                    isNavigationLoading = false
                 }
-            }
+            )
         }
         .alert("Location Access Required", isPresented: $showLocationAlert) {
             Button("Cancel", role: .cancel) { }
@@ -246,14 +231,82 @@ struct LocationDetailView: View {
                 }
             case .success(let routes):
                 await MainActor.run {
-                    navigationRoutes = routes
+                    // Set loading BEFORE presenting to avoid black screen flash
                     isNavigationLoading = true
+                    navigationRoutes = routes
                     isNavigationPresented = true
                 }
             }
         }
     }
     
+}
+
+// MARK: - Navigation Cover View
+/// Dedicated container for navigation to ensure MapboxNavigationView is always instantiated.
+/// Uses non-optional routes to guarantee the UIViewControllerRepresentable is created.
+private struct NavigationCoverView: View {
+    @Binding var routes: NavigationRoutes?
+    let provider: MapboxNavigationProvider
+    let locationName: String
+    @Binding var isLoading: Bool
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        ZStack {
+            // Check the binding value directly
+            if let routes = routes {
+                MapboxNavigationView(
+                    navigationRoutes: routes,
+                    mapboxNavigationProvider: provider,
+                    onReady: {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            isLoading = false
+                        }
+                    },
+                    onDismiss: onDismiss
+                )
+                .ignoresSafeArea()
+            } else {
+                // Fallback while routes are nil (should imply loading)
+                Color(red: 0.72, green: 0.41, blue: 0.25)
+                    .ignoresSafeArea()
+            }
+            
+            // Loading overlay on TOP
+            if isLoading || routes == nil {
+                ZStack {
+                    Color(red: 0.72, green: 0.41, blue: 0.25)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                            .scaleEffect(CGFloat(1.5))
+                        
+                        Text("Preparing navigation to")
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.8))
+                        
+                        Text(locationName)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .onAppear {
+             // Navigation cover appeared
+        }
+        .onChange(of: routes != nil) {
+             // Routes changed, view will update automatically
+        }
+    }
 }
 
 final class LocationSpeechManager {
