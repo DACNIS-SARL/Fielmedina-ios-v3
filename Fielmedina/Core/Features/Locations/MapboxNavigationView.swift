@@ -42,12 +42,13 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         )
         navigationViewController.delegate = context.coordinator
         navigationViewController.modalPresentationStyle = .fullScreen
+        navigationViewController.delegate = context.coordinator
+        navigationViewController.modalPresentationStyle = .fullScreen
         navigationViewController.usesNightStyleInDarkMode = true
         navigationViewController.showsSpeedLimits = false
         navigationViewController.routeLineTracksTraversal = true
         
-        let offlineStyleURI = StyleURI(rawValue: "mapbox://styles/medone/cme964zuv00ct01sb6nm15513") ?? .standard
-        navigationViewController.navigationMapView?.mapView.mapboxMap.loadStyle(offlineStyleURI)
+
         
         if let userLocation = userLocation {
             navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: CameraOptions(
@@ -56,8 +57,7 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
                 bearing: 0,
                 pitch: 40
             ))
-        }
-        
+        }        
         
         context.coordinator.scheduleReadyCallback()
         
@@ -112,3 +112,5 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         }
     }
 }
+
+
