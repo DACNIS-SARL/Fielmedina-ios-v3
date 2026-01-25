@@ -101,9 +101,6 @@
         }
       }
     },
-    "Calculating Route..." : {
-
-    },
     "Cancel" : {
       "localizations" : {
         "fr" : {
@@ -437,7 +434,14 @@
       }
     },
     "Navigation Error" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur de navigation"
+          }
+        }
+      }
     },
     "No events available" : {
       "localizations" : {
@@ -490,7 +494,14 @@
       }
     },
     "OK" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     },
     "Open Settings" : {
       "localizations" : {
@@ -519,8 +530,25 @@
         }
       }
     },
+    "Preparing hiking navigation to" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation de la navigation pour la randonnée vers"
+          }
+        }
+      }
+    },
     "Preparing navigation to" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation de la navigation vers"
+          }
+        }
+      }
     },
     "Public transport" : {
       "localizations" : {
@@ -676,7 +704,14 @@
       }
     },
     "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour démarrer la navigation, veuillez activer l'accès à la localisation dans les paramètres. Appuyez sur « Localisation » et sélectionnez « Lors de l'utilisation de l'application »."
+          }
+        }
+      }
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {

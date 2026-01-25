@@ -89,17 +89,28 @@ struct HikingNavigator: View {
     }
     
     private var loadingView: some View {
-        VStack(spacing: 20) {
-            ProgressView()
-                .scaleEffect(x: 1.5, y: 1.5, anchor: .center)
-                .tint(.white)
+        ZStack {
+            Color(red: 0.72, green: 0.41, blue: 0.25)
+                .ignoresSafeArea()
             
-            Text("Calculating Route...")
-                .font(.headline)
-                .foregroundStyle(.white)
+            VStack(spacing: 20) {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(x: 1.5, y: 1.5, anchor: .center)
+                
+                Text("Preparing hiking navigation to")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+                
+                Text(hikingRoute.displayName)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
     }
     
     // MARK: - Logic
