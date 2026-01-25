@@ -81,8 +81,6 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
             self.mapboxNavigationProvider = mapboxNavigationProvider
         }
         
-        /// Schedules the ready callback after a delay to ensure map tiles load.
-        /// The delay gives NavigationViewController time to fully initialize its map view.
         func scheduleReadyCallback() {
             guard readyWorkItem == nil else { return }
             
@@ -91,7 +89,6 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
             }
             readyWorkItem = workItem
             
-            // 0.8 second delay: enough for map tiles to load on most network conditions
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
         }
 
