@@ -46,6 +46,7 @@
 		BE059AD62F0EB05F00A609D5 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		BE985BE22F11C47400FC6061 /* SousseLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = SousseLocation.gpx; path = ../SousseLocation.gpx; sourceTree = "<group>"; };
 		BEAE8E462F2432F5001BF86B /* MonastirLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = MonastirLocation.gpx; path = ../MonastirLocation.gpx; sourceTree = "<group>"; };
+		BED4AADE2F262E070015E510 /* TunisLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = TunisLocation.gpx; path = ../TunisLocation.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -119,6 +120,7 @@
 		BE059A902F0EA7EF00A609D5 = {
 			isa = PBXGroup;
 			children = (
+				BED4AADE2F262E070015E510 /* TunisLocation.gpx */,
 				BEAE8E462F2432F5001BF86B /* MonastirLocation.gpx */,
 				BE985BE22F11C47400FC6061 /* SousseLocation.gpx */,
 				BE059AD62F0EB05F00A609D5 /* Readme.md */,

@@ -9,6 +9,12 @@ import SwiftUI
 import MapboxMaps
 
 struct MapView: View {
+    private struct MedinaLocation: Identifiable {
+        let id = UUID()
+        let name: String
+        let coordinate: CLLocationCoordinate2D
+    }
+
     @Environment(\.colorScheme) private var colorScheme
     @State private var locationManager = LocationManager()
     @State private var viewport: Viewport = .camera(
@@ -26,10 +32,17 @@ struct MapView: View {
     @State private var showLocationDetail = false
     @State private var showFilterSheet = false
     @State private var selectedCategoryIds: Set<String> = []
+    @State private var didCenterOnMedina = false
 
     private var standardLightPreset: StandardLightPreset {
         colorScheme == .light ? .day : .night
     }
+
+    private let medinaRegistry: [MedinaLocation] = [
+        MedinaLocation(name: "Sousse", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448)),
+        MedinaLocation(name: "Monastir", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262)),
+        MedinaLocation(name: "Tunis", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706))
+    ]
     
     var body: some View {
         NavigationStack {
@@ -97,9 +110,11 @@ struct MapView: View {
             }
             .onAppear {
                 locationManager.requestPermission()
+                locationManager.startUpdatingLocation()
             }
             .task {
                 await loadLocations()
+                centerMapOnNearestMedinaIfNeeded()
             }
             .sheet(isPresented: $showFilterSheet) {
                 MapFilterSheet(
@@ -119,6 +134,9 @@ struct MapView: View {
             } message: {
                 Text("To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'.")
             }
+            .onChange(of: locationManager.userLocation) { _, _ in
+                centerMapOnNearestMedinaIfNeeded()
+            }
         }
     }
 
@@ -130,6 +148,32 @@ struct MapView: View {
             }
         } catch {
             locations = []
+        }
+    }
+
+    private func centerMapOnNearestMedinaIfNeeded() {
+        guard !didCenterOnMedina,
+              let userCoordinate = locationManager.userLocation else {
+            return
+        }
+
+        let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
+        guard let nearestMedina = medinaRegistry.min(by: { first, second in
+            let firstDistance = userLocation.distance(from: CLLocation(latitude: first.coordinate.latitude, longitude: first.coordinate.longitude))
+            let secondDistance = userLocation.distance(from: CLLocation(latitude: second.coordinate.latitude, longitude: second.coordinate.longitude))
+            return firstDistance < secondDistance
+        }) else {
+            return
+        }
+
+        didCenterOnMedina = true
+        withViewportAnimation(.default(maxDuration: 1.5)) {
+            viewport = .camera(
+                center: nearestMedina.coordinate,
+                zoom: 15,
+                bearing: 0,
+                pitch: 40
+            )
         }
     }
 
