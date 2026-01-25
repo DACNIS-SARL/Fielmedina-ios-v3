@@ -77,6 +77,7 @@ struct HikingView: View {
                 await loadTrails()
             }
             .onChange(of: locationManager.userLocation) { _, _ in
+                sortTrailsByDistanceIfPossible()
                 Task { await updateMetrics() }
             }
             .fullScreenCover(item: $selectedHiking) { hiking in
@@ -102,6 +103,7 @@ struct HikingView: View {
         errorMessage = nil
         do {
             trails = try await HikingService.shared.fetchHikings(limit: 20)
+            sortTrailsByDistanceIfPossible()
             await updateMetrics()
         } catch {
             errorMessage = error.localizedDescription
@@ -132,6 +134,16 @@ struct HikingView: View {
 
         await MainActor.run {
             metrics = updatedMetrics
+        }
+    }
+
+    private func sortTrailsByDistanceIfPossible() {
+        guard let userCoordinate = locationManager.userLocation else { return }
+        let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
+        trails.sort {
+            let leftLocation = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
+            let rightLocation = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
+            return leftLocation.distance(from: userLocation) < rightLocation.distance(from: userLocation)
         }
     }
 
