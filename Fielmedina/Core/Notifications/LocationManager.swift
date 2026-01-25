@@ -10,6 +10,7 @@ import CoreLocation
 
 @Observable
 class LocationManager: NSObject, CLLocationManagerDelegate {
+    static let shared = LocationManager()
     private let manager = CLLocationManager()
     var userLocation: CLLocationCoordinate2D?
     var authorizationStatus: CLAuthorizationStatus

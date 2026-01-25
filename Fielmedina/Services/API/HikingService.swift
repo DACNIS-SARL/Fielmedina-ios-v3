@@ -63,7 +63,13 @@ class HikingService {
                                 nameEn: loc.nameEn,
                                 nameFr: loc.nameFr,
                                 latitude: Double(loc.latitude) ?? 0,
-                                longitude: Double(loc.longitude) ?? 0
+                                longitude: Double(loc.longitude) ?? 0,
+                                images: loc.images.map { image in
+                                    ImageContainer(
+                                        image: ImageField(url: image.image.url),
+                                        imageMobile: image.imageMobile.map { ImageField(url: $0.url) }
+                                    )
+                                }
                             )
                         }()
                     )

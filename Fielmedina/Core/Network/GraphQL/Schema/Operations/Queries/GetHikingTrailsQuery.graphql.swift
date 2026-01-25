@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetHikingTrails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr city { __typename id nameEn nameFr } latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude } } } }"#,
+        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr city { __typename id nameEn nameFr } latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } } } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -220,6 +220,7 @@ extension FielmedinaAPI {
               .field("nameFr", String.self),
               .field("latitude", FielmedinaAPI.Decimal.self),
               .field("longitude", FielmedinaAPI.Decimal.self),
+              .field("images", [Image].self),
             ] }
             static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
               GetHikingTrailsQuery.Data.Hiking.Location.Location.self
@@ -230,6 +231,82 @@ extension FielmedinaAPI {
             var nameFr: String { __data["nameFr"] }
             var latitude: FielmedinaAPI.Decimal { __data["latitude"] }
             var longitude: FielmedinaAPI.Decimal { __data["longitude"] }
+            var images: [Image] { __data["images"] }
+
+            /// Hiking.Location.Location.Image
+            ///
+            /// Parent Type: `ImageLocationType`
+            struct Image: FielmedinaAPI.SelectionSet {
+              let __data: DataDict
+              init(_dataDict: DataDict) { __data = _dataDict }
+
+              static var __parentType: any ApolloAPI.ParentType { FielmedinaAPI.Objects.ImageLocationType }
+              static var __selections: [ApolloAPI.Selection] { [
+                .field("__typename", String.self),
+                .field("image", Image.self),
+                .field("imageMobile", ImageMobile?.self),
+              ] }
+              static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+                GetHikingTrailsQuery.Data.Hiking.Location.Location.Image.self
+              ] }
+
+              var image: Image { __data["image"] }
+              var imageMobile: ImageMobile? { __data["imageMobile"] }
+
+              /// Hiking.Location.Location.Image.Image
+              ///
+              /// Parent Type: `ImageFieldType`
+              struct Image: FielmedinaAPI.SelectionSet {
+                let __data: DataDict
+                init(_dataDict: DataDict) { __data = _dataDict }
+
+                static var __parentType: any ApolloAPI.ParentType { FielmedinaAPI.Objects.ImageFieldType }
+                static var __selections: [ApolloAPI.Selection] { [
+                  .field("__typename", String.self),
+                  .fragment(ImageFields.self),
+                ] }
+                static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+                  GetHikingTrailsQuery.Data.Hiking.Location.Location.Image.Image.self,
+                  ImageFields.self
+                ] }
+
+                var url: String { __data["url"] }
+
+                struct Fragments: FragmentContainer {
+                  let __data: DataDict
+                  init(_dataDict: DataDict) { __data = _dataDict }
+
+                  var imageFields: ImageFields { _toFragment() }
+                }
+              }
+
+              /// Hiking.Location.Location.Image.ImageMobile
+              ///
+              /// Parent Type: `ImageFieldType`
+              struct ImageMobile: FielmedinaAPI.SelectionSet {
+                let __data: DataDict
+                init(_dataDict: DataDict) { __data = _dataDict }
+
+                static var __parentType: any ApolloAPI.ParentType { FielmedinaAPI.Objects.ImageFieldType }
+                static var __selections: [ApolloAPI.Selection] { [
+                  .field("__typename", String.self),
+                  .fragment(ImageFields.self),
+                ] }
+                static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+                  GetHikingTrailsQuery.Data.Hiking.Location.Location.Image.ImageMobile.self,
+                  ImageFields.self
+                ] }
+
+                var url: String { __data["url"] }
+
+                struct Fragments: FragmentContainer {
+                  let __data: DataDict
+                  init(_dataDict: DataDict) { __data = _dataDict }
+
+                  var imageFields: ImageFields { _toFragment() }
+                }
+              }
+            }
           }
         }
       }

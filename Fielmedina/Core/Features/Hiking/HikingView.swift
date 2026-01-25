@@ -15,6 +15,7 @@ struct HikingView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var locationManager = LocationManager()
+    @State private var selectedHiking: Hiking?
 
     var body: some View {
         NavigationStack {
@@ -45,7 +46,10 @@ struct HikingView: View {
                             ForEach(Array(trails.enumerated()), id: \.element.id) { index, trail in
                                 HikingCardView(
                                     hiking: trail,
-                                    metrics: metrics[trail.id]
+                                    metrics: metrics[trail.id],
+                                    onStart: {
+                                        selectedHiking = trail
+                                    }
                                 )
 
                                 if index < trails.count - 1 {
@@ -74,6 +78,10 @@ struct HikingView: View {
             }
             .onChange(of: locationManager.userLocation) { _, _ in
                 Task { await updateMetrics() }
+            }
+            .fullScreenCover(item: $selectedHiking) { hiking in
+                HikingNavigator(hikingRoute: hiking)
+                    .ignoresSafeArea()
             }
         }
     }
@@ -225,6 +233,7 @@ struct HikingMetrics {
 struct HikingCardView: View {
     let hiking: Hiking
     let metrics: HikingMetrics?
+    let onStart: () -> Void
 
     private var locationLabel: String? {
         hiking.cityName
@@ -311,6 +320,7 @@ struct HikingCardView: View {
 
             Button {
                 FirebaseUtils.trackButtonTap(buttonName: "start_hiking", screenName: "Hiking")
+                onStart()
             } label: {
                 Label(String(localized: "Start Hiking"), systemImage: "figure.hiking")
                     .font(.headline)

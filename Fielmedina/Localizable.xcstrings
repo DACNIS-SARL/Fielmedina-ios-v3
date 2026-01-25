@@ -101,6 +101,9 @@
         }
       }
     },
+    "Calculating Route..." : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "fr" : {
@@ -434,6 +437,9 @@
       }
     },
     "Navigation Error" : {
+
+    },
+    "No details available" : {
 
     },
     "No events available" : {
