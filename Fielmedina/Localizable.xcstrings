@@ -369,6 +369,9 @@
         }
       }
     },
+    "Loading navigation..." : {
+
+    },
     "Loading routes..." : {
       "localizations" : {
         "fr" : {
@@ -433,6 +436,9 @@
         }
       }
     },
+    "Navigation Error" : {
+
+    },
     "No events available" : {
       "localizations" : {
         "fr" : {
@@ -482,6 +488,9 @@
           }
         }
       }
+    },
+    "OK" : {
+
     },
     "Open Settings" : {
       "localizations" : {
@@ -662,6 +671,9 @@
           }
         }
       }
+    },
+    "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
+
     },
     "To use this feature, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {

@@ -119,9 +119,9 @@ struct HomeView: View {
             }
             
             HStack(spacing: 8) {
-                publicTransportButton.scaleEffect(0.9)
+                publicTransportButton.scaleEffect(CGFloat(0.9), anchor: .center)
                 if showTaxiButton {
-                    taxiBookingButton.scaleEffect(0.9)
+                    taxiBookingButton.scaleEffect(CGFloat(0.9), anchor: .center)
                 }
             }
             

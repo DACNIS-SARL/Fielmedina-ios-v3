@@ -119,6 +119,7 @@ struct FielmedinaApp: App {
             MainNavigationView().environment(locationManager)
                 .onAppear {
                     locationManager.requestPermission()
+                    _ = MapboxNavigationProviderStore.shared
                 }
         }
     }

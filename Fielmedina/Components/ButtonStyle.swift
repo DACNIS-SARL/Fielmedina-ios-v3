@@ -18,7 +18,8 @@ struct CustomButtonStyle: SwiftUI.ButtonStyle {
             .padding(.horizontal, 20)
             .background(.ultraThinMaterial)
             .clipShape(.rect(cornerRadius: 12))
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .scaleEffect(CGFloat(configuration.isPressed ? 0.95 : 1.0), anchor: .center)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
+

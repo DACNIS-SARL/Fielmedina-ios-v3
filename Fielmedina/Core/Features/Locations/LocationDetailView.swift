@@ -8,12 +8,22 @@
 import SwiftUI
 import AVFoundation
 import NaturalLanguage
+import CoreLocation
+import MapboxNavigationCore
 
 struct LocationDetailView: View {
     let location: Location
     
     @State private var selectedImageIndex = 0
     @State private var speechManager = LocationSpeechManager()
+    @State private var locationManager = LocationManager()
+    private let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
+    @State private var navigationRoutes: NavigationRoutes?
+    @State private var isNavigationPresented = false
+    @State private var isNavigationLoading = false
+    @State private var showLocationAlert = false
+    @State private var showNavigationErrorAlert = false
+    @State private var navigationErrorMessage = ""
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -36,6 +46,57 @@ struct LocationDetailView: View {
                 SettingsButton()
             }
         }
+        .task {
+            locationManager.requestPermission()
+            locationManager.startUpdatingLocation()
+        }
+        .onDisappear {
+            locationManager.stopUpdatingLocation()
+        }
+        .fullScreenCover(isPresented: $isNavigationPresented) {
+            if let navigationRoutes {
+                ZStack {
+                    MapboxNavigationView(
+                        navigationRoutes: navigationRoutes,
+                        mapboxNavigationProvider: mapboxNavigationProvider,
+                        onReady: {
+                            isNavigationLoading = false
+                        },
+                        onDismiss: {
+                            self.navigationRoutes = nil
+                            isNavigationPresented = false
+                            isNavigationLoading = false
+                        }
+                    )
+                    .ignoresSafeArea()
+
+                    if isNavigationLoading {
+                        Color.black.opacity(0.6)
+                            .ignoresSafeArea()
+                        ProgressView("Loading navigation...")
+                            .foregroundStyle(.white)
+                            .padding(16)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                }
+            }
+        }
+        .alert("Location Access Required", isPresented: $showLocationAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+        } message: {
+            Text("To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'.")
+        }
+        .alert("Navigation Error", isPresented: $showNavigationErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(navigationErrorMessage)
+        }
     }
     
     private var detailsCard: some View {
@@ -49,6 +110,7 @@ struct LocationDetailView: View {
             HStack(spacing: 12) {
                 Button {
                     FirebaseUtils.trackButtonTap(buttonName: "start_navigation", screenName: "LocationDetail")
+                    startNavigation()
                 } label: {
                     Label("Start Navigation", systemImage: "location.north.line")
                         .font(.headline)
@@ -160,6 +222,35 @@ struct LocationDetailView: View {
                 .padding(.vertical, 6)
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+
+    private func startNavigation() {
+        guard let userCoordinate = locationManager.userLocation else {
+            showLocationAlert = true
+            return
+        }
+
+        let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
+        let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+        let options = NavigationRouteOptions(coordinates: [origin, destination])
+        let request = mapboxNavigationProvider.routingProvider().calculateRoutes(options: options)
+
+        Task {
+            switch await request.result {
+            case .failure(let error):
+                await MainActor.run {
+                    navigationErrorMessage = error.localizedDescription
+                    showNavigationErrorAlert = true
+                    isNavigationLoading = false
+                }
+            case .success(let routes):
+                await MainActor.run {
+                    navigationRoutes = routes
+                    isNavigationLoading = true
+                    isNavigationPresented = true
+                }
+            }
         }
     }
     
