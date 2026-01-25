@@ -9,17 +9,23 @@ import SwiftUI
 import UIKit
 import MapboxNavigationCore
 import MapboxNavigationUIKit
+import MapboxMaps
+import CoreLocation
 
-/// SwiftUI wrapper for Mapbox NavigationViewController.
-/// Handles the lifecycle of turn-by-turn navigation UI.
+
 struct MapboxNavigationView: UIViewControllerRepresentable {
     let navigationRoutes: NavigationRoutes
     let mapboxNavigationProvider: MapboxNavigationProvider
+    let userLocation: CLLocationCoordinate2D?
     let onReady: () -> Void
     let onDismiss: () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onReady: onReady, onDismiss: onDismiss)
+        Coordinator(
+            onReady: onReady,
+            onDismiss: onDismiss,
+            mapboxNavigationProvider: mapboxNavigationProvider
+        )
     }
 
     func makeUIViewController(context: Context) -> NavigationViewController {
@@ -27,7 +33,8 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         let navigationOptions = NavigationOptions(
             mapboxNavigation: mapboxNavigation,
             voiceController: mapboxNavigationProvider.routeVoiceController,
-            eventsManager: mapboxNavigationProvider.eventsManager()
+            eventsManager: mapboxNavigationProvider.eventsManager(),
+            predictiveCacheManager: mapboxNavigationProvider.predictiveCacheManager
         )
         let navigationViewController = NavigationViewController(
             navigationRoutes: navigationRoutes,
@@ -36,8 +43,22 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         navigationViewController.delegate = context.coordinator
         navigationViewController.modalPresentationStyle = .fullScreen
         navigationViewController.usesNightStyleInDarkMode = true
+        navigationViewController.showsSpeedLimits = false
+        navigationViewController.routeLineTracksTraversal = true
         
-        // Schedule ready callback after a short delay to allow map to render
+        let offlineStyleURI = StyleURI(rawValue: "mapbox://styles/medone/cme964zuv00ct01sb6nm15513") ?? .standard
+        navigationViewController.navigationMapView?.mapView.mapboxMap.loadStyle(offlineStyleURI)
+        
+        if let userLocation = userLocation {
+            navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: CameraOptions(
+                center: userLocation,
+                zoom: 16.0,
+                bearing: 0,
+                pitch: 40
+            ))
+        }
+        
+        
         context.coordinator.scheduleReadyCallback()
         
         return navigationViewController
@@ -50,12 +71,14 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
     final class Coordinator: NSObject, NavigationViewControllerDelegate {
         private let onReady: () -> Void
         private let onDismiss: () -> Void
+        let mapboxNavigationProvider: MapboxNavigationProvider
         private var didReportReady = false
         private var readyWorkItem: DispatchWorkItem?
 
-        init(onReady: @escaping () -> Void, onDismiss: @escaping () -> Void) {
+        init(onReady: @escaping () -> Void, onDismiss: @escaping () -> Void, mapboxNavigationProvider: MapboxNavigationProvider) {
             self.onReady = onReady
             self.onDismiss = onDismiss
+            self.mapboxNavigationProvider = mapboxNavigationProvider
         }
         
         /// Schedules the ready callback after a delay to ensure map tiles load.
@@ -92,4 +115,3 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         }
     }
 }
-

@@ -10,6 +10,7 @@ import AVFoundation
 import NaturalLanguage
 import CoreLocation
 import MapboxNavigationCore
+import MapboxDirections
 
 struct LocationDetailView: View {
     let location: Location
@@ -24,6 +25,10 @@ struct LocationDetailView: View {
     @State private var showLocationAlert = false
     @State private var showNavigationErrorAlert = false
     @State private var navigationErrorMessage = ""
+    
+    private var currentUserCoordinate: CLLocationCoordinate2D? {
+        locationManager.userLocation
+    }
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -54,11 +59,11 @@ struct LocationDetailView: View {
             locationManager.stopUpdatingLocation()
         }
         .fullScreenCover(isPresented: $isNavigationPresented) {
-            // Force unwrap is safe here - we only set isNavigationPresented=true after routes are set
             NavigationCoverView(
                 routes: $navigationRoutes,
                 provider: mapboxNavigationProvider,
                 locationName: location.displayName,
+                userLocation: currentUserCoordinate,
                 isLoading: $isNavigationLoading,
                 onDismiss: {
                     navigationRoutes = nil
@@ -219,6 +224,7 @@ struct LocationDetailView: View {
         let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
         let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
         let options = NavigationRouteOptions(coordinates: [origin, destination])
+        options.profileIdentifier = .walking
         let request = mapboxNavigationProvider.routingProvider().calculateRoutes(options: options)
 
         Task {
@@ -231,7 +237,6 @@ struct LocationDetailView: View {
                 }
             case .success(let routes):
                 await MainActor.run {
-                    // Set loading BEFORE presenting to avoid black screen flash
                     isNavigationLoading = true
                     navigationRoutes = routes
                     isNavigationPresented = true
@@ -242,23 +247,21 @@ struct LocationDetailView: View {
     
 }
 
-// MARK: - Navigation Cover View
-/// Dedicated container for navigation to ensure MapboxNavigationView is always instantiated.
-/// Uses non-optional routes to guarantee the UIViewControllerRepresentable is created.
 private struct NavigationCoverView: View {
     @Binding var routes: NavigationRoutes?
     let provider: MapboxNavigationProvider
     let locationName: String
+    let userLocation: CLLocationCoordinate2D?
     @Binding var isLoading: Bool
     let onDismiss: () -> Void
     
     var body: some View {
         ZStack {
-            // Check the binding value directly
             if let routes = routes {
                 MapboxNavigationView(
                     navigationRoutes: routes,
                     mapboxNavigationProvider: provider,
+                    userLocation: userLocation,
                     onReady: {
                         withAnimation(.easeOut(duration: 0.3)) {
                             isLoading = false
@@ -268,12 +271,10 @@ private struct NavigationCoverView: View {
                 )
                 .ignoresSafeArea()
             } else {
-                // Fallback while routes are nil (should imply loading)
                 Color(red: 0.72, green: 0.41, blue: 0.25)
                     .ignoresSafeArea()
             }
             
-            // Loading overlay on TOP
             if isLoading || routes == nil {
                 ZStack {
                     Color(red: 0.72, green: 0.41, blue: 0.25)
