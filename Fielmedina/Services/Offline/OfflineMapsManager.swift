@@ -10,22 +10,47 @@ import CoreLocation
 import MapKit
 import MapboxMaps
 import MapboxCommon
+import Turf
 
 final class OfflineMapsManager {
     static let shared = OfflineMapsManager()
-
+    
     private let offlineManager = OfflineManager()
-    private let tileStore = TileStore.default
-
+    private var tileStore: TileStore {
+        TileStore.default
+    }
+    
     private init() {
         tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
     }
-
+    
     func downloadRegion(
         id: String,
         name: String,
         coordinate: CLLocationCoordinate2D,
         radius: CLLocationDistance,
+        progress: @escaping (Double) -> Void,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        
+        downloadStylePack(name: name, progress: progress) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                completion(.failure(error))
+            case .success:
+                self?.downloadNavigationTiles(
+                    id: id,
+                    coordinate: coordinate,
+                    radius: radius,
+                    progress: progress,
+                    completion: completion
+                )
+            }
+        }
+    }
+    
+    private func downloadStylePack(
+        name: String,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -38,7 +63,7 @@ final class OfflineMapsManager {
             completion(.failure(NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])))
             return
         }
-
+        
         _ = offlineManager.loadStylePack(
             for: styleURI,
             loadOptions: stylePackLoadOptions
@@ -46,57 +71,58 @@ final class OfflineMapsManager {
             DispatchQueue.main.async {
                 let completed = Double(packProgress.completedResourceCount)
                 let required = max(Double(packProgress.requiredResourceCount), 1)
-                progress(min(completed / required, 1) * 0.2)
+                progress(min(completed / required, 1) * 0.15)
             }
-        } completion: { [weak self] result in
-            switch result {
-            case .failure(let error):
-                DispatchQueue.main.async { completion(.failure(error)) }
-            case .success:
-                self?.downloadTiles(
-                    id: id,
-                    coordinate: coordinate,
-                    radius: radius,
-                    progress: progress,
-                    completion: completion
-                )
+        } completion: { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    completion(.failure(error))
+                case .success:
+                    completion(.success(()))
+                }
             }
         }
     }
-
-    private func downloadTiles(
+    
+    private func downloadNavigationTiles(
         id: String,
         coordinate: CLLocationCoordinate2D,
         radius: CLLocationDistance,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        let styleOptions = TilesetDescriptorOptions(
-            styleURI: .standard,
-            zoomRange: 11...16, tilesets: nil
-        )
-        let descriptor = offlineManager.createTilesetDescriptor(for: styleOptions)
-
-        let geometry = Geometry(Polygon(center: coordinate, radiusMeters: radius))
+        let styleURI: StyleURI = .standard
+        let zoomRange: ClosedRange<UInt8> = 0...16
         
-        guard let loadOptions = TileRegionLoadOptions(
+        let tilesetDescriptorOptions = TilesetDescriptorOptions(
+            styleURI: styleURI,
+            zoomRange: zoomRange,
+            tilesets: nil
+        )
+        
+        let tilesetDescriptor = offlineManager.createTilesetDescriptor(for: tilesetDescriptorOptions)
+        
+        let geometry = Geometry.polygon(Polygon(center: coordinate, radiusMeters: radius))
+        
+        guard let tileRegionLoadOptions = TileRegionLoadOptions(
             geometry: geometry,
-            descriptors: [descriptor],
+            descriptors: [tilesetDescriptor],
             metadata: ["name": id],
             acceptExpired: true
         ) else {
             completion(.failure(NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create TileRegionLoadOptions"])))
             return
         }
-
+        
         tileStore.loadTileRegion(
             forId: id,
-            loadOptions: loadOptions
+            loadOptions: tileRegionLoadOptions
         ) { tileProgress in
             DispatchQueue.main.async {
                 let completed = Double(tileProgress.completedResourceCount)
                 let required = max(Double(tileProgress.requiredResourceCount), 1)
-                let currentProgress = 0.2 + (min(completed / required, 1) * 0.8)
+                let currentProgress = 0.15 + (min(completed / required, 1) * 0.85)
                 progress(currentProgress)
             }
         } completion: { result in
@@ -110,14 +136,14 @@ final class OfflineMapsManager {
             }
         }
     }
-
+    
     func removeRegion(id: String, completion: @escaping (Result<Void, Error>) -> Void) {
         tileStore.removeTileRegion(forId: id)
         DispatchQueue.main.async {
             completion(.success(()))
         }
     }
-
+    
     func fetchDownloadedRegionIds(completion: @escaping ([String]) -> Void) {
         tileStore.allTileRegions { result in
             switch result {
@@ -132,20 +158,42 @@ final class OfflineMapsManager {
             }
         }
     }
+    
+    
+    func observeTileRegions(observer: TileStoreObserver) -> Cancelable {
+        return tileStore.subscribe(observer)
+    }
 }
+
 
 private extension Polygon {
     init(center: CLLocationCoordinate2D, radiusMeters: CLLocationDistance) {
-        let region = MKCoordinateRegion(center: center, latitudinalMeters: radiusMeters * 2, longitudinalMeters: radiusMeters * 2)
+        let region = MKCoordinateRegion(
+            center: center,
+            latitudinalMeters: radiusMeters * 2,
+            longitudinalMeters: radiusMeters * 2
+        )
         
         let latDelta = region.span.latitudeDelta / 2
         let lonDelta = region.span.longitudeDelta / 2
         
-        let topLeft = CLLocationCoordinate2D(latitude: center.latitude + latDelta, longitude: center.longitude - lonDelta)
-        let topRight = CLLocationCoordinate2D(latitude: center.latitude + latDelta, longitude: center.longitude + lonDelta)
-        let bottomRight = CLLocationCoordinate2D(latitude: center.latitude - latDelta, longitude: center.longitude + lonDelta)
-        let bottomLeft = CLLocationCoordinate2D(latitude: center.latitude - latDelta, longitude: center.longitude - lonDelta)
-
+        let topLeft = CLLocationCoordinate2D(
+            latitude: center.latitude + latDelta,
+            longitude: center.longitude - lonDelta
+        )
+        let topRight = CLLocationCoordinate2D(
+            latitude: center.latitude + latDelta,
+            longitude: center.longitude + lonDelta
+        )
+        let bottomRight = CLLocationCoordinate2D(
+            latitude: center.latitude - latDelta,
+            longitude: center.longitude + lonDelta
+        )
+        let bottomLeft = CLLocationCoordinate2D(
+            latitude: center.latitude - latDelta,
+            longitude: center.longitude - lonDelta
+        )
+        
         self.init([[topLeft, topRight, bottomRight, bottomLeft, topLeft]])
     }
 }
