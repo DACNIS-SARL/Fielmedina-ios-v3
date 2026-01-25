@@ -18,7 +18,6 @@ final class OfflineMapsManager {
     private let tileStore = TileStore.default
 
     private init() {
-        // NSNull() is used to indicate "no limit" for the disk quota
         tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
     }
 
@@ -32,7 +31,6 @@ final class OfflineMapsManager {
     ) {
         let styleURI: StyleURI = .standard
         
-        // FIX: Explicitly unwrap or handle the failable initializer
         guard let stylePackLoadOptions = StylePackLoadOptions(
             glyphsRasterizationMode: .ideographsRasterizedLocally,
             metadata: ["name": name]
@@ -48,7 +46,7 @@ final class OfflineMapsManager {
             DispatchQueue.main.async {
                 let completed = Double(packProgress.completedResourceCount)
                 let required = max(Double(packProgress.requiredResourceCount), 1)
-                progress(min(completed / required, 1) * 0.2) // Style pack is ~20% of the work
+                progress(min(completed / required, 1) * 0.2)
             }
         } completion: { [weak self] result in
             switch result {
@@ -81,7 +79,6 @@ final class OfflineMapsManager {
 
         let geometry = Geometry(Polygon(center: coordinate, radiusMeters: radius))
         
-        // FIX: TileRegionLoadOptions returns an optional. We must unwrap it.
         guard let loadOptions = TileRegionLoadOptions(
             geometry: geometry,
             descriptors: [descriptor],
@@ -99,7 +96,6 @@ final class OfflineMapsManager {
             DispatchQueue.main.async {
                 let completed = Double(tileProgress.completedResourceCount)
                 let required = max(Double(tileProgress.requiredResourceCount), 1)
-                // Combine with style pack progress: 0.2 + (0.8 * progress)
                 let currentProgress = 0.2 + (min(completed / required, 1) * 0.8)
                 progress(currentProgress)
             }
@@ -117,8 +113,6 @@ final class OfflineMapsManager {
 
     func removeRegion(id: String, completion: @escaping (Result<Void, Error>) -> Void) {
         tileStore.removeTileRegion(forId: id)
-        // Note: Removing style pack might affect other regions.
-        // Usually, we just remove the Tile Region.
         DispatchQueue.main.async {
             completion(.success(()))
         }
@@ -140,7 +134,6 @@ final class OfflineMapsManager {
     }
 }
 
-// Helper to create a polygon for the download area
 private extension Polygon {
     init(center: CLLocationCoordinate2D, radiusMeters: CLLocationDistance) {
         let region = MKCoordinateRegion(center: center, latitudinalMeters: radiusMeters * 2, longitudinalMeters: radiusMeters * 2)
