@@ -171,6 +171,8 @@ query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) {
         nameFr
         latitude
         longitude
+        storyEn
+        storyFr
         images {
           image { ...ImageFields }
           imageMobile { ...ImageFields }

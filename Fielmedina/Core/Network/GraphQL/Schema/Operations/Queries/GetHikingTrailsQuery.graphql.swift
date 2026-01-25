@@ -9,7 +9,7 @@ extension FielmedinaAPI {
     static let operationName: String = "GetHikingTrails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr city { __typename id nameEn nameFr } latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } } } } }"#,
+        #"query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) { hikings(cityId: $cityId, limit: $limit, offset: $offset) { __typename id nameEn nameFr descriptionEn descriptionFr city { __typename id nameEn nameFr } latitude longitude images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } locations { __typename order location { __typename id nameEn nameFr latitude longitude storyEn storyFr images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } } } } }"#,
         fragments: [ImageFields.self]
       ))
 
@@ -220,6 +220,8 @@ extension FielmedinaAPI {
               .field("nameFr", String.self),
               .field("latitude", FielmedinaAPI.Decimal.self),
               .field("longitude", FielmedinaAPI.Decimal.self),
+              .field("storyEn", String.self),
+              .field("storyFr", String.self),
               .field("images", [Image].self),
             ] }
             static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
@@ -231,6 +233,8 @@ extension FielmedinaAPI {
             var nameFr: String { __data["nameFr"] }
             var latitude: FielmedinaAPI.Decimal { __data["latitude"] }
             var longitude: FielmedinaAPI.Decimal { __data["longitude"] }
+            var storyEn: String { __data["storyEn"] }
+            var storyFr: String { __data["storyFr"] }
             var images: [Image] { __data["images"] }
 
             /// Hiking.Location.Location.Image

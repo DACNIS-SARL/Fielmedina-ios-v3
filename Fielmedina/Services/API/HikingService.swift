@@ -69,7 +69,9 @@ class HikingService {
                                         image: ImageField(url: image.image.url),
                                         imageMobile: image.imageMobile.map { ImageField(url: $0.url) }
                                     )
-                                }
+                                },
+                                storyEn: loc.storyEn,
+                                storyFr: loc.storyFr
                             )
                         }()
                     )

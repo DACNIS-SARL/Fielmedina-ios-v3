@@ -77,18 +77,8 @@ struct HikingNavigator: View {
             get: { selectedWaypoint.map { WaypointWrapper(waypoint: $0) } },
             set: { selectedWaypoint = $0?.waypoint }
         )) { wrapper in
-            // Use LocationDetailView adapter or similar
-            // Since we need to show details for a waypoint which might not be a full "Location" object with all details,
-            // we can construct a temporary Location object if data allows, or use a custom "WaypointDetailView".
-            // The user asked to "show data like location detail".
-            // We can map TrailWaypoint + images back to a simplified Location object.
-            
-            if let location = mapWaypointToLocation(wrapper.waypoint) {
-                LocationDetailView(location: location)
-                    .presentationDetents([.medium, .large])
-            } else {
-                Text("No details available")
-            }
+            HikingLocationSheet(waypoint: wrapper.waypoint)
+                .presentationDetents([.medium, .large])
         }
     }
     
@@ -96,25 +86,6 @@ struct HikingNavigator: View {
     struct WaypointWrapper: Identifiable {
         let id = UUID()
         let waypoint: TrailWaypoint
-    }
-    
-    private func mapWaypointToLocation(_ waypoint: TrailWaypoint) -> Location? {
-        // Construct a temporary Location object to reuse LocationDetailView
-        return Location(
-            id: UUID().uuidString,
-            nameEn: waypoint.name,
-            nameFr: waypoint.name,
-            latitude: waypoint.latitude,
-            longitude: waypoint.longitude,
-            category: nil,
-            images: waypoint.images,
-            openFrom: nil,
-            openTo: nil,
-            storyEn: nil,
-            storyFr: nil,
-            admissionFee: nil,
-            closedDays: nil
-        )
     }
     
     private var loadingView: some View {
