@@ -15,7 +15,7 @@ import MapboxDirections
 struct LocationDetailView: View {
     let location: Location
     
-    @State private var selectedImageIndex = 0
+    @State private var selectedImageIndex: Int? = 0
     @State private var speechManager = LocationSpeechManager()
     @State private var locationManager = LocationManager()
     private let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
@@ -180,25 +180,42 @@ struct LocationDetailView: View {
     private var imageCarousel: some View {
         let images = location.images ?? []
         
-        return ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 12) {
-                ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                    FielmedinaImage(url: image.displayURL, contentMode: .fill)
-                        .containerRelativeFrame(.horizontal)
-                        .aspectRatio(16/9, contentMode: .fill)
-                        .frame(maxHeight: 450)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                            content
-                                .scaleEffect(phase.isIdentity ? 1 : 0.9)
-                                .blur(radius: phase.isIdentity ? 0 : 2)
-                        }
+        return VStack(spacing: 10) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 12) {
+                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                        FielmedinaImage(url: image.displayURL, contentMode: .fill)
+                            .containerRelativeFrame(.horizontal)
+                            .aspectRatio(16/9, contentMode: .fill)
+                            .frame(maxHeight: 450)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                                content
+                                    .scaleEffect(phase.isIdentity ? 1 : 0.9)
+                                    .blur(radius: phase.isIdentity ? 0 : 2)
+                            }
+                            .id(index)
+                    }
                 }
+                .scrollTargetLayout()
             }
-            .scrollTargetLayout()
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $selectedImageIndex)
+            .contentMargins(.horizontal, 16, for: .scrollContent)
+            
+            if images.count > 1 {
+                HStack(spacing: 6) {
+                    ForEach(0..<images.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == (selectedImageIndex ?? 0)
+                                  ? Color(red: 0.72, green: 0.41, blue: 0.25)
+                                  : Color.secondary.opacity(0.35))
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
         }
-        .scrollTargetBehavior(.viewAligned)
-        .contentMargins(.horizontal, 16, for: .scrollContent)
     }
     
     private func detailBadge(title: String, value: String, systemImage: String) -> some View {
