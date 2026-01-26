@@ -34,6 +34,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         FirebaseUtils.initializeFirebase()
         FirebaseUtils.initializeFCM()
+
+        CacheConfigurator.configureURLCache()
         
         _ = MapboxNavigationProviderStore.shared
         

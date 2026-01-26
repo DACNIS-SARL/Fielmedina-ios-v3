@@ -29,12 +29,15 @@ class Network {
     static let currentEnvironment: Environment = .production
     
     private(set) lazy var apollo: ApolloClient = {
-        let store = ApolloStore()
-        
-        let sessionConfiguration = URLSessionConfiguration.default
-        sessionConfiguration.timeoutIntervalForRequest = 30.0
-        let urlSession = URLSession(configuration: sessionConfiguration)
-        
-        return ApolloClient(url: Network.currentEnvironment.baseURL)
+        let store = CacheConfigurator.makeApolloStore()
+        let urlSession = CacheConfigurator.makeApolloURLSession()
+        let transport = RequestChainNetworkTransport(
+            urlSession: urlSession,
+            interceptorProvider: DefaultInterceptorProvider.shared,
+            store: store,
+            endpointURL: Network.currentEnvironment.baseURL
+        )
+
+        return ApolloClient(networkTransport: transport, store: store)
     }()
 }

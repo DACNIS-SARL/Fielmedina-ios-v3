@@ -87,7 +87,14 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
             
             // Determine image
             var annotationImage: UIImage
-            if waypoint.images?.first != nil {
+            if let imageURL = waypoint.images?.first?.displayURL,
+               let cachedImage = coordinator.cachedImage(for: imageURL) {
+                annotationImage = createRoundedWaypointImage(
+                    image: cachedImage,
+                    waypointNumber: index + 1,
+                    completed: isCompleted
+                )
+            } else if waypoint.images?.first != nil {
                 annotationImage = createDefaultWaypointImage(waypointNumber: index + 1, completed: isCompleted)
             } else if index == waypoints.count - 1 {
                 annotationImage = createFinishFlagImage()
@@ -304,6 +311,26 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
                     continue
                 }
 
+                if let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)),
+                   let cachedImage = UIImage(data: cachedResponse.data) {
+                    Self.imageCache.setObject(cachedImage, forKey: urlString as NSString)
+                    waypointImages[annotationId] = cachedImage
+                    if let annotationManager {
+                        let image = parent.createRoundedWaypointImage(
+                            image: cachedImage,
+                            waypointNumber: waypointNumber,
+                            completed: isCompleted
+                        )
+                        updateAnnotationImage(
+                            manager: annotationManager,
+                            annotationId: annotationId,
+                            image: image,
+                            imageName: "waypoint_\(index)_cached_response"
+                        )
+                    }
+                    continue
+                }
+
                 Task { @MainActor [weak self] in
                     do {
                         let (data, _) = try await URLSession.shared.data(from: url)
@@ -343,6 +370,17 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
             annotation.image = .init(image: image, name: imageName)
             annotations[index] = annotation
             manager.annotations = annotations
+        }
+
+        func cachedImage(for urlString: String) -> UIImage? {
+            if let cachedImage = Self.imageCache.object(forKey: urlString as NSString) {
+                return cachedImage
+            }
+            guard let url = URL(string: urlString) else { return nil }
+            guard let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)),
+                  let cachedImage = UIImage(data: cachedResponse.data) else { return nil }
+            Self.imageCache.setObject(cachedImage, forKey: urlString as NSString)
+            return cachedImage
         }
     }
 }

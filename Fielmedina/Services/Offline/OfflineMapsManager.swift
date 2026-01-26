@@ -10,6 +10,7 @@ import CoreLocation
 import MapKit
 import MapboxMaps
 import MapboxCommon
+import MapboxNavigationCore
 import Turf
 
 final class OfflineMapsManager {
@@ -102,12 +103,13 @@ final class OfflineMapsManager {
         )
         
         let tilesetDescriptor = offlineManager.createTilesetDescriptor(for: tilesetDescriptorOptions)
+        let navigationDescriptor = MapboxNavigationProviderStore.shared.getLatestNavigationTilesetDescriptor()
         
         let geometry = Geometry.polygon(Polygon(center: coordinate, radiusMeters: radius))
         
         guard let tileRegionLoadOptions = TileRegionLoadOptions(
             geometry: geometry,
-            descriptors: [tilesetDescriptor],
+            descriptors: [tilesetDescriptor, navigationDescriptor],
             metadata: ["name": id],
             acceptExpired: true
         ) else {
