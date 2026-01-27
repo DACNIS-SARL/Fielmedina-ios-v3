@@ -175,6 +175,15 @@ struct AllEventsListView: View {
             categories = previousCategories
         }
         
+        // Final offline fallback: if categories are still only "All Events" but we have events,
+        // rebuild categories from events to enable offline filtering.
+        if categories.count == 1, !events.isEmpty {
+            let derived = Array(Set(events.compactMap { $0.category?.displayName })).sorted()
+            if !derived.isEmpty {
+                categories = [String(localized: "All Events")] + derived
+            }
+        }
+        
         isLoadingEvents = false
         isLoadingCategories = false
     }
@@ -192,10 +201,16 @@ struct AllEventsListView: View {
     private func loadCategories() async {
         do {
             let fetchedCategories = try await EventCategoryService.shared.fetchEventCategories()
-            let categoryNames = fetchedCategories.map { $0.displayName }
+            let categoryNames = Array(Set(fetchedCategories.map { $0.displayName })).sorted()
             categories = [String(localized: "All Events")] + categoryNames
         } catch {
-            categories = [String(localized: "All Events")]
+            // Offline or fetch failed — derive categories from already-loaded events
+            let derived = Array(Set(events.compactMap { $0.category?.displayName })).sorted()
+            if derived.isEmpty {
+                categories = [String(localized: "All Events")]
+            } else {
+                categories = [String(localized: "All Events")] + derived
+            }
         }
     }
 }

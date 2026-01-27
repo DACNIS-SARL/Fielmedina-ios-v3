@@ -97,6 +97,7 @@ final class OfflineContentPrefetcher {
         }()
 
         var tasks: [() async -> Void] = [
+            { await self.prefetchEventCategories() },
             { await self.prefetchEvents() },
             { await self.prefetchTransports() }
         ]
@@ -240,6 +241,14 @@ final class OfflineContentPrefetcher {
             let boostedEvents = try await EventService.shared.fetchEvents(limit: 50, boost: true)
             let images = (events + boostedEvents).flatMap { $0.images ?? [] }
             await ImagePrefetcher.prefetch(from: images)
+        } catch {
+            return
+        }
+    }
+
+    private func prefetchEventCategories() async {
+        do {
+            _ = try await EventCategoryService.shared.fetchEventCategories()
         } catch {
             return
         }
