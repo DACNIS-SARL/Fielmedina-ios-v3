@@ -171,6 +171,11 @@ query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) {
         nameFr
         latitude
         longitude
+        category {
+          id
+          nameEn
+          nameFr
+        }
         storyEn
         storyFr
         images {

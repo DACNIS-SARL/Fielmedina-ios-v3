@@ -90,6 +90,13 @@ class HikingService {
                                 nameFr: loc.nameFr,
                                 latitude: Double(loc.latitude) ?? 0,
                                 longitude: Double(loc.longitude) ?? 0,
+                                category: loc.category.map { cat in
+                                    LocationCategory(
+                                        id: cat.id,
+                                        nameEn: cat.nameEn,
+                                        nameFr: cat.nameFr
+                                    )
+                                },
                                 images: loc.images.map { image in
                                     ImageContainer(
                                         image: ImageField(url: image.image.url),

@@ -65,6 +65,17 @@ struct HikingLocationSheet: View {
                     .buttonStyle(.plain)
                     
                     Spacer(minLength: 0)
+                    
+                    if let category = waypoint.category?.displayName {
+                        Text(category.uppercased())
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(red: 0.72, green: 0.41, blue: 0.25))
+                            .foregroundStyle(.white)
+                            .clipShape(Capsule())
+                    }
                 }
                 
                 AdsCarousel()
@@ -87,6 +98,7 @@ struct HikingLocationSheet: View {
         name: "Sample Location",
         latitude: 35.0,
         longitude: 10.0,
+        category: Location.sampleLocations[0].category,
         images: Location.sampleLocations[0].images,
         storyEn: Location.sampleLocations[0].storyEn,
         storyFr: Location.sampleLocations[0].storyFr

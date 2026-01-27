@@ -47,6 +47,7 @@ struct Hiking: Codable, Identifiable {
                 name: loc.displayName,
                 latitude: loc.latitude,
                 longitude: loc.longitude,
+                category: loc.category,
                 images: loc.images,
                 storyEn: loc.storyEn,
                 storyFr: loc.storyFr
@@ -97,6 +98,7 @@ struct TrailLocation: Codable, Identifiable {
     let nameFr: String
     let latitude: Double
     let longitude: Double
+    let category: LocationCategory?
     let images: [ImageContainer]?
     let storyEn: String?
     let storyFr: String?
@@ -121,6 +123,7 @@ struct TrailWaypoint {
     let name: String
     let latitude: Double
     let longitude: Double
+    let category: LocationCategory?
     let images: [ImageContainer]?
     let storyEn: String?
     let storyFr: String?
