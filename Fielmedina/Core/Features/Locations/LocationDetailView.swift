@@ -141,10 +141,10 @@ struct LocationDetailView: View {
             
             HStack(spacing: 16) {
                 if let schedule = location.displaySchedule {
-                    detailBadge(title: "Opening Hours", value: schedule, systemImage: "clock")
+                    detailBadge(title: String(localized: "Opening Hours"), value: schedule, systemImage: "clock")
                 }
                 if let admission = location.displayAdmission {
-                    detailBadge(title: "Admission Fee", value: "\(admission) TND", systemImage: "dollarsign.circle")
+                    detailBadge(title: String(localized: "Admission Fee"), value: "\(admission) TND", systemImage: "dollarsign.circle")
                 }
                 Spacer(minLength: 0)
                 

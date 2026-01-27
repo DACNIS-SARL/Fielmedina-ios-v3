@@ -63,8 +63,8 @@ struct EventDetailView: View {
             }
 
             HStack(spacing: 16) {
-                detailBadge(title: "Hours", value: formattedTime)
-                detailBadge(title: "Admission Fee", value: event.displayPrice)
+                detailBadge(title: String(localized: "Hours"), value: formattedTime)
+                detailBadge(title: String(localized: "Admission Fee"), value: event.displayPrice)
             }
 
             if let description = event.displayDescription {
@@ -109,7 +109,7 @@ struct EventDetailView: View {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Label(value, systemImage: title == "Hours" ? "clock" : "dollarsign.circle")
+            Label(value, systemImage: title == String(localized: "Hours") ? "clock" : "dollarsign.circle")
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)

@@ -61,6 +61,16 @@
         }
       }
     },
+    "Admission Fee" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Droit d'entrée"
+          }
+        }
+      }
+    },
     "ALL LOCATIONS" : {
       "localizations" : {
         "fr" : {
@@ -191,6 +201,16 @@
         }
       }
     },
+    "Enable location permissions to download offline content." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez les autorisations de localisation pour télécharger le contenu hors ligne."
+          }
+        }
+      }
+    },
     "Downloading" : {
       "localizations" : {
         "fr" : {
@@ -237,6 +257,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "À utiliser uniquement en cas d'urgence"
+          }
+        }
+      }
+    },
+    "Hours" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horaires"
           }
         }
       }
@@ -563,6 +593,56 @@
         }
       }
     },
+    "Offline content download failed. We'll retry shortly." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le téléchargement du contenu hors ligne a échoué. Nous réessaierons bientôt."
+          }
+        }
+      }
+    },
+    "Offline content is downloading in the background while you explore." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le contenu hors ligne se télécharge en arrière-plan pendant que vous explorez."
+          }
+        }
+      }
+    },
+    "Offline content is preparing in the background." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le contenu hors ligne se prépare en arrière-plan."
+          }
+        }
+      }
+    },
+    "Offline content ready. You can use the app without internet." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le contenu hors ligne est prêt. Vous pouvez utiliser l'application sans Internet."
+          }
+        }
+      }
+    },
+    "Opening Hours" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horaires d'ouverture"
+          }
+        }
+      }
+    },
     "Offline navigation + maps" : {
       "localizations" : {
         "fr" : {
@@ -739,6 +819,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Démarrer la navigation"
+          }
+        }
+      }
+    },
+    "Waiting for location to download offline content." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente de la localisation pour télécharger le contenu hors ligne."
           }
         }
       }

@@ -95,20 +95,20 @@ struct SettingsView: View {
 
     private var offlineStatusMessage: String {
         if isOfflineReady {
-            return "Offline content ready. You can use the app without internet."
+            return String(localized: "Offline content ready. You can use the app without internet.")
         }
 
         switch offlineStatus {
         case .waitingForLocation:
-            return "Waiting for location to download offline content."
+            return String(localized: "Waiting for location to download offline content.")
         case .permissionDenied:
-            return "Enable location permissions to download offline content."
+            return String(localized: "Enable location permissions to download offline content.")
         case .failed:
-            return "Offline content download failed. We'll retry shortly."
+            return String(localized: "Offline content download failed. We'll retry shortly.")
         case .downloading:
-            return "Offline content is downloading in the background while you explore."
+            return String(localized: "Offline content is downloading in the background while you explore.")
         case .idle, .completed:
-            return "Offline content is preparing in the background."
+            return String(localized: "Offline content is preparing in the background.")
         }
     }
 
