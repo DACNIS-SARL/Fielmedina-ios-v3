@@ -159,9 +159,20 @@ struct AllEventsListView: View {
         isLoadingCategories = true
         errorMessage = nil
         
+        let previousEvents = events
+        let previousCategories = categories
+        
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await loadEvents() }
             group.addTask { await loadCategories() }
+        }
+        
+        if events.isEmpty && !previousEvents.isEmpty {
+            events = previousEvents
+        }
+        
+        if categories.count == 1 && previousCategories.count > 1 {
+            categories = previousCategories
         }
         
         isLoadingEvents = false

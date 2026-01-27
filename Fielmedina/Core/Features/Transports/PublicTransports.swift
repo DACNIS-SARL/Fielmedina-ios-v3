@@ -219,14 +219,12 @@ struct PublicTransports: View {
     private func loadTransports() async {
         isLoading = true
         errorMessage = nil
+        let previousTransports = transports
         do {
-            let cityId = CitySelectionStore.shared.cityId
-            transports = try await PublicTransportService.shared.fetchTransports(
-                cityId: cityId,
-                limit: 400
-            )
+            transports = try await PublicTransportService.shared.fetchTransports(limit: 400)
         } catch {
-            if transports.isEmpty {
+            transports = previousTransports
+            if previousTransports.isEmpty {
                 errorMessage = error.localizedDescription
             }
         }
