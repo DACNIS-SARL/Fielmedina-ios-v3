@@ -33,8 +33,7 @@ final class OfflineMapsManager {
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        
-        downloadStylePack(name: name, progress: progress) { [weak self] result in
+        downloadStylePacks(name: name, progress: progress) { [weak self] result in
             switch result {
             case .failure(let error):
                 completion(.failure(error))
@@ -50,13 +49,12 @@ final class OfflineMapsManager {
         }
     }
     
-    private func downloadStylePack(
+    private func downloadStylePacks(
         name: String,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        let styleURI: StyleURI = .standard
-        
+        let primaryStyleURI: StyleURI = .standard
         guard let stylePackLoadOptions = StylePackLoadOptions(
             glyphsRasterizationMode: .ideographsRasterizedLocally,
             metadata: ["name": name]
@@ -64,9 +62,9 @@ final class OfflineMapsManager {
             completion(.failure(NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])))
             return
         }
-        
+
         _ = offlineManager.loadStylePack(
-            for: styleURI,
+            for: primaryStyleURI,
             loadOptions: stylePackLoadOptions
         ) { packProgress in
             DispatchQueue.main.async {
@@ -80,8 +78,46 @@ final class OfflineMapsManager {
                 case .failure(let error):
                     completion(.failure(error))
                 case .success:
-                    completion(.success(()))
+                    self.downloadNavigationStylePacks(name: name, completion: completion)
                 }
+            }
+        }
+    }
+
+    private func downloadNavigationStylePacks(
+        name: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        let navigationStyles = [
+            StyleURI(rawValue: "mapbox://styles/mapbox-dash/standard-navigation")
+        ].compactMap { $0 }
+        let group = DispatchGroup()
+        var lastError: Error?
+
+        for styleURI in navigationStyles {
+            group.enter()
+            guard let options = StylePackLoadOptions(
+                glyphsRasterizationMode: .ideographsRasterizedLocally,
+                metadata: ["name": name]
+            ) else {
+                lastError = NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])
+                group.leave()
+                continue
+            }
+
+            _ = offlineManager.loadStylePack(for: styleURI, loadOptions: options) { _ in } completion: { result in
+                if case .failure(let error) = result {
+                    lastError = error
+                }
+                group.leave()
+            }
+        }
+
+        group.notify(queue: .main) {
+            if let lastError {
+                completion(.failure(lastError))
+            } else {
+                completion(.success(()))
             }
         }
     }
@@ -93,23 +129,30 @@ final class OfflineMapsManager {
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        let styleURI: StyleURI = .standard
         let zoomRange: ClosedRange<UInt8> = 0...16
-        
-        let tilesetDescriptorOptions = TilesetDescriptorOptions(
-            styleURI: styleURI,
-            zoomRange: zoomRange,
-            tilesets: nil
-        )
-        
-        let tilesetDescriptor = offlineManager.createTilesetDescriptor(for: tilesetDescriptorOptions)
+
+        let styleURIs: [StyleURI] = [
+            .standard,
+            StyleURI(rawValue: "mapbox://styles/mapbox-dash/standard-navigation")
+        ].compactMap { $0 }
+
+        let tilesetDescriptors = styleURIs.map { styleURI in
+            let tilesetDescriptorOptions = TilesetDescriptorOptions(
+                styleURI: styleURI,
+                zoomRange: zoomRange,
+                tilesets: nil
+            )
+            return offlineManager.createTilesetDescriptor(for: tilesetDescriptorOptions)
+        }
         let navigationDescriptor = MapboxNavigationProviderStore.shared.getLatestNavigationTilesetDescriptor()
         
         let geometry = Geometry.polygon(Polygon(center: coordinate, radiusMeters: radius))
         
+        let descriptors = tilesetDescriptors + [navigationDescriptor]
+
         guard let tileRegionLoadOptions = TileRegionLoadOptions(
             geometry: geometry,
-            descriptors: [tilesetDescriptor, navigationDescriptor],
+            descriptors: descriptors,
             metadata: ["name": id],
             acceptExpired: true
         ) else {

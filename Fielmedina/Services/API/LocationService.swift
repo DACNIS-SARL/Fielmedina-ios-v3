@@ -26,24 +26,61 @@ class LocationService {
         limit: Int32 = 10,
         offset: Int32? = nil
     ) async throws -> [Location] {
+        if let offset {
+            return try await fetchLocationsPage(
+                cityId: cityId,
+                categoryId: categoryId,
+                limit: limit,
+                offset: offset
+            )
+        }
+
+        var allLocations: [Location] = []
+        var currentOffset: Int32 = 0
+        let batchSize = max(limit, 50)
+
+        while true {
+            let page = try await fetchLocationsPage(
+                cityId: cityId,
+                categoryId: categoryId,
+                limit: batchSize,
+                offset: currentOffset
+            )
+            allLocations.append(contentsOf: page)
+
+            if page.count < batchSize {
+                break
+            }
+            currentOffset += batchSize
+        }
+
+        return allLocations
+    }
+
+    private func fetchLocationsPage(
+        cityId: Int32?,
+        categoryId: Int32?,
+        limit: Int32,
+        offset: Int32
+    ) async throws -> [Location] {
         let query = FielmedinaAPI.GetLocationsByCityQuery(
             cityId: cityId != nil ? .some(cityId!) : .none,
             categoryId: categoryId != nil ? .some(categoryId!) : .none,
             limit: .some(limit),
-            offset: offset != nil ? .some(offset!) : .none
+            offset: .some(offset)
         )
-        
+
         let response = try await apollo.fetch(query: query)
-        
+
         if let errors = response.errors {
             let message = errors.map { $0.message ?? "Unknown error" }.joined(separator: ", ")
             throw NSError(domain: "Apollo", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
         }
-        
+
         guard let data = response.data else {
             return []
         }
-        
+
         return data.locations.map { gLocation in
             Location(
                 id: gLocation.id,

@@ -31,6 +31,8 @@ struct SettingsView: View {
     
     @State private var regionStatus: [String: OfflineRegionStatus] = [:]
     @State private var isLoadingRegions = true
+    @State private var isOfflineReady = OfflineContentPrefetcher.shared.isComplete
+    @State private var offlineStatus = OfflineContentPrefetcher.shared.status
     
     var body: some View {
         ScrollView {
@@ -47,6 +49,19 @@ struct SettingsView: View {
         .toolbar(.hidden, for: .tabBar)
         .task {
             await loadExistingRegions()
+            OfflineContentPrefetcher.shared.prefetchIfNeeded()
+            offlineStatus = OfflineContentPrefetcher.shared.status
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchCompleted)) { _ in
+            isOfflineReady = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchStatusChanged)) { notification in
+            if let status = notification.object as? OfflineContentPrefetcher.Status {
+                offlineStatus = status
+            } else {
+                offlineStatus = OfflineContentPrefetcher.shared.status
+            }
+            isOfflineReady = OfflineContentPrefetcher.shared.isComplete
         }
     }
     
@@ -57,6 +72,28 @@ struct SettingsView: View {
             Text("Download city medinas to use maps and navigation without internet.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            Text(offlineStatusMessage)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var offlineStatusMessage: String {
+        if isOfflineReady {
+            return "Offline content ready. You can use the app without internet."
+        }
+
+        switch offlineStatus {
+        case .waitingForLocation:
+            return "Waiting for location to download offline content."
+        case .permissionDenied:
+            return "Enable location permissions to download offline content."
+        case .failed:
+            return "Offline content download failed. We'll retry shortly."
+        case .downloading:
+            return "Offline content is downloading in the background while you explore."
+        case .idle, .completed:
+            return "Offline content is preparing in the background."
         }
     }
     

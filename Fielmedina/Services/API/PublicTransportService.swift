@@ -14,10 +14,36 @@ class PublicTransportService {
     private let apollo = Network.shared.apollo
 
     func fetchTransports(cityId: Int32? = nil, limit: Int32 = 50, offset: Int32? = nil) async throws -> [PublicTransport] {
+        var allTransports: [PublicTransport] = []
+        var currentOffset = offset ?? 0
+        let batchSize = max(limit, 50)
+
+        while true {
+            let page = try await fetchTransportsPage(
+                cityId: cityId,
+                limit: batchSize,
+                offset: currentOffset
+            )
+            allTransports.append(contentsOf: page)
+
+            if page.count < batchSize {
+                break
+            }
+            currentOffset += batchSize
+        }
+
+        return allTransports
+    }
+
+    private func fetchTransportsPage(
+        cityId: Int32?,
+        limit: Int32,
+        offset: Int32
+    ) async throws -> [PublicTransport] {
         let query = FielmedinaAPI.GetTransportsQuery(
             cityId: cityId != nil ? .some(cityId!) : .none,
             limit: .some(limit),
-            offset: offset != nil ? .some(offset!) : .none
+            offset: .some(offset)
         )
 
         let response = try await apollo.fetch(query: query)

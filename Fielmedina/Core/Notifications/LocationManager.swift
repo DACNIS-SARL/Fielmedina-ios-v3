@@ -53,9 +53,14 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         userLocation = location.coordinate
+        NotificationCenter.default.post(name: .locationDidUpdate, object: nil)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location error: \(error.localizedDescription)")
     }
+}
+
+extension Notification.Name {
+    static let locationDidUpdate = Notification.Name("location_did_update")
 }

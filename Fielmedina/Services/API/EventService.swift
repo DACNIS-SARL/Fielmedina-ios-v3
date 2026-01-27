@@ -19,25 +19,53 @@ class EventService {
     ///   - limit: Number of events to fetch.
     /// - Returns: An array of domain `Event` models.
     func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil) async throws -> [Event] {
+        var allEvents: [Event] = []
+        var currentOffset: Int32 = 0
+        let batchSize = max(limit, 50)
+
+        while true {
+            let page = try await fetchEventsPage(
+                cityId: cityId,
+                limit: batchSize,
+                offset: currentOffset,
+                boost: boost
+            )
+            allEvents.append(contentsOf: page)
+
+            if page.count < batchSize {
+                break
+            }
+            currentOffset += batchSize
+        }
+
+        return allEvents
+    }
+
+    private func fetchEventsPage(
+        cityId: Int32?,
+        limit: Int32,
+        offset: Int32,
+        boost: Bool?
+    ) async throws -> [Event] {
         let query = FielmedinaAPI.GetEventsByCityQuery(
             cityId: cityId != nil ? .init(integerLiteral: cityId!) : .none,
             categoryId: .none,
             limit: .init(integerLiteral: limit),
-            offset: .none,
+            offset: .some(offset),
             boost: boost != nil ? .some(boost!) : .none
         )
-        
+
         let response = try await apollo.fetch(query: query)
-        
+
         if let errors = response.errors {
             let message = errors.map { $0.message ?? "Unknown error" }.joined(separator: ", ")
             throw NSError(domain: "Apollo", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
         }
-        
+
         guard let data = response.data else {
             return []
         }
-        
+
         return data.events.map { gEvent in
             Event(
                 id: gEvent.id,
@@ -49,7 +77,7 @@ class EventService {
                 startDate: gEvent.startDate,
                 endDate: gEvent.endDate,
                 time: gEvent.time,
-                price: String(describing: gEvent.price), // Convert Decimal to String
+                price: String(describing: gEvent.price),
                 boost: gEvent.boost,
                 images: gEvent.images.map { img in
                     ImageContainer(

@@ -102,7 +102,8 @@ struct HikingView: View {
         isLoading = true
         errorMessage = nil
         do {
-            trails = try await HikingService.shared.fetchHikings(limit: 20)
+            let cityId = CitySelectionStore.shared.cityId
+            trails = try await HikingService.shared.fetchHikings(cityId: cityId, limit: 200)
             sortTrailsByDistanceIfPossible()
             await updateMetrics()
         } catch {
