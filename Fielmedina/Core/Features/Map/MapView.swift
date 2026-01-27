@@ -32,6 +32,7 @@ struct MapView: View {
     @State private var showLocationDetail = false
     @State private var showFilterSheet = false
     @State private var selectedCategoryIds: Set<String> = []
+    @State private var locationCategories: [LocationCategory] = []
     @State private var didCenterOnMedina = false
 
     private var standardLightPreset: StandardLightPreset {
@@ -113,12 +114,18 @@ struct MapView: View {
                 locationManager.startUpdatingLocation()
             }
             .task {
-                await loadLocations()
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask { await loadLocations() }
+                    group.addTask { await loadLocationCategories() }
+                }
+                if selectedCategoryIds.isEmpty && !locationCategories.isEmpty {
+                    selectedCategoryIds = Set(locationCategories.map { $0.id })
+                }
                 centerMapOnNearestMedinaIfNeeded()
             }
             .sheet(isPresented: $showFilterSheet) {
                 MapFilterSheet(
-                    categories: availableCategories,
+                    categories: locationCategories,
                     selectedCategoryIds: $selectedCategoryIds
                 )
                 .presentationDetents([.medium, .large])
@@ -147,11 +154,34 @@ struct MapView: View {
                 cityId: cityId,
                 limit: 500
             )
-            if selectedCategoryIds.isEmpty {
-                selectedCategoryIds = Set(availableCategories.map { $0.id })
+            if selectedCategoryIds.isEmpty && !locationCategories.isEmpty {
+                selectedCategoryIds = Set(locationCategories.map { $0.id })
             }
         } catch {
             locations = []
+        }
+    }
+
+    private func loadLocationCategories() async {
+        // 1) Try cache-only first to support offline
+        if let cached = await LocationCategoryService.shared.fetchLocationCategoriesFromCache(),
+           !cached.isEmpty {
+            locationCategories = cached.sorted { $0.displayName < $1.displayName }
+            return
+        }
+
+        // 2) Fall back to network (cacheFirst), then derive from locations
+        do {
+            let fetched = try await LocationCategoryService.shared.fetchLocationCategories()
+            locationCategories = fetched.sorted { $0.displayName < $1.displayName }
+        } catch {
+            var seen = Set<String>()
+            let derived = locations.compactMap { $0.category }.filter { category in
+                if seen.contains(category.id) { return false }
+                seen.insert(category.id)
+                return true
+            }.sorted { $0.displayName < $1.displayName }
+            locationCategories = derived
         }
     }
 
@@ -187,16 +217,6 @@ struct MapView: View {
             guard let categoryId = location.category?.id else { return false }
             return selectedCategoryIds.contains(categoryId)
         }
-    }
-
-    private var availableCategories: [LocationCategory] {
-        var seen = Set<String>()
-        let categories = locations.compactMap { $0.category }.filter { category in
-            if seen.contains(category.id) { return false }
-            seen.insert(category.id)
-            return true
-        }
-        return categories.sorted { $0.displayName < $1.displayName }
     }
     
     @ViewBuilder
@@ -310,3 +330,4 @@ struct MapView: View {
 #Preview {
     MapView()
 }
+

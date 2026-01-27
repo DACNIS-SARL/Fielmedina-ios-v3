@@ -65,6 +65,10 @@ final class OfflineContentPrefetcher {
     }
 
     func prefetchIfNeeded() {
+        // Warm categories cache regardless of completion state
+        Task { await self.prefetchEventCategories() }
+        Task { await self.prefetchLocationCategories() }
+
         guard !isRunning, !isComplete else { return }
         isRunning = true
         updateStatus(.downloading)
@@ -98,6 +102,7 @@ final class OfflineContentPrefetcher {
 
         var tasks: [() async -> Void] = [
             { await self.prefetchEventCategories() },
+            { await self.prefetchLocationCategories() },
             { await self.prefetchEvents() },
             { await self.prefetchTransports() }
         ]
@@ -249,6 +254,14 @@ final class OfflineContentPrefetcher {
     private func prefetchEventCategories() async {
         do {
             _ = try await EventCategoryService.shared.fetchEventCategories()
+        } catch {
+            return
+        }
+    }
+
+    private func prefetchLocationCategories() async {
+        do {
+            _ = try await LocationCategoryService.shared.fetchLocationCategories()
         } catch {
             return
         }

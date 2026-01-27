@@ -14,6 +14,7 @@ struct AllLocationListView: View {
     @State private var categories: [String] = [String(localized: "All Locations")]
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var isLoadingCategories = false
     
     var filteredLocations: [Location] {
         if selectedCategory == String(localized: "All Locations") {
@@ -155,6 +156,60 @@ struct AllLocationListView: View {
     
     private func loadData() async {
         isLoading = true
+        isLoadingCategories = true
+        errorMessage = nil
+        
+        let previousLocations = locations
+        let previousCategories = categories
+        
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await loadLocations() }
+            group.addTask { await loadLocationCategories() }
+        }
+        
+        if locations.isEmpty && !previousLocations.isEmpty {
+            locations = previousLocations
+        }
+        
+        if categories.count == 1 && previousCategories.count > 1 {
+            categories = previousCategories
+        }
+        
+        // Final offline fallback: if categories are still only "All Locations" but we have locations,
+        // rebuild categories from locations to enable offline filtering.
+        if categories.count == 1, !locations.isEmpty {
+            let derived = Array(Set(locations.compactMap { $0.category?.displayName })).sorted()
+            if !derived.isEmpty {
+                categories = [String(localized: "All Locations")] + derived
+            }
+        }
+        
+        isLoading = false
+        isLoadingCategories = false
+    }
+    
+    private func loadLocationCategories() async {
+        // 1) Try cache-only first
+        if let cached = await LocationCategoryService.shared.fetchLocationCategoriesFromCache(),
+           !cached.isEmpty {
+            let names = Array(Set(cached.map { $0.displayName })).sorted()
+            categories = [String(localized: "All Locations")] + names
+            return
+        }
+        
+        // 2) Fall back to network (cacheFirst), then derive from locations
+        do {
+            let fetched = try await LocationCategoryService.shared.fetchLocationCategories()
+            let names = Array(Set(fetched.map { $0.displayName })).sorted()
+            categories = [String(localized: "All Locations")] + names
+        } catch {
+            let derived = Array(Set(locations.compactMap { $0.category?.displayName })).sorted()
+            categories = [String(localized: "All Locations")] + derived
+        }
+    }
+    
+    private func loadLocations() async {
+        isLoading = true
         errorMessage = nil
         
         do {
@@ -166,8 +221,8 @@ struct AllLocationListView: View {
             self.locations = fetchedLocations
             
             // Extract unique categories
-            let uniqueCategories = Set(fetchedLocations.compactMap { $0.category?.displayName })
-            categories = [String(localized: "All Locations")] + uniqueCategories.sorted()
+            // Removed categories assignment here as per instructions
+            
         } catch {
             if locations.isEmpty {
                 errorMessage = error.localizedDescription
