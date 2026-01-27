@@ -142,7 +142,11 @@ struct MapView: View {
 
     private func loadLocations() async {
         do {
-            locations = try await LocationService.shared.fetchLocations(limit: 200)
+            let cityId = CitySelectionStore.shared.cityId
+            locations = try await LocationService.shared.fetchLocations(
+                cityId: cityId,
+                limit: 500
+            )
             if selectedCategoryIds.isEmpty {
                 selectedCategoryIds = Set(availableCategories.map { $0.id })
             }
