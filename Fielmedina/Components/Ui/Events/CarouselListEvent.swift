@@ -151,12 +151,16 @@ struct CarouselListEvent: View {
         errorMessage = nil
         
         do {
+            let cityId = CitySelectionStore.shared.cityId
             events = try await EventService.shared.fetchEvents(
+                cityId: cityId,
                 limit: Int32(limit),
                 boost: isBoostedOnly ? true : nil
             )
         } catch {
-            errorMessage = error.localizedDescription
+            if events.isEmpty {
+                errorMessage = error.localizedDescription
+            }
         }
         
         isLoading = false

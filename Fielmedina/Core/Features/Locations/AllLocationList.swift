@@ -158,14 +158,20 @@ struct AllLocationListView: View {
         errorMessage = nil
         
         do {
-            let fetchedLocations = try await LocationService.shared.fetchLocations(limit: 50)
+            let cityId = CitySelectionStore.shared.cityId
+            let fetchedLocations = try await LocationService.shared.fetchLocations(
+                cityId: cityId,
+                limit: 500
+            )
             self.locations = fetchedLocations
             
             // Extract unique categories
             let uniqueCategories = Set(fetchedLocations.compactMap { $0.category?.displayName })
             categories = [String(localized: "All Locations")] + uniqueCategories.sorted()
         } catch {
-            errorMessage = error.localizedDescription
+            if locations.isEmpty {
+                errorMessage = error.localizedDescription
+            }
         }
         
         isLoading = false

@@ -168,11 +168,23 @@ struct HikingView: View {
                             distance: route.distance,
                             duration: route.expectedTravelTime
                         ))
+                    } else if let totalDistance = hiking.totalDistance {
+                        continuation.resume(returning: HikingMetrics(
+                            distance: totalDistance * 1000,
+                            duration: 0
+                        ))
                     } else {
                         continuation.resume(returning: nil)
                     }
                 case .failure:
-                    continuation.resume(returning: nil)
+                    if let totalDistance = hiking.totalDistance {
+                        continuation.resume(returning: HikingMetrics(
+                            distance: totalDistance * 1000,
+                            duration: 0
+                        ))
+                    } else {
+                        continuation.resume(returning: nil)
+                    }
                 }
             }
         }
@@ -263,6 +275,7 @@ struct HikingCardView: View {
 
     private var durationText: String {
         guard let duration = metrics?.duration else { return "--" }
+        if duration <= 0 { return "--" }
         let minutes = Int(duration / 60)
         if minutes >= 60 {
             return "\(minutes / 60)h \(minutes % 60)m"

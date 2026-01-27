@@ -220,9 +220,15 @@ struct PublicTransports: View {
         isLoading = true
         errorMessage = nil
         do {
-            transports = try await PublicTransportService.shared.fetchTransports(limit: 80)
+            let cityId = CitySelectionStore.shared.cityId
+            transports = try await PublicTransportService.shared.fetchTransports(
+                cityId: cityId,
+                limit: 400
+            )
         } catch {
-            errorMessage = error.localizedDescription
+            if transports.isEmpty {
+                errorMessage = error.localizedDescription
+            }
         }
         isLoading = false
     }
