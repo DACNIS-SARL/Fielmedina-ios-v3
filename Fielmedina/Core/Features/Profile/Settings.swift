@@ -33,6 +33,7 @@ struct SettingsView: View {
     @State private var isLoadingRegions = true
     @State private var isOfflineReady = OfflineContentPrefetcher.shared.isComplete
     @State private var offlineStatus = OfflineContentPrefetcher.shared.status
+    @State private var offlineProgress = OfflineContentPrefetcher.shared.progress
     
     var body: some View {
         ScrollView {
@@ -51,9 +52,11 @@ struct SettingsView: View {
             await loadExistingRegions()
             OfflineContentPrefetcher.shared.prefetchIfNeeded()
             offlineStatus = OfflineContentPrefetcher.shared.status
+            offlineProgress = OfflineContentPrefetcher.shared.progress
         }
         .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchCompleted)) { _ in
             isOfflineReady = true
+            offlineProgress = 1
         }
         .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchStatusChanged)) { notification in
             if let status = notification.object as? OfflineContentPrefetcher.Status {
@@ -62,6 +65,14 @@ struct SettingsView: View {
                 offlineStatus = OfflineContentPrefetcher.shared.status
             }
             isOfflineReady = OfflineContentPrefetcher.shared.isComplete
+            offlineProgress = OfflineContentPrefetcher.shared.progress
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchProgressChanged)) { notification in
+            if let progress = notification.object as? Double {
+                offlineProgress = progress
+            } else {
+                offlineProgress = OfflineContentPrefetcher.shared.progress
+            }
         }
     }
     
@@ -75,6 +86,10 @@ struct SettingsView: View {
             Text(offlineStatusMessage)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if shouldShowOfflineProgress {
+                ProgressView(value: offlineProgress)
+                    .tint(Color(red: 0.72, green: 0.41, blue: 0.25))
+            }
         }
     }
 
@@ -94,6 +109,15 @@ struct SettingsView: View {
             return "Offline content is downloading in the background while you explore."
         case .idle, .completed:
             return "Offline content is preparing in the background."
+        }
+    }
+
+    private var shouldShowOfflineProgress: Bool {
+        switch offlineStatus {
+        case .downloading, .waitingForLocation:
+            return !isOfflineReady
+        case .permissionDenied, .failed, .idle, .completed:
+            return false
         }
     }
     

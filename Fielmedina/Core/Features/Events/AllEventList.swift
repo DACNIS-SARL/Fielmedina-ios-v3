@@ -170,11 +170,7 @@ struct AllEventsListView: View {
     
     private func loadEvents() async {
         do {
-            let cityId = CitySelectionStore.shared.cityId
-            self.events = try await EventService.shared.fetchEvents(
-                cityId: cityId,
-                limit: 200
-            )
+            self.events = try await EventService.shared.fetchEvents(limit: 200)
         } catch {
             if events.isEmpty {
                 errorMessage = error.localizedDescription

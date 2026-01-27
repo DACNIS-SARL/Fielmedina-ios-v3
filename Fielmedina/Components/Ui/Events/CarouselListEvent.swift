@@ -41,7 +41,7 @@ struct CarouselListEvent: View {
     
     var body: some View {
         Group {
-            if isBoostedOnly && !isLoading && events.isEmpty && errorMessage == nil {
+            if isBoostedOnly && !isLoading && events.isEmpty {
                 EmptyView()
             } else {
                 VStack(alignment: .leading, spacing: 12) {
@@ -87,7 +87,7 @@ struct CarouselListEvent: View {
                         }
                         .padding(.horizontal)
                         .redacted(reason: .placeholder)
-                    } else if let error = errorMessage {
+                    } else if let error = errorMessage, !isBoostedOnly {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 40))
@@ -149,21 +149,20 @@ struct CarouselListEvent: View {
     private func loadEvents() async {
         isLoading = true
         errorMessage = nil
-        
+        let previousEvents = events
+        defer { isLoading = false }
+
         do {
-            let cityId = CitySelectionStore.shared.cityId
             events = try await EventService.shared.fetchEvents(
-                cityId: cityId,
                 limit: Int32(limit),
                 boost: isBoostedOnly ? true : nil
             )
         } catch {
-            if events.isEmpty {
+            events = previousEvents
+            if previousEvents.isEmpty {
                 errorMessage = error.localizedDescription
             }
         }
-        
-        isLoading = false
     }
 }
 

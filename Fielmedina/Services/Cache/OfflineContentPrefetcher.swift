@@ -15,6 +15,7 @@ final class OfflineContentPrefetcher {
 
     private let completionKey = "offline_prefetch_completed"
     private let statusKey = "offline_prefetch_status"
+    private let progressKey = "offline_prefetch_progress"
     private var isRunning = false
     private var isObservingLocation = false
     private var retryTask: Task<Void, Never>?
@@ -50,15 +51,24 @@ final class OfflineContentPrefetcher {
         return .idle
     }
 
+    var progress: Double {
+        if isComplete {
+            return 1
+        }
+        return UserDefaults.standard.double(forKey: progressKey)
+    }
+
     func markNeedsRefresh() {
         UserDefaults.standard.set(false, forKey: completionKey)
         updateStatus(.idle)
+        updateProgress(0)
     }
 
     func prefetchIfNeeded() {
         guard !isRunning, !isComplete else { return }
         isRunning = true
         updateStatus(.downloading)
+        updateProgress(0)
 
         Task {
             let didComplete = await runPrefetch()
@@ -70,31 +80,59 @@ final class OfflineContentPrefetcher {
     }
 
     private func runPrefetch() async -> Bool {
-        switch await resolveCityIdIfPossible() {
-        case .success(let cityId):
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { await self.prefetchLocations(cityId: cityId) }
-                group.addTask { await self.prefetchEvents(cityId: cityId) }
-                group.addTask { await self.prefetchHiking(cityId: cityId) }
-                group.addTask { await self.prefetchTransports(cityId: cityId) }
-                group.addTask { await self.prefetchTips(cityId: cityId) }
-                group.addTask { await self.prefetchAds(cityId: cityId) }
+        let resolution = await resolveCityIdIfPossible()
+        if case .missingLocation = resolution {
+            updateStatus(.waitingForLocation)
+        } else if case .permissionDenied = resolution {
+            updateStatus(.permissionDenied)
+        } else if case .failed = resolution {
+            updateStatus(.failed)
+        }
+
+        let cityId: Int32? = {
+            if case .success(let resolved) = resolution {
+                return resolved
+            }
+            return CitySelectionStore.shared.cityId
+        }()
+
+        var tasks: [() async -> Void] = [
+            { await self.prefetchEvents() },
+            { await self.prefetchTransports() }
+        ]
+
+        if let cityId {
+            updateStatus(.downloading)
+            tasks.append { await self.prefetchLocations(cityId: cityId) }
+            tasks.append { await self.prefetchHiking(cityId: cityId) }
+            tasks.append { await self.prefetchTips(cityId: cityId) }
+            tasks.append { await self.prefetchAds(cityId: cityId) }
+        }
+
+        let total = max(tasks.count, 1)
+        var completed = 0
+        updateProgress(0)
+
+        await withTaskGroup(of: Void.self) { group in
+            for task in tasks {
+                group.addTask { await task() }
             }
 
+            for await _ in group {
+                completed += 1
+                updateProgress(Double(completed) / Double(total))
+            }
+        }
+
+        if cityId != nil {
             UserDefaults.standard.set(true, forKey: completionKey)
             updateStatus(.completed)
+            updateProgress(1)
             NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
             return true
-        case .missingLocation:
-            updateStatus(.waitingForLocation)
-            return false
-        case .permissionDenied:
-            updateStatus(.permissionDenied)
-            return false
-        case .failed:
-            updateStatus(.failed)
-            return false
         }
+
+        return false
     }
 
     private func resolveCityIdIfPossible() async -> CityResolutionResult {
@@ -182,6 +220,11 @@ final class OfflineContentPrefetcher {
         NotificationCenter.default.post(name: .offlinePrefetchStatusChanged, object: status)
     }
 
+    private func updateProgress(_ progress: Double) {
+        UserDefaults.standard.set(progress, forKey: progressKey)
+        NotificationCenter.default.post(name: .offlinePrefetchProgressChanged, object: progress)
+    }
+
     private func prefetchLocations(cityId: Int32) async {
         do {
             let locations = try await LocationService.shared.fetchLocations(cityId: cityId, limit: 500)
@@ -191,10 +234,12 @@ final class OfflineContentPrefetcher {
         }
     }
 
-    private func prefetchEvents(cityId: Int32) async {
+    private func prefetchEvents() async {
         do {
-            let events = try await EventService.shared.fetchEvents(cityId: cityId, limit: 200)
-            await ImagePrefetcher.prefetch(from: events.flatMap { $0.images ?? [] })
+            let events = try await EventService.shared.fetchEvents(limit: 200)
+            let boostedEvents = try await EventService.shared.fetchEvents(limit: 50, boost: true)
+            let images = (events + boostedEvents).flatMap { $0.images ?? [] }
+            await ImagePrefetcher.prefetch(from: images)
         } catch {
             return
         }
@@ -211,9 +256,9 @@ final class OfflineContentPrefetcher {
         }
     }
 
-    private func prefetchTransports(cityId: Int32) async {
+    private func prefetchTransports() async {
         do {
-            _ = try await PublicTransportService.shared.fetchTransports(cityId: cityId, limit: 400)
+            _ = try await PublicTransportService.shared.fetchTransports(limit: 400)
         } catch {
             return
         }
@@ -264,4 +309,5 @@ enum ImagePrefetcher {
 extension Notification.Name {
     static let offlinePrefetchCompleted = Notification.Name("offline_prefetch_completed")
     static let offlinePrefetchStatusChanged = Notification.Name("offline_prefetch_status_changed")
+    static let offlinePrefetchProgressChanged = Notification.Name("offline_prefetch_progress_changed")
 }
