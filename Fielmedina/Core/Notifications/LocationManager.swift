@@ -42,9 +42,10 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         case .authorizedWhenInUse, .authorizedAlways:
             manager.startUpdatingLocation()
         case .denied, .restricted:
-            print("Location permission denied")
+            LogUtils.w("LocationManager", "Location permission denied")
         case .notDetermined:
-            print("Location permission not determined")
+            // Quietly ignore notDetermined status to avoid startup log spam
+            break
         @unknown default:
             break
         }

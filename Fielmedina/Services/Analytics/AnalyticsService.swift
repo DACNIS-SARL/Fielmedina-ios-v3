@@ -32,8 +32,7 @@ class FirebaseUtils {
         
         Messaging.messaging().delegate = FCMDelegate.shared
         
-        subscribeToDefaultTopics()
-        
+        // Removed subscribeToDefaultTopics from here to avoid race condition with APNS
         isFCMInitialized = true
     }
     
@@ -54,13 +53,24 @@ class FirebaseUtils {
     }
     
     static func saveTokenLocally(_ token: String) {
-        UserDefaults.standard.set(token, forKey: FCM_TOKEN_KEY)
+        KeychainStore.set(token, forKey: FCM_TOKEN_KEY)
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: FCM_TOKEN_TIMESTAMP_KEY)
-        LogUtils.d(TAG, "Token saved locally")
+        UserDefaults.standard.removeObject(forKey: FCM_TOKEN_KEY)
+        LogUtils.d(TAG, "Token saved securely in Keychain")
     }
     
     static func getSavedToken() -> String? {
-        return UserDefaults.standard.string(forKey: FCM_TOKEN_KEY)
+        if let token = KeychainStore.string(forKey: FCM_TOKEN_KEY) {
+            return token
+        }
+        
+        // Migration check
+        if let oldToken = UserDefaults.standard.string(forKey: FCM_TOKEN_KEY) {
+            saveTokenLocally(oldToken)
+            return oldToken
+        }
+        
+        return nil
     }
     
     static func subscribeToDefaultTopics() {
@@ -418,6 +428,9 @@ class FCMDelegate: NSObject, MessagingDelegate {
             LogUtils.d(FirebaseUtils.TAG, "FCM Token (refreshed): \(token)")
             FirebaseUtils.saveTokenLocally(token)
             Crashlytics.crashlytics().setCustomValue(token, forKey: "fcm_token")
+            
+            // Now that we have a token, it's safe to subscribe to topics
+            FirebaseUtils.subscribeToDefaultTopics()
             
             // Sync with backend
             Task {

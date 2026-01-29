@@ -31,6 +31,16 @@
         }
       }
     },
+    "Admission Fee" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Droit d'entrée"
+          }
+        }
+      }
+    },
     "All Events" : {
       "localizations" : {
         "fr" : {
@@ -57,16 +67,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tous les emplacements"
-          }
-        }
-      }
-    },
-    "Admission Fee" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Droit d'entrée"
           }
         }
       }
@@ -201,16 +201,6 @@
         }
       }
     },
-    "Enable location permissions to download offline content." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez les autorisations de localisation pour télécharger le contenu hors ligne."
-          }
-        }
-      }
-    },
     "Downloading" : {
       "localizations" : {
         "fr" : {
@@ -261,22 +251,22 @@
         }
       }
     },
-    "Hours" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Horaires"
-          }
-        }
-      }
-    },
     "Enable location" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer la localisation"
+          }
+        }
+      }
+    },
+    "Enable location permissions to download offline content." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez les autorisations de localisation pour télécharger le contenu hors ligne."
           }
         }
       }
@@ -337,6 +327,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "À partir"
+          }
+        }
+      }
+    },
+    "Go Back" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retour"
           }
         }
       }
@@ -425,6 +425,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accueil"
+          }
+        }
+      }
+    },
+    "Hours" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horaires"
           }
         }
       }
@@ -583,16 +593,6 @@
         }
       }
     },
-    "Offline Maps" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cartes hors ligne"
-          }
-        }
-      }
-    },
     "Offline content download failed. We'll retry shortly." : {
       "localizations" : {
         "fr" : {
@@ -633,12 +633,12 @@
         }
       }
     },
-    "Opening Hours" : {
+    "Offline Maps" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Horaires d'ouverture"
+            "value" : "Cartes hors ligne"
           }
         }
       }
@@ -669,6 +669,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir les paramètres"
+          }
+        }
+      }
+    },
+    "Opening Hours" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horaires d'ouverture"
           }
         }
       }
@@ -731,7 +741,14 @@
       }
     },
     "Read Aloud" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire à haute voix"
+          }
+        }
+      }
     },
     "Ready" : {
       "localizations" : {
@@ -773,6 +790,16 @@
         }
       }
     },
+    "Restart from beginning" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommencer depuis le début"
+          }
+        }
+      }
+    },
     "Retry" : {
       "localizations" : {
         "fr" : {
@@ -803,6 +830,16 @@
         }
       }
     },
+    "Start anyway" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencez quand même"
+          }
+        }
+      }
+    },
     "Start Hiking" : {
       "localizations" : {
         "fr" : {
@@ -823,12 +860,12 @@
         }
       }
     },
-    "Waiting for location to download offline content." : {
+    "Still waiting for GPS..." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En attente de la localisation pour télécharger le contenu hors ligne."
+            "value" : "Toujours en attente du GPS..."
           }
         }
       }
@@ -1032,7 +1069,24 @@
       }
     },
     "Voice Tester" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testeur vocal"
+          }
+        }
+      }
+    },
+    "Waiting for location to download offline content." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente de la localisation pour télécharger le contenu hors ligne."
+          }
+        }
+      }
     },
     "Waypoints" : {
       "localizations" : {

@@ -25,17 +25,28 @@ actor SyncService {
                 return cached
             }
             
-            if let uuidString = UserDefaults.standard.string(forKey: DEVICE_UUID_KEY),
+            // Try loading from Keychain
+            if let uuidString = KeychainStore.string(forKey: DEVICE_UUID_KEY),
                let uuid = UUID(uuidString: uuidString) {
                 cachedUUID = uuid
                 return uuid
-            } else {
-                let newUUID = UUID()
-                UserDefaults.standard.set(newUUID.uuidString, forKey: DEVICE_UUID_KEY)
-                cachedUUID = newUUID
-                LogUtils.d("SyncService", "Generated fresh device UUID: \(newUUID.uuidString)")
-                return newUUID
             }
+            
+            // Migration check: If not in Keychain but in UserDefaults, move it
+            if let oldUUIDString = UserDefaults.standard.string(forKey: DEVICE_UUID_KEY),
+               let uuid = UUID(uuidString: oldUUIDString) {
+                KeychainStore.set(oldUUIDString, forKey: DEVICE_UUID_KEY)
+                UserDefaults.standard.removeObject(forKey: DEVICE_UUID_KEY)
+                cachedUUID = uuid
+                return uuid
+            }
+            
+            // Fresh generation
+            let newUUID = UUID()
+            KeychainStore.set(newUUID.uuidString, forKey: DEVICE_UUID_KEY)
+            cachedUUID = newUUID
+            LogUtils.d("SyncService", "Generated fresh secure device UUID: \(newUUID.uuidString)")
+            return newUUID
         }
     }
     
@@ -44,7 +55,10 @@ actor SyncService {
     func registerDevice(token: String, force: Bool = false) async {
         debounceTask?.cancel()
         
-        if !force && UserDefaults.standard.string(forKey: LAST_REGISTERED_TOKEN_KEY) == token {
+        let lastToken = KeychainStore.string(forKey: LAST_REGISTERED_TOKEN_KEY) ?? 
+                        UserDefaults.standard.string(forKey: LAST_REGISTERED_TOKEN_KEY)
+        
+        if !force && lastToken == token {
             LogUtils.d("SyncService", "Token \(token.prefix(5))... already registered. Skipping.")
             return
         }
@@ -91,6 +105,7 @@ actor SyncService {
     }
     
     private func markTokenAsRegistered(_ token: String) {
-        UserDefaults.standard.set(token, forKey: LAST_REGISTERED_TOKEN_KEY)
+        KeychainStore.set(token, forKey: LAST_REGISTERED_TOKEN_KEY)
+        UserDefaults.standard.removeObject(forKey: LAST_REGISTERED_TOKEN_KEY)
     }
 }

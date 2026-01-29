@@ -32,9 +32,13 @@ struct HikingNavigator: View {
     @State private var hasStartedNavigation = false
     @State private var navigationStartTime: Date?
     
-    // Bottom sheet for marker details
+    // State for error handling
+    @State private var errorMessage: String?
+    @State private var isLocationTimedOut = false
+    private let locationTimeout: TimeInterval = 10.0
+    
+    // UI State
     @State private var selectedWaypoint: TrailWaypoint?
-    @State private var locationManager = LocationManager()
     
     @Environment(\.dismiss) private var dismiss
     
@@ -44,7 +48,9 @@ struct HikingNavigator: View {
     
     var body: some View {
         ZStack {
-            if showNavigation, let routes = navigationRoutes {
+            if let error = errorMessage {
+                errorView(error)
+            } else if showNavigation, let routes = navigationRoutes {
                 MapboxHikingNavigationView(
                     navigationRoutes: routes,
                     hikingRoute: hikingRoute,
@@ -69,12 +75,12 @@ struct HikingNavigator: View {
         }
         .background(Color.black)
         .onAppear {
-            locationManager.requestPermission()
-            locationManager.startUpdatingLocation()
+            LocationManager.shared.requestPermission()
+            LocationManager.shared.startUpdatingLocation()
             startNavigationFromCurrentWaypoint()
         }
         .onDisappear {
-            locationManager.stopUpdatingLocation()
+            LocationManager.shared.stopUpdatingLocation()
         }
         .sheet(item: Binding(
             get: { selectedWaypoint.map { WaypointWrapper(waypoint: $0) } },
@@ -102,7 +108,7 @@ struct HikingNavigator: View {
                     .tint(.white)
                     .scaleEffect(x: 1.5, y: 1.5, anchor: .center)
                 
-                Text("Preparing hiking navigation to")
+                Text(isLocationTimedOut ? "Still waiting for GPS..." : "Preparing hiking navigation to")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.8))
                 
@@ -112,6 +118,65 @@ struct HikingNavigator: View {
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
+                
+                if isLocationTimedOut {
+                    Button("Start anyway") {
+                        calculateHikingRoute(force: true)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.white.opacity(0.3))
+                    .foregroundStyle(.white)
+                    .padding(.top, 10)
+                }
+
+                if canResume {
+                    Button {
+                        startFreshNavigation()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Restart from beginning")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(.top, 5)
+                }
+            }
+        }
+    }
+    
+    private func errorView(_ message: String) -> some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 50))
+                    .foregroundStyle(.orange)
+                
+                Text("Navigation Error")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Button("Retry") {
+                    errorMessage = nil
+                    isLocationTimedOut = false
+                    calculateHikingRoute()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                
+                Button("Go Back") {
+                    dismiss()
+                }
+                .foregroundStyle(.white)
             }
         }
     }
@@ -178,15 +243,33 @@ struct HikingNavigator: View {
         }
     }
     
-    private func calculateHikingRoute() {
+    private func calculateHikingRoute(force: Bool = false) {
         isCalculatingRoute = true
+        errorMessage = nil
         
         Task {
-            // Simulate waiting for location
-            // In real app we need LocationManager to give us current location
-            guard let userLocation = locationManager.userLocation else {
-                  // Handle error
-                  return
+            // Wait for location if needed
+            var attempts = 0
+            while LocationManager.shared.userLocation == nil && attempts < 20 && !force {
+                try? await Task.sleep(for: .milliseconds(500))
+                attempts += 1
+                if attempts == 10 {
+                    await MainActor.run { isLocationTimedOut = true }
+                }
+            }
+            
+            // Use user location or fallback to first waypoint if forced
+            let startCoordinate: CLLocationCoordinate2D
+            if let loc = LocationManager.shared.userLocation {
+                startCoordinate = loc
+            } else if force, let firstWp = hikingRoute.waypoints.first {
+                startCoordinate = CLLocationCoordinate2D(latitude: firstWp.latitude, longitude: firstWp.longitude)
+            } else {
+                await MainActor.run {
+                    errorMessage = "Could not determine your location. Please ensure GPS is enabled and you are outside."
+                    isCalculatingRoute = false
+                }
+                return
             }
             
             let provider = MapboxNavigationProviderStore.shared
@@ -194,23 +277,32 @@ struct HikingNavigator: View {
             
             var waypoints: [Waypoint] = []
             
-            // Start: User Location
-            waypoints.append(Waypoint(coordinate: userLocation, name: "Start"))
+            // Start Coordinate
+            waypoints.append(Waypoint(coordinate: startCoordinate, name: "Start"))
             
-            // Add hiking waypoints
-            // Logic: if resuming, maybe skip already visited ones?
-            // Users usually want to see the whole route, but navigate to the next point.
-            // If we skip, the route shape changes.
-            // Better to include all, but maybe silently pass visited ones?
-            // Mapbox supports "silent waypoints" or just treat them as standard.
+            // Logic: if resuming, we should ideally route to the NEXT uncompleted waypoint
+            // and then follow the rest. 
+            // If we include completed ones, navigation might try to turn the user around.
+            let allPoints = hikingRoute.waypoints
+            let remainingPoints = allPoints.enumerated().filter { !completedWaypoints.contains($0.offset) }
             
-            for waypoint in hikingRoute.waypoints {
-                let wp = Waypoint(coordinate: CLLocationCoordinate2D(latitude: waypoint.latitude, longitude: waypoint.longitude), name: waypoint.name)
-                waypoints.append(wp)
+            if remainingPoints.isEmpty {
+                // Should not happen if startNavigationFromCurrentWaypoint logic is correct
+                waypoints.append(contentsOf: allPoints.map { 
+                    Waypoint(coordinate: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude), name: $0.name)
+                })
+            } else {
+                // Route to remaining points
+                waypoints.append(contentsOf: remainingPoints.map { _, waypoint in
+                    Waypoint(coordinate: CLLocationCoordinate2D(latitude: waypoint.latitude, longitude: waypoint.longitude), name: waypoint.name)
+                })
             }
             
             let options = NavigationRouteOptions(waypoints: waypoints)
             options.profileIdentifier = .walking
+            
+            // Mapbox V11+: If we are offline, it should use the OfflineRouter automatically if offline regions are matches
+            // but we can also check environment or tiles.
             
             do {
                 let response = try await routingProvider.calculateRoutes(options: options).value
@@ -220,10 +312,10 @@ struct HikingNavigator: View {
                     self.isCalculatingRoute = false
                 }
             } catch {
-                print("Error calculating route: \(error)")
+                LogUtils.e("HikingNavigator", "Error calculating route", error)
                 await MainActor.run {
                     isCalculatingRoute = false
-                    // Show error
+                    errorMessage = "Navigation failed. If you are offline, please ensure you have downloaded the maps for this area.\n\nError: \(error.localizedDescription)"
                 }
             }
         }
