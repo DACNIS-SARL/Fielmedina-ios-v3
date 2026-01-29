@@ -1,4 +1,4 @@
-# Fielmedina iOS App - 2026 Architecture
+# Fielmedina iOS App v2.0 - Architecture
 
 ## Overview
 
@@ -97,44 +97,64 @@ The app supports English and French using modern **String Catalogs** (`.xcstring
 3. **GraphQL**: Run `./apollo-ios-cli generate` to ensure all API models are up to date.
 4. **Build**: Use Xcode 16+ / iOS 18+ Target.
 
-## Developer Guide
+## Developer Guide & Onboarding
 
-### How to add a new GraphQL Query
+This section is designed to help new engineers (especially interns) understand the project's design patterns and workflows.
 
-1. **Add Operation**: Create or edit a `.graphql` file in `Core/Network/GraphQL/Queries/`.
-2. **Generate Code**: Run the following command in the project root:
+### 1. The GraphQL Workflow (Local to Live)
+
+We decouple our UI from the network layer. **Never** use generated `FielmedinaAPI` types directly in your Views.
+
+1. **Define Operation**: Create or edit a `.graphql` file in `Core/Network/GraphQL/Queries/`.
+2. **Generate**: Run the following in the project root:
 
     ```bash
     ./apollo-ios-cli generate
     ```
 
-3. **Create Service**: Add a new service in `Services/API/` to wrap the generated query with `async/await`.
-4. **Map to Model**: Ensure you map the generated `FielmedinaAPI` types to a domain model in `Services/API/Models/`.
+3. **Model Mapping**:
+    - Create/Update a domain model in `Services/API/Models/` (e.g., `Event.swift`).
+    - Add an extension to your model with a `convenience init` or `init` that accepts the specific `FielmedinaAPI` fragment or data type.
+4. **Service Integration**: Implement a method in a `Service` class (e.g., `EventService`) that:
+    - Calls `Network.shared.apollo.fetch(query: MyQuery())`.
+    - Maps the response to your domain models using `.map { Event(from: $0) }`.
 
-### How to add a new UI Feature
+### 2. State & UI Architecture (MVVM+S)
 
-1. **Model**: Define your data structure in `Services/API/Models/`. Use `String(localized:)` for static text.
-2. **ViewModel**: Create a `FeatureViewModel.swift` using the `@Observable` macro. Use `withThrowingTaskGroup` if fetching from multiple sources.
-3. **View**: Create a new folder in `Core/Features/` for your feature. Bind the View to the ViewModel using `@State`.
+We strictly follow the **Model-View-ViewModel + Services** pattern.
 
-### Localization Workflow
+- **Models**: Pure data structures. Use `computed properties` for presentation logic (like date formatting or price strings).
+- **Services**: Singletons or Actors that manage the heavy lifting (API fetching, Keychain security, File system).
+- **ViewModels**: Marked with the `@Observable` macro. They orchestrate data flow from Services to the UI.
+- **Views**: Declarative SwiftUI. They should only respond to state and pass user actions to the ViewModel.
 
-1. **In Code**: Use `String(localized: "Key")` for strings in logic/models.
-2. **In Components**: Use `LocalizedStringKey` for properties that will be passed into `Text()`.
-3. **In Catalog**: Open `Localizable.xcstrings` and provide the French (fr) translation. Xcode will auto-extract keys if you use the modern APIs above.
+### 3. Navigation & Mapbox (UIKit-SwiftUI Bridge)
 
-## Architecture Highlights
+Mapbox is a UIKit-based SDK. We bridge it using a "Logic-Visual" separation:
 
-- **Namespace**: GraphQL generated code is inside the `FielmedinaAPI` namespace. Never `import` it; access via `FielmedinaAPI.QueryName`.
-- **Parallel Loading**: Always use `TaskGroup` or `withThrowingTaskGroup` in ViewModels when loading multiple data types (e.g., Events + Locations) to ensure high performance.
-- **Images**: Always use `FielmedinaImage` instead of `AsyncImage` to handle local assets and remote URLs robustly.
-- **Navigation Logic**: Keep AI-driven navigation logic in `HikingNavigator` (SwiftUI) and map visualization in `MapboxHikingNavigationView` (UIKit Bridge).
-- **Offline Readiness**: Use `OfflineMapsManager.shared.activeDownloads` to check for incomplete regions before marking a city as "Ready".
+- **The Navigator (`HikingNavigator.swift`)**: A SwiftUI view that manages the **session state**. It handles loading timers, error screens, and saving progress to disk.
+- **The Bridge (`MapboxHikingNavigationView.swift`)**: A `UIViewControllerRepresentable` that holds the Mapbox `NavigationViewController`.
+- **The Coordinator**: An internal class that acts as the `NavigationViewControllerDelegate`. It translates UIKit events (like "user arrived at destination") into SwiftUI state changes.
 
-## Troubleshooting
+### 4. Offline Map & Content Management
 
-- **Missing Module Error**: If you see `No such module 'FielmedinaAPI'`, remove the `import FielmedinaAPI` statement. The code is embedded in the main target.
-- **URL Error -1002**: This happens if a local asset name is passed to a raw `URL` initializer. Use `FielmedinaImage` to fix this.
+The app targets travelers in low-connectivity areas. Our offline system has two parts:
+
+1. **Map Data**: Managed by `OfflineMapsManager`. It handles Style Packs (colors/icons) and Tile Regions (vector data). We use a global notification system (`.tileRegionProgressChanged`) to keep the UI updated.
+2. **Content Data**: Managed by `OfflineContentPrefetcher`. It warms the Apollo cache and downloads images for events/locations so the app feels 100% functional without 4G.
+
+## Architecture Highlights & Standards
+
+- **Concurrency**: Always use `async/await` or `TaskGroup` for parallel loading. Never block the main thread.
+- **Images**: Use `FielmedinaImage`. It automatically checks for bundled "fallback" assets before attempting a network download.
+- **Security**: Anything sensitive (User IDs, Tokens) **must** be stored in `KeychainStore`. Non-sensitive state (Hike progress, City ID) goes to `UserDefaults`.
+- **Localization**: Use `String(localized: "Key")` for code strings. This ensures they are automatically extracted into `Localizable.xcstrings`.
+
+## Troubleshooting Common Issues
+
+- **Codegen Errors**: If `FielmedinaAPI` types aren't found, check for syntax errors in your `.graphql` files and regenerate.
+- **Module Import Errors**: Do **not** `import FielmedinaAPI`. The code is generated directly into the main target's namespace.
+- **Simulating Hikes**: Use the Xcode Simulator's `Features > Location` menu to test navigation logic without leaving your desk.
 
 ---
-*Developed by Aslan - 2026* 🚀
+*Developed by Muhammad Aslan & The Fielmedina Engineering Team - 2026* 🚀
