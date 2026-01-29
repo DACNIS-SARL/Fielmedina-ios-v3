@@ -159,8 +159,7 @@ struct HikingView: View {
         let options = NavigationRouteOptions(waypoints: waypoints)
         options.profileIdentifier = .walking
         
-        // Realistic hiking speed: 3.0 km/h = 0.83 m/s
-        // This is conservative because real trails winding adds distance not captured by point-to-point lines.
+        
         let realisticHikingSpeed: Double = 0.83
 
         do {
@@ -176,7 +175,7 @@ struct HikingView: View {
             LogUtils.w("HikingView", "Online/Offline routing failed, using manual fallback: \(error.localizedDescription)")
         }
         
-        // Manual Fallback (Great Circle distance + constant speed)
+        
         if let totalDistance = hiking.totalDistance {
             let distanceInMeters = totalDistance * 1000
             return HikingMetrics(
