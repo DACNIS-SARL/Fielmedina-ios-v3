@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import MapboxDirections
+import MapboxNavigationCore
 
 struct HikingView: View {
     @State private var trails: [Hiking] = []
@@ -155,39 +156,36 @@ struct HikingView: View {
         let waypoints = [Waypoint(coordinate: userCoordinate)] + trailWaypoints
         guard waypoints.count >= 2 else { return nil }
 
-        let options = RouteOptions(waypoints: waypoints, profileIdentifier: .walking)
-        options.includesSteps = false
-        options.includesAlternativeRoutes = false
+        let options = NavigationRouteOptions(waypoints: waypoints)
+        options.profileIdentifier = .walking
+        
+        // Realistic hiking speed: 3.0 km/h = 0.83 m/s
+        // This is conservative because real trails winding adds distance not captured by point-to-point lines.
+        let realisticHikingSpeed: Double = 0.83
 
-        return await withCheckedContinuation { continuation in
-            Directions.shared.calculate(options) { result in
-                switch result {
-                case .success(let response):
-                    if let route = response.routes?.first {
-                        continuation.resume(returning: HikingMetrics(
-                            distance: route.distance,
-                            duration: route.expectedTravelTime
-                        ))
-                    } else if let totalDistance = hiking.totalDistance {
-                        continuation.resume(returning: HikingMetrics(
-                            distance: totalDistance * 1000,
-                            duration: 0
-                        ))
-                    } else {
-                        continuation.resume(returning: nil)
-                    }
-                case .failure:
-                    if let totalDistance = hiking.totalDistance {
-                        continuation.resume(returning: HikingMetrics(
-                            distance: totalDistance * 1000,
-                            duration: 0
-                        ))
-                    } else {
-                        continuation.resume(returning: nil)
-                    }
-                }
-            }
+        do {
+            let routingProvider = MapboxNavigationProviderStore.shared.routingProvider()
+            let response = try await routingProvider.calculateRoutes(options: options).value
+            
+            let route = response.mainRoute.route
+            return HikingMetrics(
+                distance: route.distance,
+                duration: route.expectedTravelTime
+            )
+        } catch {
+            LogUtils.w("HikingView", "Online/Offline routing failed, using manual fallback: \(error.localizedDescription)")
         }
+        
+        // Manual Fallback (Great Circle distance + constant speed)
+        if let totalDistance = hiking.totalDistance {
+            let distanceInMeters = totalDistance * 1000
+            return HikingMetrics(
+                distance: distanceInMeters,
+                duration: distanceInMeters / realisticHikingSpeed
+            )
+        }
+        
+        return nil
     }
 }
 
