@@ -74,6 +74,23 @@ struct SettingsView: View {
                 offlineProgress = OfflineContentPrefetcher.shared.progress
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .tileRegionProgressChanged)) { notification in
+            guard let userInfo = notification.userInfo,
+                  let id = userInfo["id"] as? String,
+                  let progress = userInfo["progress"] as? Double else { return }
+            withAnimation(.linear) {
+                regionStatus[id] = .downloading(progress)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tileRegionCompleted)) { notification in
+            guard let id = notification.userInfo?["id"] as? String else { return }
+            regionStatus[id] = .downloaded
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tileRegionFailed)) { notification in
+            guard let id = notification.userInfo?["id"] as? String,
+                  let error = notification.userInfo?["error"] as? String else { return }
+            regionStatus[id] = .failed(error)
+        }
     }
     
     private var header: some View {
@@ -169,8 +186,16 @@ struct SettingsView: View {
     private func loadExistingRegions() async {
         isLoadingRegions = true
         OfflineMapsManager.shared.fetchDownloadedRegionIds { regionIds in
+            let active = OfflineMapsManager.shared.activeDownloads
+            
             for city in offlineCities {
-                regionStatus[city.id] = regionIds.contains(city.id) ? .downloaded : .notDownloaded
+                if let progress = active[city.id] {
+                    regionStatus[city.id] = .downloading(progress)
+                } else if regionIds.contains(city.id) {
+                    regionStatus[city.id] = .downloaded
+                } else {
+                    regionStatus[city.id] = .notDownloaded
+                }
             }
             isLoadingRegions = false
         }

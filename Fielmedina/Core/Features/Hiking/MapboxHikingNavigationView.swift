@@ -24,7 +24,7 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> NavigationViewController {
         let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
         
-        // Create navigation options with standard components
+       
         let navigationOptions = NavigationOptions(
             mapboxNavigation: mapboxNavigationProvider.mapboxNavigation,
             voiceController: mapboxNavigationProvider.routeVoiceController,

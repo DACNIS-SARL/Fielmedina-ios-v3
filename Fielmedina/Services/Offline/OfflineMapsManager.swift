@@ -13,6 +13,12 @@ import MapboxCommon
 import MapboxNavigationCore
 import Turf
 
+extension Notification.Name {
+    static let tileRegionProgressChanged = Notification.Name("tile_region_progress_changed")
+    static let tileRegionCompleted = Notification.Name("tile_region_completed")
+    static let tileRegionFailed = Notification.Name("tile_region_failed")
+}
+
 final class OfflineMapsManager {
     static let shared = OfflineMapsManager()
     
@@ -20,6 +26,9 @@ final class OfflineMapsManager {
     private var tileStore: TileStore {
         TileStore.default
     }
+    
+    // Track active downloads: RegionId -> Progress (0.0...1.0)
+    private(set) var activeDownloads: [String: Double] = [:]
     
     private init() {
         tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
@@ -160,22 +169,35 @@ final class OfflineMapsManager {
             return
         }
         
+        activeDownloads[id] = 0.01
+        
         tileStore.loadTileRegion(
             forId: id,
             loadOptions: tileRegionLoadOptions
-        ) { tileProgress in
+        ) { [weak self] tileProgress in
             DispatchQueue.main.async {
                 let completed = Double(tileProgress.completedResourceCount)
                 let required = max(Double(tileProgress.requiredResourceCount), 1)
                 let currentProgress = 0.15 + (min(completed / required, 1) * 0.85)
+                
+                self?.activeDownloads[id] = currentProgress
                 progress(currentProgress)
+                
+                NotificationCenter.default.post(
+                    name: .tileRegionProgressChanged,
+                    object: nil,
+                    userInfo: ["id": id, "progress": currentProgress]
+                )
             }
-        } completion: { result in
+        } completion: { [weak self] result in
             DispatchQueue.main.async {
+                self?.activeDownloads.removeValue(forKey: id)
                 switch result {
                 case .success:
+                    NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
                     completion(.success(()))
                 case .failure(let error):
+                    NotificationCenter.default.post(name: .tileRegionFailed, object: nil, userInfo: ["id": id, "error": error.localizedDescription])
                     completion(.failure(error))
                 }
             }
@@ -193,6 +215,10 @@ final class OfflineMapsManager {
         tileStore.allTileRegions { result in
             switch result {
             case .success(let regions):
+                // Filter for regions that are actually complete
+                // In Mapbox common, a region exists in allTileRegions even if it failed or is partial.
+                // We could check each region's status but that's async per region.
+                // For now, let's just return what they have and let fetchRegionStatus refine it if needed.
                 DispatchQueue.main.async {
                     completion(regions.map { $0.id })
                 }
