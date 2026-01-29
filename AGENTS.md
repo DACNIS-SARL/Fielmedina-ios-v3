@@ -1,28 +1,41 @@
-# AGENTS.md - Fielmedina iOS
+# AGENTS.md - Technical Briefing for AI Assistants
 
-## Build & Test Commands
+This file provides critical technical context and constraints for AI coding assistants working on the Fielmedina iOS project. **Prioritize these rules over general suggestions.**
 
-- **Build**: Open `Fielmedina.xcodeproj` in Xcode 16+, target iOS 18+
-- **GraphQL Codegen**: `./apollo-ios-cli generate` (run after editing `.graphql` files)
-- **Schema Download**: `./apollo-ios-cli fetch-schema`
-- **Run Tests**: `xcodebuild test -scheme Fielmedina -destination 'platform=iOS Simulator,name=iPhone 16'`
-- **Single Test**: `xcodebuild test -scheme Fielmedina -only-testing:FielmedinaTests/TestClassName/testMethodName`
+## 1. Quick Operations
 
-## Architecture
+- **Build Target**: iOS 18+ (Xcode 16).
+- **Codegen**: `./apollo-ios-cli generate` (Run after ANY `.graphql` file change).
+- **Schema**: `./apollo-ios-cli fetch-schema` (Sync with backend).
+- **Testing**: `xcodebuild test -scheme Fielmedina -destination 'platform=iOS Simulator,name=iPhone 16'`.
 
-- **SwiftUI + Swift 6** with async/await concurrency; uses `@Observable` macro (iOS 17+)
-- **Apollo iOS 2.0**: GraphQL queries in `Core/Network/GraphQL/`; generated types in `FielmedinaAPI` namespace (embedded in target, never `import FielmedinaAPI`)
-- **Services**: Singleton pattern (`Service.shared`), wrap Apollo queries with async/await
-- **Offline**: `OfflineMapsManager` for Mapbox navigation tiles; `OfflineContentPrefetcher` for API/Media caching
-- **Security**: `KeychainStore` for unique device IDs and sensitive tokens; `SecurityHeaderInterceptor` for API authentication
-- **Dependencies**: SPM (Apollo, Firebase, Mapbox); requires `GoogleService-Info.plist`
+## 2. Core Architectural Rules (DO NOT DEVIATE)
 
-## Code Style
+1. **GraphQL Namespace**: All generated types are in the `FielmedinaAPI` namespace. **DO NOT** use `import FielmedinaAPI`. Access via dot notation (e.g., `FielmedinaAPI.GetEventsQuery`).
+2. **Model Decoupling**: **NEVER** pass `FielmedinaAPI` types directly to SwiftUI Views. Always map them to domain models in `Services/API/Models/`.
+3. **State Management**: Use the `@Observable` macro (iOS 17+). Avoid `ObservableObject` unless interacting with legacy libraries. Use `@State` in Views for ViewModel instantiation.
+4. **Concurrency**: Use `async/await` and `TaskGroup`. **NEVER** use `completionHandlers` for networking. Ensure UI updates happen on `@MainActor`.
+5. **Security**: **Sensitive keys/tokens MUST go in `KeychainStore.swift`.** Non-sensitive state goes in `UserDefaults`.
 
-- Use `async/await` and `TaskGroup` for parallel loading; never block main thread
-- Use `FielmedinaImage` instead of `AsyncImage` for robust image handling
-- Navigation Logic: Keep business logic in `HikingNavigator.swift` and Mapbox UIKit bridging in `MapboxHikingNavigationView.swift`
-- Localization: `String(localized:)` in code, `LocalizedStringKey` in SwiftUI; translations in `Localizable.xcstrings`
-- Models have `displayName` computed properties for EN/FR locale switching
-- Map GraphQL types (`FielmedinaAPI.*`) to domain models in `Services/API/Models/`
-- ViewModels use `@Observable` macro; Views bind via `@State`
+## 3. UI & Asset Standards
+
+- **Images**: **ALWAYS** use `FielmedinaImage`. It handles local fallback assets and remote URL loading logic. Do not use `AsyncImage` directly.
+- **Hiking Navigation**:
+  - `HikingNavigator.swift`: Business logic, session state, persistence.
+  - `MapboxHikingNavigationView.swift`: UIKit bridge, map rendering, overlays.
+- **Offline Logic**: Use `OfflineMapsManager.shared.activeDownloads` to verify region status. Do not trust `allTileRegions` alone for "Ready" status.
+
+## 4. Implementation Patterns
+
+- **Localization**: Use `String(localized:)` in models. Use `LocalizedStringKey` in UI components. Translations are in `Localizable.xcstrings`.
+- **Parallel Fetching**: In ViewModels, fetch multiple independent datasets (e.g., Events and Ads) concurrently using `withThrowingTaskGroup`.
+- **API Security**: All GraphQL requests are intercepted by `SecurityHeaderInterceptor` to inject `X-Device-ID`.
+
+## 5. Invariants (Common Pitfalls)
+
+- **Namespace Collision**: If you get a "not found" error for a GraphQL type, run codegen.
+- **URL Errors**: If using a local asset name, `URL(string:)` will return nil or error -1002. Use `FielmedinaImage`.
+- **Location Sync**: Always use `LocationManager.shared` to ensure consistent location updates across the app.
+
+---
+*Context valid as of Feb 2026. Maintainer: Muhammad Aslan* 🚀
