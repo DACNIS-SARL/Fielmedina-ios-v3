@@ -46,25 +46,20 @@ class PublicTransportService {
             offset: .some(offset)
         )
 
-        let response = try await apollo.fetch(query: query)
+        let data = try await apollo.fetchNetworkAware(query: query)
 
-        if let errors = response.errors {
-            let message = errors.map { $0.message ?? "Unknown error" }.joined(separator: ", ")
-            throw NSError(domain: "Apollo", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
-        }
-
-        guard let data = response.data else {
-            return []
-        }
-
-        return data.publicTransports.map { transport in
-            PublicTransport(
+        return data.publicTransports.map { transport -> PublicTransport in
+            let typeNameEn = transport.publicTransportType?.nameEn ?? ""
+            let typeNameFr = transport.publicTransportType?.nameFr ?? ""
+            let transportType = TransportType(
+                nameEn: typeNameEn,
+                nameFr: typeNameFr
+            )
+            
+            return PublicTransport(
                 id: transport.id,
                 busNumber: transport.busNumber,
-                publicTransportType: TransportType(
-                    nameEn: transport.publicTransportType?.nameEn ?? "",
-                    nameFr: transport.publicTransportType?.nameFr ?? ""
-                ),
+                publicTransportType: transportType,
                 fromRegionEn: transport.fromRegionEn ?? "",
                 fromRegionFr: transport.fromRegionFr ?? "",
                 toRegionEn: transport.toRegionEn ?? "",

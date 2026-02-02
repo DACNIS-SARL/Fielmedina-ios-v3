@@ -70,18 +70,9 @@ class LocationService {
             offset: .some(offset)
         )
 
-        let response = try await apollo.fetch(query: query)
+        let data = try await apollo.fetchNetworkAware(query: query)
 
-        if let errors = response.errors {
-            let message = errors.map { $0.message ?? "Unknown error" }.joined(separator: ", ")
-            throw NSError(domain: "Apollo", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
-        }
-
-        guard let data = response.data else {
-            return []
-        }
-
-        return data.locations.map { gLocation in
+        return data.locations.compactMap { gLocation in
             Location(
                 id: gLocation.id,
                 nameEn: gLocation.nameEn,

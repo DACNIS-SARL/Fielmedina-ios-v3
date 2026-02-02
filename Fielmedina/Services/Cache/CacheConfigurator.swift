@@ -38,7 +38,7 @@ enum CacheConfigurator {
     static func makeApolloURLSession() -> URLSession {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30.0
-        configuration.requestCachePolicy = .returnCacheDataElseLoad
+        configuration.requestCachePolicy = .useProtocolCachePolicy
         configuration.urlCache = URLCache.shared
         return URLSession(configuration: configuration)
     }

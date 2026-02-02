@@ -46,16 +46,7 @@ class HikingService {
             offset: .some(offset)
         )
 
-        let response = try await apollo.fetch(query: query)
-
-        if let errors = response.errors {
-            let message = errors.map { $0.message ?? "Unknown error" }.joined(separator: ", ")
-            throw NSError(domain: "Apollo", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
-        }
-
-        guard let data = response.data else {
-            return []
-        }
+        let data = try await apollo.fetchNetworkAware(query: query)
 
         return data.hikings.map { hiking in
             Hiking(

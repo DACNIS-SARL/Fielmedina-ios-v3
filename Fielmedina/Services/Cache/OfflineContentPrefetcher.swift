@@ -170,8 +170,8 @@ final class OfflineContentPrefetcher {
                 lat: coordinate.latitude,
                 lon: coordinate.longitude
             )
-            let response = try await Network.shared.apollo.fetch(query: query)
-            if let cityIdString = response.data?.nearestCity?.id,
+            let data = try await Network.shared.apollo.fetchNetworkAware(query: query)
+            if let cityIdString = data.nearestCity?.id,
                let cityId = Int32(cityIdString) {
                 CitySelectionStore.shared.cityId = cityId
                 return .success(cityId)
