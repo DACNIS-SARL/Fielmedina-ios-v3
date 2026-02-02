@@ -43,8 +43,9 @@ actor CityResolver {
                 }
 
                 await MainActor.run {
-                    OfflineContentPrefetcher.shared.markNeedsRefresh()
-                    OfflineContentPrefetcher.shared.prefetchIfNeeded()
+                    if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+                        NotificationCenter.default.post(name: .offlineCityDataMissing, object: cityId)
+                    }
                 }
             }
         } catch {
@@ -69,4 +70,5 @@ actor CityResolver {
 
 extension Notification.Name {
     static let cityDidChange = Notification.Name("city_did_change")
+    static let offlineCityDataMissing = Notification.Name("offline_city_data_missing")
 }

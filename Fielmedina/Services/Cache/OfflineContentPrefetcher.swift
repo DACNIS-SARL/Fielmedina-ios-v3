@@ -64,6 +64,18 @@ final class OfflineContentPrefetcher {
         updateProgress(0)
     }
 
+    func prefetchForCity(cityId: Int32) {
+        guard !isRunning else { return }
+        isRunning = true
+        updateStatus(.downloading)
+        updateProgress(0)
+
+        Task {
+            await runPrefetch(for: cityId)
+            isRunning = false
+        }
+    }
+
     func prefetchIfNeeded() {
         // Warm categories cache regardless of completion state
         Task { await self.prefetchEventCategories() }
@@ -100,20 +112,7 @@ final class OfflineContentPrefetcher {
             return CitySelectionStore.shared.cityId
         }()
 
-        var tasks: [() async -> Void] = [
-            { await self.prefetchEventCategories() },
-            { await self.prefetchLocationCategories() },
-            { await self.prefetchEvents() },
-            { await self.prefetchTransports() }
-        ]
-
-        if let cityId {
-            updateStatus(.downloading)
-            tasks.append { await self.prefetchLocations(cityId: cityId) }
-            tasks.append { await self.prefetchHiking(cityId: cityId) }
-            tasks.append { await self.prefetchTips(cityId: cityId) }
-            tasks.append { await self.prefetchAds(cityId: cityId) }
-        }
+        let tasks = makePrefetchTasks(cityId: cityId)
 
         let total = max(tasks.count, 1)
         var completed = 0
@@ -139,6 +138,48 @@ final class OfflineContentPrefetcher {
         }
 
         return false
+    }
+
+    private func runPrefetch(for cityId: Int32) async {
+        let tasks = makePrefetchTasks(cityId: cityId)
+        let total = max(tasks.count, 1)
+        var completed = 0
+        updateProgress(0)
+
+        await withTaskGroup(of: Void.self) { group in
+            for task in tasks {
+                group.addTask { await task() }
+            }
+
+            for await _ in group {
+                completed += 1
+                updateProgress(Double(completed) / Double(total))
+            }
+        }
+
+        OfflineCityDataStore.shared.markCityDataDownloaded(cityId: cityId)
+        updateStatus(.completed)
+        updateProgress(1)
+        NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
+    }
+
+    private func makePrefetchTasks(cityId: Int32?) -> [() async -> Void] {
+        var tasks: [() async -> Void] = [
+            { await self.prefetchEventCategories() },
+            { await self.prefetchLocationCategories() },
+            { await self.prefetchEvents() },
+            { await self.prefetchTransports() }
+        ]
+
+        if let cityId {
+            updateStatus(.downloading)
+            tasks.append { await self.prefetchLocations(cityId: cityId) }
+            tasks.append { await self.prefetchHiking(cityId: cityId) }
+            tasks.append { await self.prefetchTips(cityId: cityId) }
+            tasks.append { await self.prefetchAds(cityId: cityId) }
+        }
+
+        return tasks
     }
 
     private func resolveCityIdIfPossible() async -> CityResolutionResult {

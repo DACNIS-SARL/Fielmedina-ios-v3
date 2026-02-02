@@ -14,6 +14,7 @@ struct SettingsView: View {
         let name: String
         let coordinate: CLLocationCoordinate2D
         let radius: CLLocationDistance
+        let cityId: Int32
     }
     
     enum OfflineRegionStatus: Equatable {
@@ -24,9 +25,9 @@ struct SettingsView: View {
     }
     
     private let offlineCities: [OfflineCity] = [
-        OfflineCity(id: "sousse_medina", name: "Sousse Medina", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448), radius: 2000),
-        OfflineCity(id: "monastir_medina", name: "Monastir Medina", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262), radius: 2000),
-        OfflineCity(id: "tunis_medina", name: "Tunis Medina", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706), radius: 2500)
+        OfflineCity(id: "sousse_medina", name: "Sousse Medina", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448), radius: 2000, cityId: 15),
+        OfflineCity(id: "monastir_medina", name: "Monastir Medina", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262), radius: 2000, cityId: 18),
+        OfflineCity(id: "tunis_medina", name: "Tunis Medina", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706), radius: 2500, cityId: 14)
     ]
     
     @State private var regionStatus: [String: OfflineRegionStatus] = [:]
@@ -171,6 +172,8 @@ struct SettingsView: View {
             switch result {
             case .success:
                 regionStatus[city.id] = .downloaded
+                OfflineCityDataStore.shared.markCityDataDownloaded(cityId: city.cityId, regionId: city.id)
+                OfflineContentPrefetcher.shared.prefetchForCity(cityId: city.cityId)
             case .failure(let error):
                 regionStatus[city.id] = .failed(error.localizedDescription)
             }
@@ -180,6 +183,7 @@ struct SettingsView: View {
     private func remove(_ city: OfflineCity) {
         OfflineMapsManager.shared.removeRegion(id: city.id) { _ in
             regionStatus[city.id] = .notDownloaded
+            OfflineCityDataStore.shared.removeCityData(for: city.id)
         }
     }
     

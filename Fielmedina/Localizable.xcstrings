@@ -980,12 +980,32 @@
         }
       }
     },
+    "Offline city data unavailable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données hors ligne indisponibles"
+          }
+        }
+      }
+    },
     "There are no hiking routes in this city yet.\nCheck back soon!" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Il n'y a pas encore de sentiers de randonnée dans cette ville.\nRevenez bientôt !"
+          }
+        }
+      }
+    },
+    "You're offline. Connect to download data for this city." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes hors ligne. Connectez-vous pour télécharger les données de cette ville."
           }
         }
       }

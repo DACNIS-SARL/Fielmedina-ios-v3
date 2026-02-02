@@ -17,6 +17,7 @@ struct AllLocationListView: View {
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentCityId = CitySelectionStore.shared.cityId
+    @State private var shouldShowCityDownloadPrompt = false
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
@@ -180,12 +181,20 @@ struct AllLocationListView: View {
             guard let newCityId = notification.object as? Int32 else { return }
             currentCityId = newCityId
         }
+        .onReceive(NotificationCenter.default.publisher(for: .offlineCityDataMissing)) { _ in
+            shouldShowCityDownloadPrompt = true
+        }
         .onChange(of: isConnected) { _, newValue in
             guard newValue else { return }
             Task { await refreshFromNetwork() }
         }
         .onChange(of: currentCityId) { _, _ in
             Task { await refreshFromNetwork() }
+        }
+        .alert(String(localized: "Offline city data unavailable"), isPresented: $shouldShowCityDownloadPrompt) {
+            Button(String(localized: "OK"), role: .cancel) { }
+        } message: {
+            Text(String(localized: "You're offline. Connect to download data for this city."))
         }
     }
     
