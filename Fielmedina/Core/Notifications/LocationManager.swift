@@ -55,6 +55,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         userLocation = location.coordinate
         NotificationCenter.default.post(name: .locationDidUpdate, object: nil)
+        Task {
+            await CityResolver.shared.handleLocationUpdate(location)
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

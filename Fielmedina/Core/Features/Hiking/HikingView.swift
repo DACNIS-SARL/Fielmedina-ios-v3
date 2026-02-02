@@ -18,6 +18,7 @@ struct HikingView: View {
     @State private var locationManager = LocationManager()
     @State private var selectedHiking: Hiking?
     @State private var isConnected = NetworkMonitor.shared.isConnected
+    @State private var currentCityId = CitySelectionStore.shared.cityId
 
     var body: some View {
         NavigationStack {
@@ -82,8 +83,15 @@ struct HikingView: View {
                 guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
                 self.isConnected = isConnected
             }
+            .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
+                guard let newCityId = notification.object as? Int32 else { return }
+                currentCityId = newCityId
+            }
             .onChange(of: isConnected) { _, newValue in
                 guard newValue else { return }
+                Task { await refreshFromNetwork() }
+            }
+            .onChange(of: currentCityId) { _, _ in
                 Task { await refreshFromNetwork() }
             }
             .onChange(of: locationManager.userLocation) { _, _ in

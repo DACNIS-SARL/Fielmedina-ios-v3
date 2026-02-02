@@ -49,6 +49,8 @@ struct MainNavigationView: View {
         .onAppear {
             setupDeepLinking()
             OfflineContentPrefetcher.shared.prefetchIfNeeded()
+            LocationManager.shared.requestPermission()
+            LocationManager.shared.startUpdatingLocation()
         }
         .onDisappear {
             deepLinkCancellable?.cancel()
