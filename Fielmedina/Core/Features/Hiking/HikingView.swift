@@ -17,6 +17,7 @@ struct HikingView: View {
     @State private var errorMessage: String?
     @State private var locationManager = LocationManager()
     @State private var selectedHiking: Hiking?
+    @State private var isConnected = NetworkMonitor.shared.isConnected
 
     var body: some View {
         NavigationStack {
@@ -77,6 +78,14 @@ struct HikingView: View {
                 locationManager.startUpdatingLocation()
                 await loadTrails()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+                guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
+                self.isConnected = isConnected
+            }
+            .onChange(of: isConnected) { _, newValue in
+                guard newValue else { return }
+                Task { await refreshFromNetwork() }
+            }
             .onChange(of: locationManager.userLocation) { _, _ in
                 sortTrailsByDistanceIfPossible()
                 Task { await updateMetrics() }
@@ -111,6 +120,10 @@ struct HikingView: View {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func refreshFromNetwork() async {
+        await loadTrails()
     }
 
     private func updateMetrics() async {

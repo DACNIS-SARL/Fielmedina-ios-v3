@@ -34,6 +34,7 @@ struct MapView: View {
     @State private var selectedCategoryIds: Set<String> = []
     @State private var locationCategories: [LocationCategory] = []
     @State private var didCenterOnMedina = false
+    @State private var isConnected = NetworkMonitor.shared.isConnected
 
     private var standardLightPreset: StandardLightPreset {
         colorScheme == .light ? .day : .night
@@ -123,6 +124,14 @@ struct MapView: View {
                 }
                 centerMapOnNearestMedinaIfNeeded()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+                guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
+                self.isConnected = isConnected
+            }
+            .onChange(of: isConnected) { _, newValue in
+                guard newValue else { return }
+                Task { await refreshFromNetwork() }
+            }
             .sheet(isPresented: $showFilterSheet) {
                 MapFilterSheet(
                     categories: locationCategories,
@@ -182,6 +191,13 @@ struct MapView: View {
                 return true
             }.sorted { $0.displayName < $1.displayName }
             locationCategories = derived
+        }
+    }
+
+    private func refreshFromNetwork() async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await loadLocations() }
+            group.addTask { await loadLocationCategories() }
         }
     }
 
@@ -330,4 +346,3 @@ struct MapView: View {
 #Preview {
     MapView()
 }
-

@@ -24,10 +24,23 @@ final class NetworkMonitor: @unchecked Sendable {
     private init() {
         monitor.pathUpdateHandler = { [weak self] path in
             guard let self = self else { return }
+            let nextStatus = (path.status == .satisfied)
             self.queue.async(flags: .barrier) {
-                self._isConnected = (path.status == .satisfied)
+                guard self._isConnected != nextStatus else { return }
+                self._isConnected = nextStatus
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: .networkStatusChanged,
+                        object: nil,
+                        userInfo: ["isConnected": nextStatus]
+                    )
+                }
             }
         }
         monitor.start(queue: DispatchQueue(label: "monitor.queue"))
     }
+}
+
+extension Notification.Name {
+    static let networkStatusChanged = Notification.Name("network_status_changed")
 }

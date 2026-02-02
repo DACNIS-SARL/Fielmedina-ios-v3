@@ -15,6 +15,7 @@ struct AllLocationListView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var isLoadingCategories = false
+    @State private var isConnected = NetworkMonitor.shared.isConnected
     
     var filteredLocations: [Location] {
         if selectedCategory == String(localized: "All Locations") {
@@ -152,6 +153,14 @@ struct AllLocationListView: View {
         .task {
             await loadData()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+            guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
+            self.isConnected = isConnected
+        }
+        .onChange(of: isConnected) { _, newValue in
+            guard newValue else { return }
+            Task { await refreshFromNetwork() }
+        }
     }
     
     private func loadData() async {
@@ -211,7 +220,7 @@ struct AllLocationListView: View {
     private func loadLocations() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             let cityId = CitySelectionStore.shared.cityId
             let fetchedLocations = try await LocationService.shared.fetchLocations(
@@ -230,6 +239,10 @@ struct AllLocationListView: View {
         }
         
         isLoading = false
+    }
+
+    private func refreshFromNetwork() async {
+        await loadData()
     }
 }
 

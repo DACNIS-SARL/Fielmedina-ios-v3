@@ -15,6 +15,7 @@ struct AllEventsListView: View {
     @State private var isLoadingEvents = true
     @State private var isLoadingCategories = false
     @State private var errorMessage: String?
+    @State private var isConnected = NetworkMonitor.shared.isConnected
     
     var filteredEvents: [Event] {
         if selectedCategory == String(localized: "All Events") {
@@ -152,6 +153,14 @@ struct AllEventsListView: View {
         .task {
             await loadData()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+            guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
+            self.isConnected = isConnected
+        }
+        .onChange(of: isConnected) { _, newValue in
+            guard newValue else { return }
+            Task { await refreshFromNetwork() }
+        }
     }
     
     private func loadData() async {
@@ -212,6 +221,10 @@ struct AllEventsListView: View {
                 categories = [String(localized: "All Events")] + derived
             }
         }
+    }
+
+    private func refreshFromNetwork() async {
+        await loadData()
     }
 }
 

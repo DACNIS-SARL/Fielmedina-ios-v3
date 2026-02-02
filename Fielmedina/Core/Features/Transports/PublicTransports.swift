@@ -43,6 +43,7 @@ struct PublicTransports: View {
     @State private var transports: [PublicTransport] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var isConnected = NetworkMonitor.shared.isConnected
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -84,6 +85,14 @@ struct PublicTransports: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             await loadTransports()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+            guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
+            self.isConnected = isConnected
+        }
+        .onChange(of: isConnected) { _, newValue in
+            guard newValue else { return }
+            Task { await refreshFromNetwork() }
         }
     }
     
@@ -229,6 +238,10 @@ struct PublicTransports: View {
             }
         }
         isLoading = false
+    }
+
+    private func refreshFromNetwork() async {
+        await loadTransports()
     }
     
     private func groupRoutesIntoPairs(_ routes: [PublicTransport]) -> [TransportPair] {
