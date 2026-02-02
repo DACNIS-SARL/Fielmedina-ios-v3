@@ -920,6 +920,16 @@
         }
       }
     },
+    "There are no locations in this city yet.\nCheck back soon!" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a encore aucun emplacement dans cette ville.\nRevenez bientôt !"
+          }
+        }
+      }
+    },
     "These numbers are for genuine emergencies only. Misuse may result in legal consequences." : {
       "localizations" : {
         "fr" : {
@@ -946,6 +956,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pour utiliser cette fonctionnalité, veuillez activer l'accès à la localisation dans les paramètres. Appuyez sur « Localisation » et sélectionnez « Lors de l'utilisation de l'application »."
+          }
+        }
+      }
+    },
+    "No Locations Yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun emplacement pour le moment"
+          }
+        }
+      }
+    },
+    "No Hiking Routes Yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun sentier de randonnée pour le moment"
+          }
+        }
+      }
+    },
+    "There are no hiking routes in this city yet.\nCheck back soon!" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a pas encore de sentiers de randonnée dans cette ville.\nRevenez bientôt !"
           }
         }
       }

@@ -17,6 +17,24 @@ struct AllLocationListView: View {
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentCityId = CitySelectionStore.shared.cityId
+
+    private var isFilteringCategory: Bool {
+        selectedCategory != String(localized: "All Locations")
+    }
+
+    private var emptyStateTitle: String {
+        if isFilteringCategory {
+            return String(localized: "No Locations Found")
+        }
+        return String(localized: "No Locations Yet")
+    }
+
+    private var emptyStateMessage: String {
+        if isFilteringCategory {
+            return String(localized: "There are no locations in this category yet.\nCheck back soon!")
+        }
+        return String(localized: "There are no locations in this city yet.\nCheck back soon!")
+    }
     
     var filteredLocations: [Location] {
         if selectedCategory == String(localized: "All Locations") {
@@ -96,11 +114,11 @@ struct AllLocationListView: View {
                                 .font(.system(size: 60))
                                 .foregroundStyle(.secondary)
                             
-                            Text("No Locations Found")
+                            Text(emptyStateTitle)
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             
-                            Text("There are no locations in this category yet.\nCheck back soon!")
+                            Text(emptyStateMessage)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)

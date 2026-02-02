@@ -44,6 +44,24 @@ struct HikingView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
+                    } else if trails.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "figure.hiking")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.secondary)
+
+                            Text(String(localized: "No Hiking Routes Yet"))
+                                .font(.title2)
+                                .fontWeight(.semibold)
+
+                            Text(String(localized: "There are no hiking routes in this city yet.\nCheck back soon!"))
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 20) {
                             ForEach(Array(trails.enumerated()), id: \.element.id) { index, trail in
