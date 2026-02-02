@@ -16,6 +16,7 @@ struct CarouselListLocations: View {
     @State private var locations: [Location] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var currentCityId = CitySelectionStore.shared.cityId
     
     init(
         title: LocalizedStringKey,
@@ -131,14 +132,24 @@ struct CarouselListLocations: View {
         .task {
             await loadLocations()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
+            guard let newCityId = notification.object as? Int32 else { return }
+            currentCityId = newCityId
+        }
+        .onChange(of: currentCityId) { _, _ in
+            Task { await loadLocations() }
+        }
     }
     
     private func loadLocations() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
-            locations = try await LocationService.shared.fetchLocations(limit: Int32(limit))
+            locations = try await LocationService.shared.fetchLocations(
+                cityId: CitySelectionStore.shared.cityId,
+                limit: Int32(limit)
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
