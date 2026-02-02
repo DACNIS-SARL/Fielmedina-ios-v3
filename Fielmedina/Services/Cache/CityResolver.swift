@@ -43,6 +43,7 @@ actor CityResolver {
                 }
 
                 await MainActor.run {
+                    guard !NetworkMonitor.shared.isConnected else { return }
                     if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
                         NotificationCenter.default.post(name: .offlineCityDataMissing, object: cityId)
                     }
