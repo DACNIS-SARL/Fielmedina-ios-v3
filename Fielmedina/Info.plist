@@ -20,7 +20,6 @@
 		<string>fetch</string>
 		<string>location</string>
 		<string>remote-notification</string>
-		<string>processing</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>
