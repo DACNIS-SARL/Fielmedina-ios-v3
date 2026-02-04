@@ -82,7 +82,14 @@
       }
     },
     "AR not available" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AR non disponible"
+          }
+        }
+      }
     },
     "Best Experiences" : {
       "localizations" : {
@@ -984,7 +991,14 @@
       }
     },
     "This location has no AR experience yet." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet endroit n'offre pas encore d'expérience en réalité augmentée."
+          }
+        }
+      }
     },
     "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {
