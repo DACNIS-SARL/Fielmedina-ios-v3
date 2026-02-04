@@ -780,16 +780,6 @@
         }
       }
     },
-    "Read Aloud" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lire à haute voix"
-          }
-        }
-      }
-    },
     "Ready" : {
       "localizations" : {
         "fr" : {
@@ -1134,16 +1124,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Urgence"
-          }
-        }
-      }
-    },
-    "Voice Tester" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testeur vocal"
           }
         }
       }
