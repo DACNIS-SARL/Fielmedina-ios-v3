@@ -81,6 +81,9 @@
         }
       }
     },
+    "AR not available" : {
+
+    },
     "Best Experiences" : {
       "localizations" : {
         "fr" : {
@@ -553,6 +556,16 @@
         }
       }
     },
+    "No Hiking Routes Yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun sentier de randonnée pour le moment"
+          }
+        }
+      }
+    },
     "No locations available" : {
       "localizations" : {
         "fr" : {
@@ -573,6 +586,16 @@
         }
       }
     },
+    "No Locations Yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun emplacement pour le moment"
+          }
+        }
+      }
+    },
     "No trips available" : {
       "localizations" : {
         "fr" : {
@@ -589,6 +612,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Non téléchargé"
+          }
+        }
+      }
+    },
+    "Offline city data unavailable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données hors ligne indisponibles"
           }
         }
       }
@@ -910,6 +943,16 @@
         }
       }
     },
+    "There are no hiking routes in this city yet.\nCheck back soon!" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a pas encore de sentiers de randonnée dans cette ville.\nRevenez bientôt !"
+          }
+        }
+      }
+    },
     "There are no locations in this category yet.\nCheck back soon!" : {
       "localizations" : {
         "fr" : {
@@ -940,6 +983,9 @@
         }
       }
     },
+    "This location has no AR experience yet." : {
+
+    },
     "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {
         "fr" : {
@@ -956,56 +1002,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pour utiliser cette fonctionnalité, veuillez activer l'accès à la localisation dans les paramètres. Appuyez sur « Localisation » et sélectionnez « Lors de l'utilisation de l'application »."
-          }
-        }
-      }
-    },
-    "No Locations Yet" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun emplacement pour le moment"
-          }
-        }
-      }
-    },
-    "No Hiking Routes Yet" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun sentier de randonnée pour le moment"
-          }
-        }
-      }
-    },
-    "Offline city data unavailable" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Données hors ligne indisponibles"
-          }
-        }
-      }
-    },
-    "There are no hiking routes in this city yet.\nCheck back soon!" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il n'y a pas encore de sentiers de randonnée dans cette ville.\nRevenez bientôt !"
-          }
-        }
-      }
-    },
-    "You're offline. Connect to download data for this city." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous êtes hors ligne. Connectez-vous pour télécharger les données de cette ville."
           }
         }
       }
@@ -1154,6 +1150,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Points de passage"
+          }
+        }
+      }
+    },
+    "You're offline. Connect to download data for this city." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes hors ligne. Connectez-vous pour télécharger les données de cette ville."
           }
         }
       }

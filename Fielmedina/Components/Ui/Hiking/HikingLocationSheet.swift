@@ -6,13 +6,11 @@
 //
 
 import SwiftUI
-import AVFoundation
-import NaturalLanguage
 
 struct HikingLocationSheet: View {
     let waypoint: TrailWaypoint
     
-    @State private var speechManager = LocationSpeechManager()
+    @State private var showARUnavailableAlert = false
     
     private var storyText: String? {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
@@ -41,20 +39,8 @@ struct HikingLocationSheet: View {
                 
                 HStack(spacing: 12) {
                     Button {
-                        if let storyText {
-                            speechManager.speak(text: storyText)
-                        }
-                    } label: {
-                        Image(systemName: "waveform")
-                            .font(.system(size: 22, weight: .semibold))
-                            .frame(width: 52, height: 52)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Button {
                         FirebaseUtils.trackButtonTap(buttonName: "open_ar", screenName: "HikingWaypoint")
+                        showARUnavailableAlert = true
                     } label: {
                         Image(systemName: "cube.transparent")
                             .font(.system(size: 22, weight: .semibold))
@@ -89,6 +75,11 @@ struct HikingLocationSheet: View {
             .padding(20)
         }
         .background(Color(.systemBackground))
+        .alert(String(localized: "AR not available"), isPresented: $showARUnavailableAlert) {
+            Button(String(localized: "OK"), role: .cancel) { }
+        } message: {
+            Text(String(localized: "This location has no AR experience yet."))
+        }
     }
 }
 

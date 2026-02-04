@@ -16,7 +16,6 @@ struct LocationDetailView: View {
     let location: Location
     
     @State private var selectedImageIndex: Int? = 0
-    @State private var speechManager = LocationSpeechManager()
     @State private var locationManager = LocationManager()
     private let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
     @State private var navigationRoutes: NavigationRoutes?
@@ -25,6 +24,7 @@ struct LocationDetailView: View {
     @State private var showLocationAlert = false
     @State private var showNavigationErrorAlert = false
     @State private var navigationErrorMessage = ""
+    @State private var showARUnavailableAlert = false
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -87,6 +87,11 @@ struct LocationDetailView: View {
         } message: {
             Text(navigationErrorMessage)
         }
+        .alert(String(localized: "AR not available"), isPresented: $showARUnavailableAlert) {
+            Button(String(localized: "OK"), role: .cancel) { }
+        } message: {
+            Text(String(localized: "This location has no AR experience yet."))
+        }
     }
     
     private var detailsCard: some View {
@@ -114,6 +119,7 @@ struct LocationDetailView: View {
                 
                 Button {
                     FirebaseUtils.trackButtonTap(buttonName: "open_ar", screenName: "LocationDetail")
+                    showARUnavailableAlert = true
                 } label: {
                     Image(systemName: "cube.transparent")
                         .font(.system(size: 22, weight: .semibold))
@@ -149,21 +155,6 @@ struct LocationDetailView: View {
                 Spacer(minLength: 0)
                 
             }
-            Button {
-                if let story = location.displayStory {
-                    speechManager.speak(text: story)
-                }
-            } label: {
-                Image(systemName: "waveform")
-                    .font(.system(size: 22, weight: .semibold))
-                    .frame(width: 56, height: 56)
-                    .background(Color(red: 0.72, green: 0.41, blue: 0.25))
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            
             if let story = location.displayStory {
                 Text(story.htmlToMarkdown())
                     .font(.body)
