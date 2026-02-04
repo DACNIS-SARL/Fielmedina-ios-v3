@@ -156,9 +156,11 @@ struct LocationDetailView: View {
                 
             }
             if let story = location.displayStory {
-                Text(story.htmlToMarkdown())
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                HTMLTextView(
+                    html: story,
+                    textStyle: .body,
+                    textColor: .secondary
+                )
             }
         }
         .padding(20)
@@ -233,9 +235,9 @@ struct LocationDetailView: View {
         let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
         let options = NavigationRouteOptions(coordinates: [origin, destination])
         options.profileIdentifier = .walking
-        let request = mapboxNavigationProvider.routingProvider().calculateRoutes(options: options)
-
         Task {
+            let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
+            let request = routingProvider.calculateRoutes(options: options)
             switch await request.result {
             case .failure(let error):
                 await MainActor.run {

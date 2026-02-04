@@ -71,12 +71,15 @@ struct TipsCarousel: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(.white.opacity(0.9))
                                         
-                                        Text(tip.displayDescription.htmlToMarkdown())
-                                            .font(tipFont)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.leading)
-                                            .minimumScaleFactor(0.5)
+                                        HTMLTextView(
+                                            html: tip.displayDescription,
+                                            textStyle: sizeClass == .regular ? .largeTitle : .title3,
+                                            textColor: .white,
+                                            linkColor: .white,
+                                            isBold: true,
+                                            lineLimit: 3
+                                        )
+                                        .minimumScaleFactor(0.5)
                                         
                                         Spacer()
                                     }

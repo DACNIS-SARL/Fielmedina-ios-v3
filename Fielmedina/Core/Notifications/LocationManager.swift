@@ -14,6 +14,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     var userLocation: CLLocationCoordinate2D?
     var authorizationStatus: CLAuthorizationStatus
+    private var lastErrorLog: Date?
     
     override init() {
         self.authorizationStatus = manager.authorizationStatus
@@ -61,7 +62,12 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location error: \(error.localizedDescription)")
+        guard authorizationStatus != .notDetermined else { return }
+        if let lastErrorLog, Date().timeIntervalSince(lastErrorLog) < 5 {
+            return
+        }
+        lastErrorLog = Date()
+        LogUtils.w("LocationManager", "Location error: \(error.localizedDescription)")
     }
 }
 

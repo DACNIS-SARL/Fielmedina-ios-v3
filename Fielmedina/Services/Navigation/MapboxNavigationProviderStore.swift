@@ -13,5 +13,9 @@ enum MapboxNavigationProviderStore {
         let config = CoreConfig(locationSource: .live)
         return MapboxNavigationProvider(coreConfig: config)
     }()
-}
 
+    @MainActor
+    static func routingProvider() -> RoutingProvider {
+        shared.routingProvider()
+    }
+}

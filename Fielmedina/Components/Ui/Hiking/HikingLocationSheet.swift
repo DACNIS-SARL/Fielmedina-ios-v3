@@ -67,9 +67,11 @@ struct HikingLocationSheet: View {
                 AdsCarousel()
                 
                 if let storyText {
-                    Text(storyText.htmlToMarkdown())
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+                    HTMLTextView(
+                        html: storyText,
+                        textStyle: .body,
+                        textColor: .secondary
+                    )
                 }
             }
             .padding(20)

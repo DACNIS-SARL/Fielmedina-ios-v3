@@ -51,13 +51,15 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
 
         
         if let userLocation = userLocation {
-            navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: CameraOptions(
-                center: userLocation,
-                zoom: 16.0,
-                bearing: 0,
-                pitch: 40
-            ))
-        }        
+            DispatchQueue.main.async {
+                navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: CameraOptions(
+                    center: userLocation,
+                    zoom: 16.0,
+                    bearing: 0,
+                    pitch: 40
+                ))
+            }
+        }
         
         context.coordinator.scheduleReadyCallback()
         
@@ -112,5 +114,4 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         }
     }
 }
-
 

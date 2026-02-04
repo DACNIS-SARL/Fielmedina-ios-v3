@@ -66,7 +66,7 @@ final class OfflineMapsManager {
         let primaryStyleURI: StyleURI = .standard
         guard let stylePackLoadOptions = StylePackLoadOptions(
             glyphsRasterizationMode: .ideographsRasterizedLocally,
-            metadata: ["name": name]
+            metadata: ["name": name, "updatedAt": Date().timeIntervalSince1970]
         ) else {
             completion(.failure(NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])))
             return
@@ -107,7 +107,7 @@ final class OfflineMapsManager {
             group.enter()
             guard let options = StylePackLoadOptions(
                 glyphsRasterizationMode: .ideographsRasterizedLocally,
-                metadata: ["name": name]
+                metadata: ["name": name, "updatedAt": Date().timeIntervalSince1970]
             ) else {
                 lastError = NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])
                 group.leave()

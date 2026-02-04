@@ -272,8 +272,7 @@ struct HikingNavigator: View {
                 return
             }
             
-            let provider = MapboxNavigationProviderStore.shared
-            let routingProvider = provider.routingProvider()
+            let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
             
             var waypoints: [Waypoint] = []
             

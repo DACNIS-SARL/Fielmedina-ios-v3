@@ -68,9 +68,11 @@ struct EventDetailView: View {
             }
 
             if let description = event.displayDescription {
-                Text(description.htmlToMarkdown())
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                HTMLTextView(
+                    html: description,
+                    textStyle: .subheadline,
+                    textColor: .secondary
+                )
             }
 
         }

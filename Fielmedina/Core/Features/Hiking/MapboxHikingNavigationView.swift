@@ -50,7 +50,9 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
                 bearing: 0.0,
                 pitch: 0.0
             )
-            navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: cameraOptions)
+            DispatchQueue.main.async {
+                navigationViewController.navigationMapView?.mapView.mapboxMap.setCamera(to: cameraOptions)
+            }
         }
         
         // Add custom waypoint markers with rounded images and enable tap handling

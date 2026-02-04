@@ -211,7 +211,7 @@ struct HikingView: View {
         let realisticHikingSpeed: Double = 0.83
 
         do {
-            let routingProvider = MapboxNavigationProviderStore.shared.routingProvider()
+            let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
             let response = try await routingProvider.calculateRoutes(options: options).value
             
             let route = response.mainRoute.route
@@ -376,10 +376,12 @@ struct HikingCardView: View {
             }
 
             if let description = hiking.displayDescription {
-                Text(description.htmlToMarkdown())
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
+                HTMLTextView(
+                    html: description,
+                    textStyle: .subheadline,
+                    textColor: .secondary,
+                    lineLimit: 3
+                )
             }
 
             HStack(spacing: 24) {
