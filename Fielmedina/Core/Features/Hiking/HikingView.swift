@@ -65,7 +65,8 @@ struct HikingView: View {
                         .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 20) {
-                            ForEach(Array(trails.enumerated()), id: \.element.id) { index, trail in
+                            ForEach(trails.indices, id: \.self) { index in
+                                let trail = trails[index]
                                 HikingCardView(
                                     hiking: trail,
                                     metrics: metrics[trail.id],
@@ -119,7 +120,7 @@ struct HikingView: View {
             .alert(String(localized: "Offline city data unavailable"), isPresented: $shouldShowCityDownloadPrompt) {
                 Button(String(localized: "OK"), role: .cancel) { }
             } message: {
-                Text(String(localized: "You're offline. Connect to download data for this city."))
+                Text(String(localized: "You're offline. Connect to download data for this city.")
             }
             .onChange(of: locationManager.userLocation) { _, _ in
                 sortTrailsByDistanceIfPossible()
