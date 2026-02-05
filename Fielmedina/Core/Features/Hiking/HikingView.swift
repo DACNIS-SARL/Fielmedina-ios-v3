@@ -120,7 +120,7 @@ struct HikingView: View {
             .alert(String(localized: "Offline city data unavailable"), isPresented: $shouldShowCityDownloadPrompt) {
                 Button(String(localized: "OK"), role: .cancel) { }
             } message: {
-                Text(String(localized: "You're offline. Connect to download data for this city.")
+                Text(String(localized: "You're offline. Connect to download data for this city."))
             }
             .onChange(of: locationManager.userLocation) { _, _ in
                 sortTrailsByDistanceIfPossible()
