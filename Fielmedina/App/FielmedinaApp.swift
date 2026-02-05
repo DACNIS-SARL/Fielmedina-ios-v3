@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseMessaging
+import MapboxCommon
 import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -35,6 +36,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         FirebaseUtils.initializeFirebase()
         FirebaseUtils.initializeFCM()
 
+        LogConfiguration.setLoggingLevelForUpTo(NSNumber(value: LoggingLevel.error.rawValue))
+
         CacheConfigurator.configureURLCache()
         
         _ = MapboxNavigationProviderStore.shared
@@ -47,6 +50,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         LogUtils.d("AppDelegate", "✅ APNS token received successfully")
         
         Messaging.messaging().apnsToken = deviceToken
+        FirebaseUtils.handleAPNSTokenDidSet()
     }
     
     func application(_ application: UIApplication,

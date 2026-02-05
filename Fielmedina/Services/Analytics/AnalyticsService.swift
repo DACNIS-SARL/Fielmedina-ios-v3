@@ -19,6 +19,7 @@ class FirebaseUtils {
     private static let FCM_TOKEN_TIMESTAMP_KEY = "fcm_token_timestamp"
     private static let remoteConfig = RemoteConfig.remoteConfig()
     private static var isFCMInitialized = false
+    private static var pendingDefaultTopicSubscription = false
     
     // MARK: - FCM (Firebase Cloud Messaging)
     
@@ -74,6 +75,12 @@ class FirebaseUtils {
     }
     
     static func subscribeToDefaultTopics() {
+        guard Messaging.messaging().apnsToken != nil else {
+            pendingDefaultTopicSubscription = true
+            LogUtils.w(TAG, "APNS token not available yet. Deferring topic subscription.")
+            return
+        }
+
         LogUtils.d(TAG, "Subscribing to default topics...")
         
         let topics = ["filmedina_updates", "new_places", "new_routes", "app_updates"]
@@ -87,6 +94,12 @@ class FirebaseUtils {
                 }
             }
         }
+    }
+
+    static func handleAPNSTokenDidSet() {
+        guard pendingDefaultTopicSubscription else { return }
+        pendingDefaultTopicSubscription = false
+        subscribeToDefaultTopics()
     }
     
     static func subscribeToTopic(_ topic: String) {

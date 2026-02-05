@@ -62,8 +62,21 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if let clError = error as? CLError {
+            switch clError.code {
+            case .denied:
+                LogUtils.w("LocationManager", "Location permission denied")
+                return
+            case .locationUnknown:
+                return
+            case .network:
+                break
+            default:
+                break
+            }
+        }
         guard authorizationStatus != .notDetermined else { return }
-        if let lastErrorLog, Date().timeIntervalSince(lastErrorLog) < 5 {
+        if let lastErrorLog, Date().timeIntervalSince(lastErrorLog) < 30 {
             return
         }
         lastErrorLog = Date()
