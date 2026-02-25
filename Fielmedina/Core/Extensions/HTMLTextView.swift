@@ -98,25 +98,47 @@ private struct HTMLWebView: UIViewRepresentable {
     @Binding var contentHeight: CGFloat
 
     func makeUIView(context: Context) -> WKWebView {
-        let view = WKWebView(frame: .zero)
+        let controller = WKUserContentController()
+        // Use a weak wrapper to prevent a retain cycle: WKUserContentController -> Coordinator -> WebView -> Controller
+        controller.add(LeakAvoider(delegate: context.coordinator), name: "heightHandler")
+        
+        let config = WKWebViewConfiguration()
+        config.userContentController = controller
+        
+        let view = WKWebView(frame: .zero, configuration: config)
         view.isOpaque = false
         view.backgroundColor = .clear
         view.scrollView.isScrollEnabled = false
         view.navigationDelegate = context.coordinator
+        
+        // Optimize for performance
+        view.allowsLinkPreview = false
+        view.scrollView.contentInsetAdjustmentBehavior = .never
+        
         return view
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
+        // Only reload if the HTML content has actually changed
         guard context.coordinator.lastHTML != html else { return }
         context.coordinator.lastHTML = html
         uiView.loadHTMLString(html, baseURL: nil)
+    }
+
+    // Helper to avoid retain cycle with WKUserContentController
+    private class LeakAvoider: NSObject, WKScriptMessageHandler {
+        weak var delegate: WKScriptMessageHandler?
+        init(delegate: WKScriptMessageHandler) { self.delegate = delegate }
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            delegate?.userContentController(userContentController, didReceive: message)
+        }
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(contentHeight: $contentHeight)
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         @Binding var contentHeight: CGFloat
         var lastHTML: String?
 
@@ -125,9 +147,22 @@ private struct HTMLWebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            webView.evaluateJavaScript("document.body.scrollHeight") { result, _ in
-                guard let height = result as? CGFloat else { return }
-                if self.contentHeight != height {
+            let script = """
+            const observer = new ResizeObserver(entries => {
+                window.webkit.messageHandlers.heightHandler.postMessage(document.body.scrollHeight);
+            });
+            observer.observe(document.body);
+            window.webkit.messageHandlers.heightHandler.postMessage(document.body.scrollHeight);
+            """
+            webView.evaluateJavaScript(script)
+        }
+        
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard message.name == "heightHandler", let height = message.body as? CGFloat else { return }
+            
+            // Debounce or at least check if the change is significant to avoid layout loops
+            if abs(self.contentHeight - height) > 0.5 {
+                DispatchQueue.main.async {
                     self.contentHeight = height
                 }
             }

@@ -89,6 +89,7 @@ struct HikingNavigator: View {
         )) { wrapper in
             HikingLocationSheet(waypoint: wrapper.waypoint)
                 .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
     

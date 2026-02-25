@@ -77,6 +77,7 @@ struct HikingLocationSheet: View {
             .padding(20)
         }
         .background(Color(.systemBackground))
+        .coordinateSpace(name: "scroll")
         .alert(String(localized: "AR not available"), isPresented: $showARUnavailableAlert) {
             Button(String(localized: "OK"), role: .cancel) { }
         } message: {
