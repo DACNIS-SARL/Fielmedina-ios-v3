@@ -35,7 +35,6 @@ struct MapView: View {
     @State private var locationCategories: [LocationCategory] = []
     @State private var didCenterOnMedina = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentCityId = CitySelectionStore.shared.cityId
     @State private var shouldShowCityDownloadPrompt = false
 
     private var standardLightPreset: StandardLightPreset {
@@ -130,19 +129,12 @@ struct MapView: View {
                 guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
                 self.isConnected = isConnected
             }
-            .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
-                guard let newCityId = notification.object as? Int32 else { return }
-                currentCityId = newCityId
-            }
             .onReceive(NotificationCenter.default.publisher(for: .offlineCityDataMissing)) { _ in
                 shouldShowCityDownloadPrompt = true
             }
             .onChange(of: isConnected) { _, newValue in
                 guard newValue else { return }
                 Task { await refreshFromNetwork() }
-            }
-            .onChange(of: currentCityId) { _, _ in
-                Task { await refreshForCityChange() }
             }
             .sheet(isPresented: $showFilterSheet) {
                 MapFilterSheet(
@@ -175,9 +167,8 @@ struct MapView: View {
 
     private func loadLocations() async {
         do {
-            let cityId = CitySelectionStore.shared.cityId
             locations = try await LocationService.shared.fetchLocations(
-                cityId: cityId,
+                cityId: nil,
                 limit: 500
             )
             if selectedCategoryIds.isEmpty && !locationCategories.isEmpty {
@@ -218,11 +209,6 @@ struct MapView: View {
         }
     }
 
-    private func refreshForCityChange() async {
-        didCenterOnMedina = false
-        await refreshFromNetwork()
-        centerMapOnNearestMedinaIfNeeded()
-    }
 
     private func centerMapOnNearestMedinaIfNeeded() {
         guard !didCenterOnMedina,

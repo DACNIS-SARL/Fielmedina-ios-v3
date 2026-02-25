@@ -173,7 +173,7 @@ struct SettingsView: View {
             case .success:
                 regionStatus[city.id] = .downloaded
                 OfflineCityDataStore.shared.markCityDataDownloaded(cityId: city.cityId, regionId: city.id)
-                OfflineContentPrefetcher.shared.prefetchForCity(cityId: city.cityId)
+                OfflineContentPrefetcher.shared.prefetchForCity(city.cityId)
             case .failure(let error):
                 regionStatus[city.id] = .failed(error.localizedDescription)
             }

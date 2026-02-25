@@ -18,8 +18,6 @@ struct HikingView: View {
     @State private var locationManager = LocationManager()
     @State private var selectedHiking: Hiking?
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentCityId = CitySelectionStore.shared.cityId
-    @State private var shouldShowCityDownloadPrompt = false
 
     var body: some View {
         NavigationStack {
@@ -103,24 +101,9 @@ struct HikingView: View {
                 guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
                 self.isConnected = isConnected
             }
-            .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
-                guard let newCityId = notification.object as? Int32 else { return }
-                currentCityId = newCityId
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .offlineCityDataMissing)) { _ in
-                shouldShowCityDownloadPrompt = true
-            }
             .onChange(of: isConnected) { _, newValue in
                 guard newValue else { return }
                 Task { await refreshFromNetwork() }
-            }
-            .onChange(of: currentCityId) { _, _ in
-                Task { await refreshFromNetwork() }
-            }
-            .alert(String(localized: "Offline city data unavailable"), isPresented: $shouldShowCityDownloadPrompt) {
-                Button(String(localized: "OK"), role: .cancel) { }
-            } message: {
-                Text(String(localized: "You're offline. Connect to download data for this city."))
             }
             .onChange(of: locationManager.userLocation) { _, _ in
                 sortTrailsByDistanceIfPossible()
@@ -148,8 +131,7 @@ struct HikingView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let cityId = CitySelectionStore.shared.cityId
-            trails = try await HikingService.shared.fetchHikings(cityId: cityId, limit: 200)
+            trails = try await HikingService.shared.fetchHikings(cityId: nil, limit: 200)
             sortTrailsByDistanceIfPossible()
             await updateMetrics()
         } catch {

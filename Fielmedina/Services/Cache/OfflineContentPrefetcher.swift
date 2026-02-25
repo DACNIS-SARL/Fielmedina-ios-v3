@@ -64,15 +64,21 @@ final class OfflineContentPrefetcher {
         updateProgress(0)
     }
 
-    func prefetchForCity(cityId: Int32) {
+    func prefetchForCity(_ cityId: Int32) {
+        // As requested by Android implementation similarity, clicking a single city
+        // triggers a global prefetch.
         guard !isRunning else { return }
         isRunning = true
         updateStatus(.downloading)
         updateProgress(0)
 
         Task {
-            await runPrefetch(for: cityId)
+            // Passing nil or ignoring cityId completely to run global prefetch
+            let didComplete = await runPrefetch()
             isRunning = false
+            if !didComplete {
+                handleFailedPrefetch()
+            }
         }
     }
 
@@ -96,23 +102,9 @@ final class OfflineContentPrefetcher {
     }
 
     private func runPrefetch() async -> Bool {
-        let resolution = await resolveCityIdIfPossible()
-        if case .missingLocation = resolution {
-            updateStatus(.waitingForLocation)
-        } else if case .permissionDenied = resolution {
-            updateStatus(.permissionDenied)
-        } else if case .failed = resolution {
-            updateStatus(.failed)
-        }
+        _ = await resolveCityIdIfPossible()
 
-        let cityId: Int32? = {
-            if case .success(let resolved) = resolution {
-                return resolved
-            }
-            return CitySelectionStore.shared.cityId
-        }()
-
-        let tasks = makePrefetchTasks(cityId: cityId)
+        let tasks = makePrefetchTasks()
 
         let total = max(tasks.count, 1)
         var completed = 0
@@ -129,41 +121,14 @@ final class OfflineContentPrefetcher {
             }
         }
 
-        if cityId != nil {
-            UserDefaults.standard.set(true, forKey: completionKey)
-            updateStatus(.completed)
-            updateProgress(1)
-            NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
-            return true
-        }
-
-        return false
-    }
-
-    private func runPrefetch(for cityId: Int32) async {
-        let tasks = makePrefetchTasks(cityId: cityId)
-        let total = max(tasks.count, 1)
-        var completed = 0
-        updateProgress(0)
-
-        await withTaskGroup(of: Void.self) { group in
-            for task in tasks {
-                group.addTask { await task() }
-            }
-
-            for await _ in group {
-                completed += 1
-                updateProgress(Double(completed) / Double(total))
-            }
-        }
-
-        OfflineCityDataStore.shared.markCityDataDownloaded(cityId: cityId)
+        UserDefaults.standard.set(true, forKey: completionKey)
         updateStatus(.completed)
         updateProgress(1)
         NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
+        return true
     }
 
-    private func makePrefetchTasks(cityId: Int32?) -> [() async -> Void] {
+    private func makePrefetchTasks() -> [() async -> Void] {
         var tasks: [() async -> Void] = [
             { await self.prefetchEventCategories() },
             { await self.prefetchLocationCategories() },
@@ -171,13 +136,12 @@ final class OfflineContentPrefetcher {
             { await self.prefetchTransports() }
         ]
 
-        if let cityId {
-            updateStatus(.downloading)
-            tasks.append { await self.prefetchLocations(cityId: cityId) }
-            tasks.append { await self.prefetchHiking(cityId: cityId) }
-            tasks.append { await self.prefetchTips(cityId: cityId) }
-            tasks.append { await self.prefetchAds(cityId: cityId) }
-        }
+        updateStatus(.downloading)
+        // Pass nil to cityId to ensure global fetch across all locations, hikings, tips, etc.
+        tasks.append { await self.prefetchLocations(cityId: nil) }
+        tasks.append { await self.prefetchHiking(cityId: nil) }
+        tasks.append { await self.prefetchTips(cityId: nil) }
+        tasks.append { await self.prefetchAds(cityId: nil) }
 
         return tasks
     }
@@ -272,7 +236,7 @@ final class OfflineContentPrefetcher {
         NotificationCenter.default.post(name: .offlinePrefetchProgressChanged, object: progress)
     }
 
-    private func prefetchLocations(cityId: Int32) async {
+    private func prefetchLocations(cityId: Int32?) async {
         do {
             let locations = try await LocationService.shared.fetchLocations(cityId: cityId, limit: 500)
             await ImagePrefetcher.prefetch(from: locations.flatMap { $0.images ?? [] })
@@ -308,7 +272,7 @@ final class OfflineContentPrefetcher {
         }
     }
 
-    private func prefetchHiking(cityId: Int32) async {
+    private func prefetchHiking(cityId: Int32?) async {
         do {
             let trails = try await HikingService.shared.fetchHikings(cityId: cityId, limit: 200)
             let trailImages = trails.flatMap { $0.images ?? [] }
@@ -327,7 +291,7 @@ final class OfflineContentPrefetcher {
         }
     }
 
-    private func prefetchTips(cityId: Int32) async {
+    private func prefetchTips(cityId: Int32?) async {
         do {
             _ = try await TipService.shared.fetchTips(cityId: cityId, limit: 200)
         } catch {
@@ -335,19 +299,37 @@ final class OfflineContentPrefetcher {
         }
     }
 
-    private func prefetchAds(cityId: Int32) async {
+    private func prefetchAds(cityId: Int32?) async {
         do {
             let ads = try await AdService.shared.fetchAds(cityId: cityId, limit: 100)
-            await ImagePrefetcher.prefetch(urls: ads.compactMap { $0.displayImage })
+            
+            let urls: [String] = ads.compactMap { ad in
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    return ad.imageTablet?.url ?? ad.imageMobile?.url
+                } else {
+                    return ad.imageMobile?.url ?? ad.imageTablet?.url
+                }
+            }
+            await ImagePrefetcher.prefetch(urls: urls)
         } catch {
             return
         }
     }
 }
 
+import UIKit
+
+@MainActor
 enum ImagePrefetcher {
     static func prefetch(from images: [ImageContainer]) async {
-        let urls = images.compactMap { $0.displayURL }
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        let urls = images.compactMap { imageContainer -> String? in
+            if isPad {
+                return imageContainer.image?.url ?? imageContainer.imageMobile?.url
+            } else {
+                return imageContainer.imageMobile?.url ?? imageContainer.image?.url
+            }
+        }
         await prefetch(urls: urls)
     }
 

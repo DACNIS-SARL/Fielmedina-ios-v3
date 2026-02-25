@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct AllLocationListView: View {
     @State private var locations: [Location] = []
+    @State private var locationManager = LocationManager()
     @State private var selectedCategory: String = String(localized: "All Locations")
     @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Locations")]
@@ -16,8 +18,6 @@ struct AllLocationListView: View {
     @State private var errorMessage: String?
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentCityId = CitySelectionStore.shared.cityId
-    @State private var shouldShowCityDownloadPrompt = false
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
@@ -38,11 +38,20 @@ struct AllLocationListView: View {
     }
     
     var filteredLocations: [Location] {
-        if selectedCategory == String(localized: "All Locations") {
-            return locations
-        } else {
-            return locations.filter { $0.category?.displayName == selectedCategory }
+        var result = locations
+        if selectedCategory != String(localized: "All Locations") {
+            result = result.filter { $0.category?.displayName == selectedCategory }
         }
+
+        if let userCoordinate = locationManager.userLocation {
+            let userLoc = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
+            result.sort {
+                let leftLoc = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
+                let rightLoc = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
+                return leftLoc.distance(from: userLoc) < rightLoc.distance(from: userLoc)
+            }
+        }
+        return result
     }
     
     var body: some View {
@@ -171,30 +180,17 @@ struct AllLocationListView: View {
             )
         }
         .task {
+            locationManager.requestPermission()
+            locationManager.startUpdatingLocation()
             await loadData()
         }
         .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
             guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
             self.isConnected = isConnected
         }
-        .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
-            guard let newCityId = notification.object as? Int32 else { return }
-            currentCityId = newCityId
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .offlineCityDataMissing)) { _ in
-            shouldShowCityDownloadPrompt = true
-        }
         .onChange(of: isConnected) { _, newValue in
             guard newValue else { return }
             Task { await refreshFromNetwork() }
-        }
-        .onChange(of: currentCityId) { _, _ in
-            Task { await refreshFromNetwork() }
-        }
-        .alert(String(localized: "Offline city data unavailable"), isPresented: $shouldShowCityDownloadPrompt) {
-            Button(String(localized: "OK"), role: .cancel) { }
-        } message: {
-            Text(String(localized: "You're offline. Connect to download data for this city."))
         }
     }
     
@@ -257,9 +253,8 @@ struct AllLocationListView: View {
         errorMessage = nil
 
         do {
-            let cityId = CitySelectionStore.shared.cityId
             let fetchedLocations = try await LocationService.shared.fetchLocations(
-                cityId: cityId,
+                cityId: nil,
                 limit: 500
             )
             self.locations = fetchedLocations
