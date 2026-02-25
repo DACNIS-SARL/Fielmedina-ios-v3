@@ -80,13 +80,10 @@ struct CarouselListEvent: View {
                     if isLoading {
                         HStack(spacing: 16) {
                             ForEach(0..<3, id: \.self) { _ in
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(.systemGray5))
-                                    .frame(width: 320, height: 300)
+                                EventCardSkeleton()
                             }
                         }
                         .padding(.horizontal)
-                        .redacted(reason: .placeholder)
                     } else if let error = errorMessage, !isBoostedOnly {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")

@@ -295,22 +295,31 @@ private struct NavigationCoverView: View {
                     Color(red: 0.72, green: 0.41, blue: 0.25)
                         .ignoresSafeArea()
                     
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(.white)
-                            .scaleEffect(CGFloat(1.5))
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.2), lineWidth: 4)
+                                .frame(width: 64, height: 64)
+                            
+                            Circle()
+                                .trim(from: 0, to: 0.7)
+                                .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                .frame(width: 64, height: 64)
+                                .rotationEffect(.degrees(isLoading ? 360 : 0))
+                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isLoading)
+                        }
                         
-                        Text("Preparing navigation to")
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.8))
-                        
-                        Text(locationName)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
+                        VStack(spacing: 8) {
+                            Text("Preparing navigation to")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.8))
+                            
+                            Text(locationName)
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
                     }
                 }
                 .transition(.opacity)

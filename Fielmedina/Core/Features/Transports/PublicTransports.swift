@@ -157,11 +157,12 @@ struct PublicTransports: View {
     private var contentSection: some View {
         Group {
             if isLoading {
-                VStack {
-                    ProgressView("Loading routes...")
-                        .padding(.top, 40)
+                VStack(spacing: 32) {
+                    ForEach(0..<2, id: \.self) { _ in
+                        TransportRouteSkeleton()
+                    }
                 }
-                .frame(maxWidth: .infinity)
+                .padding(.top, 20)
                 .transition(.opacity)
             } else if let errorMessage {
                 VStack(spacing: 12) {

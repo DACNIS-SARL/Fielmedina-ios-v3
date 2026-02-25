@@ -71,13 +71,10 @@ struct CarouselListLocations: View {
             if isLoading {
                 HStack(spacing: 16) {
                     ForEach(0..<3, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(.systemGray5))
-                            .frame(width: 320, height: 380)
+                        LocationCardSkeleton()
                     }
                 }
                 .padding(.horizontal)
-                .redacted(reason: .placeholder)
             } else if let error = errorMessage {
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")

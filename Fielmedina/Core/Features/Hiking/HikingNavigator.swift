@@ -105,21 +105,32 @@ struct HikingNavigator: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 20) {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.white)
-                    .scaleEffect(x: 1.5, y: 1.5, anchor: .center)
-                
-                Text(isLocationTimedOut ? "Still waiting for GPS..." : "Preparing hiking navigation to")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
-                
-                Text(hikingRoute.displayName)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.2), lineWidth: 4)
+                                .frame(width: 64, height: 64)
+                            
+                            Circle()
+                                .trim(from: 0, to: 0.7)
+                                .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                .frame(width: 64, height: 64)
+                                .rotationEffect(.degrees(true ? 360 : 0))
+                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: true)
+                        }
+                        
+                        VStack(spacing: 8) {
+                            Text(isLocationTimedOut ? "Still waiting for GPS..." : "Preparing hiking navigation to")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.8))
+                            
+                            Text(hikingRoute.displayName)
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+                    }
                 
                 if isLocationTimedOut {
                     Button("Start anyway") {

@@ -68,11 +68,12 @@ struct AllEventsListView: View {
                     .padding(.horizontal, 16)
 
                     if isLoadingEvents {
-                        VStack {
-                            ProgressView("Loading events...")
-                                .padding(.vertical, 40)
+                        VStack(spacing: 12) {
+                            ForEach(0..<6, id: \.self) { _ in
+                                EventItemSkeleton()
+                            }
                         }
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
                     } else if let error = errorMessage {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")

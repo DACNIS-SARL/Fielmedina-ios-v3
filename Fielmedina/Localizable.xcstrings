@@ -450,6 +450,7 @@
       }
     },
     "Loading events..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -460,6 +461,7 @@
       }
     },
     "Loading locations..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -470,6 +472,7 @@
       }
     },
     "Loading routes..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {

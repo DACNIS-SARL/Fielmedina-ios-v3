@@ -97,11 +97,12 @@ struct AllLocationListView: View {
                     .padding(.horizontal, 16)
                     
                     if isLoading {
-                        VStack {
-                            ProgressView("Loading locations...")
-                                .padding(.vertical, 40)
+                        VStack(spacing: 12) {
+                            ForEach(0..<6, id: \.self) { _ in
+                                LocationItemSkeleton()
+                            }
                         }
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
                     } else if let error = errorMessage {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")
