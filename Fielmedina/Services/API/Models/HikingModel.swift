@@ -118,7 +118,8 @@ struct TrailCity: Codable, Identifiable {
     }
 }
 
-struct TrailWaypoint {
+struct TrailWaypoint: Identifiable {
+    var id: String { "\(name)_\(order)" }
     let order: Int
     let name: String
     let latitude: Double

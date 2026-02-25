@@ -83,20 +83,11 @@ struct HikingNavigator: View {
         .onDisappear {
             LocationManager.shared.stopUpdatingLocation()
         }
-        .sheet(item: Binding(
-            get: { selectedWaypoint.map { WaypointWrapper(waypoint: $0) } },
-            set: { selectedWaypoint = $0?.waypoint }
-        )) { wrapper in
-            HikingLocationSheet(waypoint: wrapper.waypoint)
+        .sheet(item: $selectedWaypoint) { waypoint in
+            HikingLocationSheet(waypoint: waypoint)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
-    }
-    
-    // Wrapper for sheet identifiable
-    struct WaypointWrapper: Identifiable {
-        let id = UUID()
-        let waypoint: TrailWaypoint
     }
     
     private var loadingView: some View {
