@@ -121,10 +121,10 @@ struct SettingsView: View {
             return String(localized: "Waiting for location to download offline content.")
         case .permissionDenied:
             return String(localized: "Enable location permissions to download offline content.")
-        case .failed:
-            return String(localized: "Offline content download failed. We'll retry shortly.")
-        case .downloading:
-            return String(localized: "Offline content is downloading in the background while you explore.")
+        case .failed(let error):
+            return String(localized: "Download failed: \(error). We'll retry shortly.")
+        case .downloading(let message):
+            return message
         case .idle, .completed:
             return String(localized: "Offline content is preparing in the background.")
         }
@@ -132,9 +132,9 @@ struct SettingsView: View {
 
     private var shouldShowOfflineProgress: Bool {
         switch offlineStatus {
-        case .downloading, .waitingForLocation:
+        case .downloading:
             return !isOfflineReady
-        case .permissionDenied, .failed, .idle, .completed:
+        case .waitingForLocation, .permissionDenied, .failed, .idle, .completed:
             return false
         }
     }

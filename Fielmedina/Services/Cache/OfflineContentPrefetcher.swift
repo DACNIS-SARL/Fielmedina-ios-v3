@@ -8,6 +8,7 @@
 import Foundation
 import CoreLocation
 import Apollo
+import UIKit
 
 @MainActor
 final class OfflineContentPrefetcher {
@@ -20,20 +21,40 @@ final class OfflineContentPrefetcher {
     private var isObservingLocation = false
     private var retryTask: Task<Void, Never>?
 
-    enum Status: String {
+    enum Status: Equatable {
         case idle
-        case downloading
+        case downloading(String)
         case waitingForLocation
         case permissionDenied
-        case failed
+        case failed(String)
         case completed
-    }
 
-    private enum CityResolutionResult {
-        case success(Int32)
-        case missingLocation
-        case permissionDenied
-        case failed
+        var rawValue: String {
+            switch self {
+            case .idle: return "idle"
+            case .downloading(let msg): return "downloading:\(msg)"
+            case .waitingForLocation: return "waitingForLocation"
+            case .permissionDenied: return "permissionDenied"
+            case .failed(let err): return "failed:\(err)"
+            case .completed: return "completed"
+            }
+        }
+
+        static func from(rawValue: String) -> Status {
+            if rawValue.hasPrefix("downloading:") {
+                return .downloading(String(rawValue.dropFirst(12)))
+            }
+            if rawValue.hasPrefix("failed:") {
+                return .failed(String(rawValue.dropFirst(7)))
+            }
+            switch rawValue {
+            case "idle": return .idle
+            case "waitingForLocation": return .waitingForLocation
+            case "permissionDenied": return .permissionDenied
+            case "completed": return .completed
+            default: return .idle
+            }
+        }
     }
 
     var isComplete: Bool {
@@ -44,9 +65,8 @@ final class OfflineContentPrefetcher {
         if isComplete {
             return .completed
         }
-        if let rawValue = UserDefaults.standard.string(forKey: statusKey),
-           let storedStatus = Status(rawValue: rawValue) {
-            return storedStatus
+        if let rawValue = UserDefaults.standard.string(forKey: statusKey) {
+            return Status.from(rawValue: rawValue)
         }
         return .idle
     }
@@ -65,15 +85,11 @@ final class OfflineContentPrefetcher {
     }
 
     func prefetchForCity(_ cityId: Int32) {
-        // As requested by Android implementation similarity, clicking a single city
-        // triggers a global prefetch.
         guard !isRunning else { return }
         isRunning = true
-        updateStatus(.downloading)
         updateProgress(0)
 
         Task {
-            // Passing nil or ignoring cityId completely to run global prefetch
             let didComplete = await runPrefetch()
             isRunning = false
             if !didComplete {
@@ -89,7 +105,6 @@ final class OfflineContentPrefetcher {
 
         guard !isRunning, !isComplete else { return }
         isRunning = true
-        updateStatus(.downloading)
         updateProgress(0)
 
         Task {
@@ -102,53 +117,62 @@ final class OfflineContentPrefetcher {
     }
 
     private func runPrefetch() async -> Bool {
+        updateStatus(.downloading(String(localized: "Initializing...")))
         _ = await resolveCityIdIfPossible()
 
-        let tasks = makePrefetchTasks()
-
-        let total = max(tasks.count, 1)
-        var completed = 0
-        updateProgress(0)
-
-        await withTaskGroup(of: Void.self) { group in
-            for task in tasks {
-                group.addTask { await task() }
-            }
-
-            for await _ in group {
-                completed += 1
-                updateProgress(Double(completed) / Double(total))
-            }
+        // Phase 1: Metadata Fetching
+        updateStatus(.downloading(String(localized: "Fetching data...")))
+        
+        var imageUrls = Set<String>()
+        
+        // We use a simplified sequential fetch for metadata to collect all URLs
+        let metadataTasks: [() async -> Void] = [
+            { await self.prefetchEventCategories() },
+            { await self.prefetchLocationCategories() },
+            { await self.prefetchTransports() }
+        ]
+        
+        for task in metadataTasks {
+            await task()
         }
-
+        
+        // Fetch entities and extract images
+        imageUrls.formUnion(await fetchLocationImageUrls())
+        imageUrls.formUnion(await fetchEventImageUrls())
+        imageUrls.formUnion(await fetchHikingImageUrls())
+        imageUrls.formUnion(await fetchTipImageUrls())
+        imageUrls.formUnion(await fetchAdImageUrls())
+        
+        let allUrls = Array(imageUrls).filter { !$0.isEmpty }
+        
+        if allUrls.isEmpty {
+            finalizePrefetch()
+            return true
+        }
+        
+        // Phase 2: Force Image Prefetching
+        let prefetcher = ImagePrefetcher()
+        
+        for await progressUpdate in await prefetcher.prefetch(urls: allUrls) {
+            updateProgress(progressUpdate.fraction)
+            let statusMsg = String(localized: "Downloading images (\(progressUpdate.completed)/\(progressUpdate.total))")
+            updateStatus(.downloading(statusMsg))
+        }
+        
+        finalizePrefetch()
+        return true
+    }
+    
+    private func finalizePrefetch() {
         UserDefaults.standard.set(true, forKey: completionKey)
         updateStatus(.completed)
         updateProgress(1)
         NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
-        return true
     }
 
-    private func makePrefetchTasks() -> [() async -> Void] {
-        var tasks: [() async -> Void] = [
-            { await self.prefetchEventCategories() },
-            { await self.prefetchLocationCategories() },
-            { await self.prefetchEvents() },
-            { await self.prefetchTransports() }
-        ]
-
-        updateStatus(.downloading)
-        // Pass nil to cityId to ensure global fetch across all locations, hikings, tips, etc.
-        tasks.append { await self.prefetchLocations(cityId: nil) }
-        tasks.append { await self.prefetchHiking(cityId: nil) }
-        tasks.append { await self.prefetchTips(cityId: nil) }
-        tasks.append { await self.prefetchAds(cityId: nil) }
-
-        return tasks
-    }
-
-    private func resolveCityIdIfPossible() async -> CityResolutionResult {
-        if let storedId = CitySelectionStore.shared.cityId {
-            return .success(storedId)
+    private func resolveCityIdIfPossible() async -> Bool {
+        if CitySelectionStore.shared.cityId != nil {
+            return true
         }
 
         LocationManager.shared.requestPermission()
@@ -156,7 +180,8 @@ final class OfflineContentPrefetcher {
 
         if LocationManager.shared.authorizationStatus == .denied
             || LocationManager.shared.authorizationStatus == .restricted {
-            return .permissionDenied
+            updateStatus(.permissionDenied)
+            return false
         }
 
         var coordinate: CLLocationCoordinate2D?
@@ -168,7 +193,10 @@ final class OfflineContentPrefetcher {
             try? await Task.sleep(for: .seconds(1))
         }
 
-        guard let coordinate else { return .missingLocation }
+        guard let coordinate else { 
+            updateStatus(.waitingForLocation)
+            return false 
+        }
 
         do {
             let query = FielmedinaAPI.GetNearestCityQuery(
@@ -179,13 +207,13 @@ final class OfflineContentPrefetcher {
             if let cityIdString = data.nearestCity?.id,
                let cityId = Int32(cityIdString) {
                 CitySelectionStore.shared.cityId = cityId
-                return .success(cityId)
+                return true
             }
         } catch {
-            return .failed
+            return false
         }
 
-        return .failed
+        return false
     }
 
     private func handleFailedPrefetch() {
@@ -236,116 +264,137 @@ final class OfflineContentPrefetcher {
         NotificationCenter.default.post(name: .offlinePrefetchProgressChanged, object: progress)
     }
 
-    private func prefetchLocations(cityId: Int32?) async {
+    // MARK: - Metadata Fetchers
+    
+    private func fetchLocationImageUrls() async -> Set<String> {
         do {
-            let locations = try await LocationService.shared.fetchLocations(cityId: cityId, limit: 500)
-            await ImagePrefetcher.prefetch(from: locations.flatMap { $0.images ?? [] })
-        } catch {
-            return
-        }
+            let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
+            return extractUrls(from: locations.flatMap { $0.images ?? [] })
+        } catch { return [] }
     }
 
-    private func prefetchEvents() async {
+    private func fetchEventImageUrls() async -> Set<String> {
         do {
             let events = try await EventService.shared.fetchEvents(limit: 200)
             let boostedEvents = try await EventService.shared.fetchEvents(limit: 50, boost: true)
-            let images = (events + boostedEvents).flatMap { $0.images ?? [] }
-            await ImagePrefetcher.prefetch(from: images)
-        } catch {
-            return
-        }
+            return extractUrls(from: (events + boostedEvents).flatMap { $0.images ?? [] })
+        } catch { return [] }
     }
 
-    private func prefetchEventCategories() async {
+    private func fetchHikingImageUrls() async -> Set<String> {
         do {
-            _ = try await EventCategoryService.shared.fetchEventCategories()
-        } catch {
-            return
-        }
+            let trails = try await HikingService.shared.fetchHikings(cityId: nil, limit: 200)
+            let trailImages = extractUrls(from: trails.flatMap { $0.images ?? [] })
+            let waypointImages = extractUrls(from: trails.flatMap { $0.waypoints }.flatMap { $0.images ?? [] })
+            return trailImages.union(waypointImages)
+        } catch { return [] }
+    }
+    
+    private func fetchTipImageUrls() async -> Set<String> {
+        do {
+            _ = try await TipService.shared.fetchTips(cityId: nil, limit: 200)
+            return [] // Tips currently don't have images in the model?
+        } catch { return [] }
     }
 
-    private func prefetchLocationCategories() async {
+    private func fetchAdImageUrls() async -> Set<String> {
         do {
-            _ = try await LocationCategoryService.shared.fetchLocationCategories()
-        } catch {
-            return
-        }
-    }
-
-    private func prefetchHiking(cityId: Int32?) async {
-        do {
-            let trails = try await HikingService.shared.fetchHikings(cityId: cityId, limit: 200)
-            let trailImages = trails.flatMap { $0.images ?? [] }
-            let waypointImages = trails.flatMap { $0.waypoints }.flatMap { $0.images ?? [] }
-            await ImagePrefetcher.prefetch(from: trailImages + waypointImages)
-        } catch {
-            return
-        }
-    }
-
-    private func prefetchTransports() async {
-        do {
-            _ = try await PublicTransportService.shared.fetchTransports(limit: 400)
-        } catch {
-            return
-        }
-    }
-
-    private func prefetchTips(cityId: Int32?) async {
-        do {
-            _ = try await TipService.shared.fetchTips(cityId: cityId, limit: 200)
-        } catch {
-            return
-        }
-    }
-
-    private func prefetchAds(cityId: Int32?) async {
-        do {
-            let ads = try await AdService.shared.fetchAds(cityId: cityId, limit: 100)
-            
-            let urls: [String] = ads.compactMap { ad in
+            let ads = try await AdService.shared.fetchAds(cityId: nil, limit: 100)
+            return Set(ads.compactMap { ad in
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     return ad.imageTablet?.url ?? ad.imageMobile?.url
                 } else {
                     return ad.imageMobile?.url ?? ad.imageTablet?.url
                 }
+            })
+        } catch { return [] }
+    }
+
+    private func prefetchEventCategories() async {
+        _ = try? await EventCategoryService.shared.fetchEventCategories()
+    }
+
+    private func prefetchLocationCategories() async {
+        _ = try? await LocationCategoryService.shared.fetchLocationCategories()
+    }
+
+    private func prefetchTransports() async {
+        _ = try? await PublicTransportService.shared.fetchTransports(limit: 400)
+    }
+    
+    private func extractUrls(from containers: [ImageContainer]) -> Set<String> {
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        return Set(containers.compactMap { container in
+            if isPad {
+                return container.image?.url ?? container.imageMobile?.url
+            } else {
+                return container.imageMobile?.url ?? container.image?.url
             }
-            await ImagePrefetcher.prefetch(urls: urls)
-        } catch {
-            return
-        }
+        })
     }
 }
 
-import UIKit
+// MARK: - ImagePrefetcher
 
-@MainActor
-enum ImagePrefetcher {
-    static func prefetch(from images: [ImageContainer]) async {
-        let isPad = UIDevice.current.userInterfaceIdiom == .pad
-        let urls = images.compactMap { imageContainer -> String? in
-            if isPad {
-                return imageContainer.image?.url ?? imageContainer.imageMobile?.url
-            } else {
-                return imageContainer.imageMobile?.url ?? imageContainer.image?.url
+actor ImagePrefetcher {
+    struct Progress {
+        let completed: Int
+        let total: Int
+        var fraction: Double { Double(completed) / Double(max(total, 1)) }
+    }
+    
+    private let maxConcurrentDownloads = 6
+    
+    func prefetch(urls: [String]) -> AsyncStream<Progress> {
+        let uniqueUrls = Array(Set(urls))
+        let total = uniqueUrls.count
+        
+        return AsyncStream { continuation in
+            Task {
+                var completed = 0
+                
+                await withTaskGroup(of: Void.self) { group in
+                    var currentIndex = 0
+                    
+                    // Fill initial queue
+                    while currentIndex < min(total, maxConcurrentDownloads) {
+                        let url = uniqueUrls[currentIndex]
+                        group.addTask { await self.download(url: url) }
+                        currentIndex += 1
+                    }
+                    
+                    // As one finish, add another
+                    for await _ in group {
+                        completed += 1
+                        continuation.yield(Progress(completed: completed, total: total))
+                        
+                        if currentIndex < total {
+                            let url = uniqueUrls[currentIndex]
+                            group.addTask { await self.download(url: url) }
+                            currentIndex += 1
+                        }
+                    }
+                }
+                continuation.finish()
             }
         }
-        await prefetch(urls: urls)
     }
-
-    static func prefetch(urls: [String]) async {
-        let uniqueUrls = Array(Set(urls))
-        await withTaskGroup(of: Void.self) { group in
-            for urlString in uniqueUrls {
-                guard let url = URL(string: urlString) else { continue }
-                group.addTask {
-                    let request = URLRequest(
-                        url: url,
-                        cachePolicy: .returnCacheDataElseLoad,
-                        timeoutInterval: 30
-                    )
-                    _ = try? await URLSession.shared.data(for: request)
-                }
+    
+    private func download(url urlString: String, attempt: Int = 1) async {
+        guard let url = URL(string: urlString) else { return }
+        
+        let request = URLRequest(
+            url: url,
+            cachePolicy: .returnCacheDataElseLoad,
+            timeoutInterval: 20
+        )
+        
+        do {
+            _ = try await URLSession.shared.data(for: request)
+        } catch {
+            if attempt < 3 {
+                try? await Task.sleep(for: .seconds(Double(attempt) * 2))
+                await download(url: urlString, attempt: attempt + 1)
             }
         }
     }

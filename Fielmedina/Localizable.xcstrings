@@ -211,12 +211,38 @@
         }
       }
     },
+    "Download failed: %@. We'll retry shortly." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du téléchargement : %@. Nous réessaierons sous peu."
+          }
+        }
+      }
+    },
     "Downloading" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Téléchargement en cours"
+          }
+        }
+      }
+    },
+    "Downloading images (%lld/%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloading images (%1$lld/%2$lld)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargement d'images (%1$lld/%2$lld)"
           }
         }
       }
@@ -297,6 +323,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec"
+          }
+        }
+      }
+    },
+    "Fetching data..." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Récupération des données..."
           }
         }
       }
@@ -449,35 +485,12 @@
         }
       }
     },
-    "Loading events..." : {
-      "extractionState" : "stale",
+    "Initializing..." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chargement des événements..."
-          }
-        }
-      }
-    },
-    "Loading locations..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement des emplacements..."
-          }
-        }
-      }
-    },
-    "Loading routes..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement des itinéraires..."
+            "value" : "Initialisation..."
           }
         }
       }
@@ -632,26 +645,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Données hors ligne indisponibles"
-          }
-        }
-      }
-    },
-    "Offline content download failed. We'll retry shortly." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le téléchargement du contenu hors ligne a échoué. Nous réessaierons bientôt."
-          }
-        }
-      }
-    },
-    "Offline content is downloading in the background while you explore." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le contenu hors ligne se télécharge en arrière-plan pendant que vous explorez."
           }
         }
       }
