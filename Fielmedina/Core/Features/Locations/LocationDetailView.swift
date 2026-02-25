@@ -269,6 +269,7 @@ private struct NavigationCoverView: View {
     let userLocation: CLLocationCoordinate2D?
     @Binding var isLoading: Bool
     let onDismiss: () -> Void
+    @State private var isAnimating = false
     
     var body: some View {
         ZStack {
@@ -299,14 +300,17 @@ private struct NavigationCoverView: View {
                         ZStack {
                             Circle()
                                 .stroke(Color.white.opacity(0.2), lineWidth: 4)
-                                .frame(width: 64, height: 64)
+                                .frame(width: 58, height: 58)
                             
                             Circle()
                                 .trim(from: 0, to: 0.7)
                                 .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                                .frame(width: 64, height: 64)
-                                .rotationEffect(.degrees(isLoading ? 360 : 0))
-                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isLoading)
+                                .frame(width: 58, height: 58)
+                                .rotationEffect(.degrees(isAnimating ? 360 : 0))
+                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isAnimating)
+                        }
+                        .onAppear {
+                            isAnimating = true
                         }
                         
                         VStack(spacing: 8) {

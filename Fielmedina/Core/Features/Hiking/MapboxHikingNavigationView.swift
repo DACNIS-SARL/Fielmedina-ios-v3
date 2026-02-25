@@ -39,6 +39,7 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
         
         navigationViewController.delegate = context.coordinator
         navigationViewController.modalPresentationStyle = .fullScreen
+        navigationViewController.usesNightStyleInDarkMode = true
         navigationViewController.showsSpeedLimits = false
         navigationViewController.routeLineTracksTraversal = true
         

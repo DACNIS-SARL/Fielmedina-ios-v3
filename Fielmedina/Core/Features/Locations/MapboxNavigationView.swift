@@ -42,13 +42,9 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         )
         navigationViewController.delegate = context.coordinator
         navigationViewController.modalPresentationStyle = .fullScreen
-        navigationViewController.delegate = context.coordinator
-        navigationViewController.modalPresentationStyle = .fullScreen
         navigationViewController.usesNightStyleInDarkMode = true
         navigationViewController.showsSpeedLimits = false
         navigationViewController.routeLineTracksTraversal = true
-        
-
         
         if let userLocation = userLocation {
             DispatchQueue.main.async {

@@ -40,6 +40,7 @@ struct HikingNavigator: View {
     
     // UI State
     @State private var selectedWaypoint: TrailWaypoint?
+    @State private var isAnimating = false
     
     @Environment(\.dismiss) private var dismiss
     
@@ -100,14 +101,17 @@ struct HikingNavigator: View {
                         ZStack {
                             Circle()
                                 .stroke(Color.white.opacity(0.2), lineWidth: 4)
-                                .frame(width: 64, height: 64)
+                                .frame(width: 58, height: 58)
                             
                             Circle()
                                 .trim(from: 0, to: 0.7)
                                 .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                                .frame(width: 64, height: 64)
-                                .rotationEffect(.degrees(true ? 360 : 0))
-                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: true)
+                                .frame(width: 58, height: 58)
+                                .rotationEffect(.degrees(isAnimating ? 360 : 0))
+                                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isAnimating)
+                        }
+                        .onAppear {
+                            isAnimating = true
                         }
                         
                         VStack(spacing: 8) {
