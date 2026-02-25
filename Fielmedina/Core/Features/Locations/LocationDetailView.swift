@@ -231,25 +231,30 @@ struct LocationDetailView: View {
             return
         }
 
+        // 1. Show loader immediately
+        isNavigationLoading = true
+        isNavigationPresented = true
+
         let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
         let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
         let options = NavigationRouteOptions(coordinates: [origin, destination])
         options.profileIdentifier = .walking
+
         Task {
-            let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
-            let request = routingProvider.calculateRoutes(options: options)
-            switch await request.result {
-            case .failure(let error):
+            do {
+                let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
+                let response = try await routingProvider.calculateRoutes(options: options).value
+                
+                await MainActor.run {
+                    navigationRoutes = response
+                    // isNavigationLoading will be set to false by NavigationCoverView when Mapbox is ready
+                }
+            } catch {
                 await MainActor.run {
                     navigationErrorMessage = error.localizedDescription
                     showNavigationErrorAlert = true
                     isNavigationLoading = false
-                }
-            case .success(let routes):
-                await MainActor.run {
-                    isNavigationLoading = true
-                    navigationRoutes = routes
-                    isNavigationPresented = true
+                    isNavigationPresented = false // Dismiss loader on error
                 }
             }
         }

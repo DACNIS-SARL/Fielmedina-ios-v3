@@ -110,8 +110,11 @@ struct HikingView: View {
                 Task { await updateMetrics() }
             }
             .fullScreenCover(item: $selectedHiking) { hiking in
-                HikingNavigator(hikingRoute: hiking)
-                    .ignoresSafeArea()
+                HikingNavigator(
+                    hikingRoute: hiking,
+                    initialUserLocation: locationManager.userLocation
+                )
+                .ignoresSafeArea()
             }
         }
     }

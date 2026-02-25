@@ -20,6 +20,7 @@ struct HikingNavigationProgress: Codable {
 
 struct HikingNavigator: View {
     let hikingRoute: Hiking
+    let initialUserLocation: CLLocationCoordinate2D?
     
     @State private var navigationRoutes: NavigationRoutes?
     @State private var isCalculatingRoute = false
@@ -259,8 +260,11 @@ struct HikingNavigator: View {
             }
             
             // Use user location or fallback to first waypoint if forced
+            // Use provided initial location, user location, or fallback to first waypoint if forced
             let startCoordinate: CLLocationCoordinate2D
-            if let loc = LocationManager.shared.userLocation {
+            if let initialLoc = initialUserLocation {
+                startCoordinate = initialLoc
+            } else if let loc = LocationManager.shared.userLocation {
                 startCoordinate = loc
             } else if force, let firstWp = hikingRoute.waypoints.first {
                 startCoordinate = CLLocationCoordinate2D(latitude: firstWp.latitude, longitude: firstWp.longitude)
