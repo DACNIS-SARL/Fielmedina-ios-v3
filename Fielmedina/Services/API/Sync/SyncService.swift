@@ -76,13 +76,17 @@ actor SyncService {
             let deviceName = await UIDevice.current.name
             let deviceType = "ios"
             
-            LogUtils.d("SyncService", "🚀 Registering LATEST token [ID: \(uuid.suffix(5))]: \(token.prefix(10))...")
+            // Detect device language matched against app supported localizations (e.g. "en", "fr")
+            let deviceLanguage = Bundle.main.preferredLocalizations.first ?? "en"
+            
+            LogUtils.d("SyncService", "🚀 Registering LATEST token [ID: \(uuid.suffix(5))]: \(token.prefix(10))... (lang=\(deviceLanguage))")
             
             let mutation = FielmedinaAPI.RegisterFcmDeviceMutation(
                 registrationId: token,
                 type: deviceType,
                 userUid: uuid,
-                name: .some(deviceName)
+                name: .some(deviceName),
+                language: .some(deviceLanguage)
             )
             
             do {

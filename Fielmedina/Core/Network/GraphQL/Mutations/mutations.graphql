@@ -29,12 +29,14 @@ mutation RegisterFcmDevice(
   $type: String!
   $userUid: UUID!
   $name: String
+  $language: String
 ) {
   registerFcmDevice(
     registrationId: $registrationId
     type: $type
     userUid: $userUid
     name: $name
+    language: $language
   ) {
     message
     ok

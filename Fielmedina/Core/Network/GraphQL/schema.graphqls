@@ -171,7 +171,7 @@ type LocationType {
 type Mutation {
   syncUserPreference(userUid: UUID!, firstVisit: Boolean!, travelingWith: String!, interests: [String!]!, updatedAt: DateTime!): SyncUserPreferencePayload!
   forgetMe(userUid: UUID!): SyncUserPreferencePayload!
-  registerFcmDevice(registrationId: String!, type: String!, name: String = null, userUid: UUID = null): RegisterDevicePayload!
+  registerFcmDevice(registrationId: String!, type: String!, name: String = null, userUid: UUID = null, language: String = null): RegisterDevicePayload!
 }
 
 type PageType {

@@ -1,45 +1,43 @@
 {
-  "schemaNamespace" : "FielmedinaAPI",
-  "input" : {
-    "operationSearchPaths" : [
+  "schemaNamespace": "FielmedinaAPI",
+  "input": {
+    "operationSearchPaths": [
       "./Fielmedina/Core/Network/GraphQL/**/*.graphql"
     ],
-    "schemaSearchPaths" : [
+    "schemaSearchPaths": [
       "./Fielmedina/Core/Network/GraphQL/**/*.graphqls",
       "./Fielmedina/Core/Network/GraphQL/**/*.json"
     ]
   },
-  "output" : {
-    "testMocks" : {
-      "none" : {
-      }
+  "output": {
+    "testMocks": {
+      "none": {}
     },
-    "schemaTypes" : {
-      "path" : "./Fielmedina/Core/Network/GraphQL/Schema",
-      "moduleType" : {
-        "embeddedInTarget" : {
-          "name" : "Fielmedina"
+    "schemaTypes": {
+      "path": "./Fielmedina/Core/Network/GraphQL/Schema",
+      "moduleType": {
+        "embeddedInTarget": {
+          "name": "Fielmedina"
         }
       }
     },
-    "operations" : {
-      "inSchemaModule" : {
-      }
+    "operations": {
+      "inSchemaModule": {}
     }
   },
   "schemaDownloadConfiguration": {
-      "downloadMethod": {
-          "introspection": {
-              "endpointURL": "https://mystory.fielmedina.com/graphql",
-              "httpMethod": {
-                  "POST": {}
-              },
-              "includeDeprecatedInputValues": false,
-              "outputFormat": "SDL"
-          }
-      },
-      "downloadTimeout": 60,
-      "headers": [],
-      "outputPath": "./Fielmedina/Core/Network/GraphQL/schema.graphqls"
+    "downloadMethod": {
+      "introspection": {
+        "endpointURL": "https://mystory.fielmedina.com/graphql",
+        "httpMethod": {
+          "POST": {}
+        },
+        "includeDeprecatedInputValues": false,
+        "outputFormat": "SDL"
+      }
+    },
+    "downloadTimeout": 60,
+    "headers": [],
+    "outputPath": "./Fielmedina/Core/Network/GraphQL/schema.graphqls"
   }
 }

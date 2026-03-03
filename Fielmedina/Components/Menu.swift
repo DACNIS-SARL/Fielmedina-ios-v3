@@ -12,6 +12,10 @@ struct MainNavigationView: View {
     @State private var selectedTab = 0
     @State private var deepLinkCancellable: AnyCancellable?
     
+    // Deep link navigation state
+    @State private var pendingEventId: String? = nil
+    @State private var pendingLocationId: String? = nil
+    
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
@@ -67,11 +71,37 @@ struct MainNavigationView: View {
     }
     
     private func handleDeepLink(_ userInfo: [AnyHashable: Any]?) {
-        guard let userInfo = userInfo,
-              let screen = userInfo["screen"] as? String else { return }
+        guard let userInfo = userInfo else { return }
+        
+        let screen = userInfo["screen"] as? String ?? ""
+        let payload = userInfo["payload"] as? [AnyHashable: Any] ?? userInfo
         
         switch screen.lowercased() {
+        case "event_detail":
+            if let eventId = payload["event_id"] as? String {
+                selectedTab = 0
+                // Post a notification that HomeView can listen for to navigate to event detail
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    NotificationCenter.default.post(
+                        name: .navigateToEventDetail,
+                        object: nil,
+                        userInfo: ["event_id": eventId]
+                    )
+                }
+            }
+        case "location_detail":
+            if let locationId = payload["location_id"] as? String {
+                selectedTab = 0
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    NotificationCenter.default.post(
+                        name: .navigateToLocationDetail,
+                        object: nil,
+                        userInfo: ["location_id": locationId]
+                    )
+                }
+            }
         case "home":
+            // Tips notification → just go to Home tab
             selectedTab = 0
         case "map", "maps":
             selectedTab = 1
@@ -85,6 +115,12 @@ struct MainNavigationView: View {
     }
 }
 
+extension Notification.Name {
+    static let navigateToEventDetail = Notification.Name("navigate_to_event_detail")
+    static let navigateToLocationDetail = Notification.Name("navigate_to_location_detail")
+}
+
 #Preview {
     MainNavigationView()
 }
+

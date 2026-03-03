@@ -9,31 +9,35 @@ extension FielmedinaAPI {
     static let operationName: String = "RegisterFcmDevice"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"mutation RegisterFcmDevice($registrationId: String!, $type: String!, $userUid: UUID!, $name: String) { registerFcmDevice( registrationId: $registrationId type: $type userUid: $userUid name: $name ) { __typename message ok } }"#
+        #"mutation RegisterFcmDevice($registrationId: String!, $type: String!, $userUid: UUID!, $name: String, $language: String) { registerFcmDevice( registrationId: $registrationId type: $type userUid: $userUid name: $name language: $language ) { __typename message ok } }"#
       ))
 
     public var registrationId: String
     public var type: String
     public var userUid: UUID
     public var name: GraphQLNullable<String>
+    public var language: GraphQLNullable<String>
 
     public init(
       registrationId: String,
       type: String,
       userUid: UUID,
-      name: GraphQLNullable<String>
+      name: GraphQLNullable<String>,
+      language: GraphQLNullable<String>
     ) {
       self.registrationId = registrationId
       self.type = type
       self.userUid = userUid
       self.name = name
+      self.language = language
     }
 
     @_spi(Unsafe) public var __variables: Variables? { [
       "registrationId": registrationId,
       "type": type,
       "userUid": userUid,
-      "name": name
+      "name": name,
+      "language": language
     ] }
 
     struct Data: FielmedinaAPI.SelectionSet {
@@ -46,7 +50,8 @@ extension FielmedinaAPI {
           "registrationId": .variable("registrationId"),
           "type": .variable("type"),
           "userUid": .variable("userUid"),
-          "name": .variable("name")
+          "name": .variable("name"),
+          "language": .variable("language")
         ]),
       ] }
       static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
