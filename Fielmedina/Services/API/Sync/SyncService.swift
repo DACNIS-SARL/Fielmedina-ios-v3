@@ -51,6 +51,7 @@ actor SyncService {
     }
     
     private var debounceTask: Task<Void, Never>?
+    private var hasAttemptedRegistrationThisSession = false
 
     func registerDevice(token: String, force: Bool = false) async {
         debounceTask?.cancel()
@@ -58,8 +59,12 @@ actor SyncService {
         let lastToken = KeychainStore.string(forKey: LAST_REGISTERED_TOKEN_KEY) ?? 
                         UserDefaults.standard.string(forKey: LAST_REGISTERED_TOKEN_KEY)
         
-        if !force && lastToken == token {
-            LogUtils.d("SyncService", "Token \(token.prefix(5))... already registered. Skipping.")
+        // Skip only if:
+        // 1. Not forced
+        // 2. Token is same as last registered
+        // 3. We ALREADY successfully registered this specific token in this app session
+        if !force && lastToken == token && hasAttemptedRegistrationThisSession {
+            LogUtils.d("SyncService", "Token \(token.prefix(5))... already verified this session. Skipping.")
             return
         }
         
@@ -84,7 +89,7 @@ actor SyncService {
             let mutation = FielmedinaAPI.RegisterFcmDeviceMutation(
                 registrationId: token,
                 type: deviceType,
-                userUid: uuid,
+                userUid: .some(uuid), // Now optional in GraphQL, but we still send it if we have it
                 name: .some(deviceName),
                 language: .some(deviceLanguage)
             )
@@ -95,6 +100,7 @@ actor SyncService {
                 if let registerResult = result.data?.registerFcmDevice {
                     if registerResult.ok {
                         LogUtils.d("SyncService", "✅ FCM device registered successfully: \(registerResult.message ?? "Success")")
+                        self.hasAttemptedRegistrationThisSession = true
                         self.markTokenAsRegistered(token)
                     } else {
                         LogUtils.e("SyncService", "❌ FCM registration failed: \(registerResult.message ?? "Unknown error")")

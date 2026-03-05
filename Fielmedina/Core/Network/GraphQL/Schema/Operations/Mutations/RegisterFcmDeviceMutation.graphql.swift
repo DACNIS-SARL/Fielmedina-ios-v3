@@ -9,19 +9,19 @@ extension FielmedinaAPI {
     static let operationName: String = "RegisterFcmDevice"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"mutation RegisterFcmDevice($registrationId: String!, $type: String!, $userUid: UUID!, $name: String, $language: String) { registerFcmDevice( registrationId: $registrationId type: $type userUid: $userUid name: $name language: $language ) { __typename message ok } }"#
+        #"mutation RegisterFcmDevice($registrationId: String!, $type: String!, $userUid: UUID, $name: String, $language: String) { registerFcmDevice( registrationId: $registrationId type: $type userUid: $userUid name: $name language: $language ) { __typename message ok } }"#
       ))
 
     public var registrationId: String
     public var type: String
-    public var userUid: UUID
+    public var userUid: GraphQLNullable<UUID>
     public var name: GraphQLNullable<String>
     public var language: GraphQLNullable<String>
 
     public init(
       registrationId: String,
       type: String,
-      userUid: UUID,
+      userUid: GraphQLNullable<UUID>,
       name: GraphQLNullable<String>,
       language: GraphQLNullable<String>
     ) {

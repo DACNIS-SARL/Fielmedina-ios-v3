@@ -49,6 +49,11 @@ class FirebaseUtils {
                 saveTokenLocally(token)
                 
                 Crashlytics.crashlytics().setCustomValue(token, forKey: "fcm_token")
+                
+                // Sync with backend
+                Task {
+                    await SyncService.shared.registerDevice(token: token)
+                }
             }
         }
     }

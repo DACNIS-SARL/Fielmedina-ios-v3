@@ -27,7 +27,7 @@ mutation ForgetMe($userUid: UUID!) {
 mutation RegisterFcmDevice(
   $registrationId: String!
   $type: String!
-  $userUid: UUID!
+  $userUid: UUID
   $name: String
   $language: String
 ) {
