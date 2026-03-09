@@ -13,6 +13,42 @@ class LocationService {
     
     private let apollo = Network.shared.apollo
     
+    func fetchLocation(id: String) async throws -> Location {
+        let query = FielmedinaAPI.GetLocationDetailsQuery(id: id)
+        let data = try await apollo.fetchNetworkAware(query: query)
+        
+        guard let gLocation = data.location else {
+            throw NSError(domain: "LocationService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Location not found"])
+        }
+        
+        return Location(
+            id: gLocation.id,
+            nameEn: gLocation.nameEn,
+            nameFr: gLocation.nameFr,
+            latitude: Double(gLocation.latitude) ?? 0,
+            longitude: Double(gLocation.longitude) ?? 0,
+            category: gLocation.category.map { cat in
+                LocationCategory(
+                    id: cat.id,
+                    nameEn: cat.nameEn,
+                    nameFr: cat.nameFr
+                )
+            },
+            images: gLocation.images.map { img in
+                ImageContainer(
+                    image: ImageField(url: img.image.url),
+                    imageMobile: img.imageMobile.map { ImageField(url: $0.url) }
+                )
+            },
+            openFrom: gLocation.openFrom.map { formatTime($0) },
+            openTo: gLocation.openTo.map { formatTime($0) },
+            storyEn: gLocation.storyEn,
+            storyFr: gLocation.storyFr,
+            admissionFee: gLocation.admissionFee,
+            closedDays: nil
+        )
+    }
+    
     /// Fetches locations for a specific city.
     /// - Parameters:
     ///   - cityId: The ID of the city (optional).

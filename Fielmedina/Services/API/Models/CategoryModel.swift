@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LocationCategory: Codable, Identifiable {
+struct LocationCategory: Codable, Identifiable, Hashable {
     let id: String
     let nameEn: String
     let nameFr: String
@@ -21,7 +21,7 @@ struct LocationCategory: Codable, Identifiable {
     }
 }
 
-struct EventCategory: Codable, Identifiable {
+struct EventCategory: Codable, Identifiable, Hashable {
     let id: String
     let nameEn: String
     let nameFr: String?

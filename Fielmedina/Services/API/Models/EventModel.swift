@@ -21,7 +21,7 @@ import Foundation
 
 // MARK: Production with api
 
-struct Event: Codable, Identifiable {
+struct Event: Codable, Identifiable, Hashable {
     let id: String
     let nameEn: String
     let nameFr: String?
@@ -160,7 +160,7 @@ struct Event: Codable, Identifiable {
     }
 }
 
-struct EventLocation: Codable, Identifiable {
+struct EventLocation: Codable, Identifiable, Hashable {
     let id: String
     let nameEn: String
     let nameFr: String?

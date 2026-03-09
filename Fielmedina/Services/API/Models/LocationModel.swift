@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Location: Codable, Identifiable {
+struct Location: Codable, Identifiable, Hashable {
     let id: String
     let nameEn: String
     let nameFr: String
@@ -82,6 +82,6 @@ struct Location: Codable, Identifiable {
     }
 }
 
-struct ClosedDay: Codable {
+struct ClosedDay: Codable, Hashable {
     let day: String
 }

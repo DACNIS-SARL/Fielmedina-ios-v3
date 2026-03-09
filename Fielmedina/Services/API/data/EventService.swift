@@ -13,6 +13,41 @@ class EventService {
     
     private let apollo = Network.shared.apollo
     
+    func fetchEvent(id: String) async throws -> Event {
+        let query = FielmedinaAPI.GetEventDetailsQuery(id: id)
+        let data = try await apollo.fetchNetworkAware(query: query)
+        
+        guard let gEvent = data.event else {
+            throw NSError(domain: "EventService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Event not found"])
+        }
+        
+        return Event(
+            id: gEvent.id,
+            nameEn: gEvent.nameEn,
+            nameFr: gEvent.nameFr,
+            descriptionEn: gEvent.descriptionEn,
+            descriptionFr: gEvent.descriptionFr,
+            shortLink: gEvent.shortLink,
+            startDate: gEvent.startDate,
+            endDate: gEvent.endDate,
+            time: gEvent.time,
+            price: String(describing: gEvent.price),
+            boost: gEvent.boost,
+            images: gEvent.images.map { img in
+                ImageContainer(
+                    image: ImageField(url: img.image.url),
+                    imageMobile: img.imageMobile.map { ImageField(url: $0.url) }
+                )
+            },
+            location: gEvent.location.map { loc in
+                EventLocation(id: loc.id, nameEn: loc.nameEn, nameFr: loc.nameFr)
+            },
+            category: gEvent.category.map { cat in
+                EventCategory(id: cat.id, nameEn: cat.nameEn, nameFr: cat.nameFr)
+            }
+        )
+    }
+    
     /// Fetches events for a specific city.
     /// - Parameters:
     ///   - cityId: The ID of the city (optional).

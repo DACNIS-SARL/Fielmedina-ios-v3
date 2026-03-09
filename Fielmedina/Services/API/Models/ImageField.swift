@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct ImageField: Codable {
+struct ImageField: Codable, Hashable {
     let url: String
 }
 
-struct ImageContainer: Codable {
+struct ImageContainer: Codable, Hashable {
     let image: ImageField?
     let imageMobile: ImageField?
     

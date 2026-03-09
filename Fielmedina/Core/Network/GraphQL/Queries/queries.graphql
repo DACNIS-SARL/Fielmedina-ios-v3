@@ -144,6 +144,37 @@ query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int,
   }
 }
 
+# 6.5. Event Full Details
+query GetEventDetails($id: ID!) {
+  event(id: $id) {
+    id
+    nameEn
+    nameFr
+    descriptionEn
+    descriptionFr
+    shortLink
+    startDate
+    endDate
+    time
+    price
+    category {
+      id
+      nameEn
+      nameFr
+    }
+    images {
+      image { ...ImageFields }
+      imageMobile { ...ImageFields }
+    }
+    boost
+    location {
+      id
+      nameEn
+      nameFr
+    }
+  }
+}
+
 # 7. Hiking Trails (With Explicit Ordering)
 query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) {
   hikings(cityId: $cityId, limit: $limit, offset: $offset) {
