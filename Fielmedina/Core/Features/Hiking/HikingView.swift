@@ -378,7 +378,7 @@ struct HikingCardView: View {
             .padding(.top, 8)
 
             Button {
-                FirebaseUtils.trackButtonTap(buttonName: "start_hiking", screenName: "Hiking")
+                FirebaseUtils.trackButtonTap(buttonName: "start_hiking_\(hiking.displayName)", screenName: "HikingView")
                 onStart()
             } label: {
                 Label(String(localized: "Start Hiking"), systemImage: "figure.hiking")

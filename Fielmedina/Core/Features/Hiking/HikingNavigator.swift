@@ -77,6 +77,7 @@ struct HikingNavigator: View {
         }
         .background(Color.black)
         .onAppear {
+            FirebaseUtils.trackScreenView(screenName: "hiking_navigator_\(hikingRoute.displayName)", screenClass: "HikingNavigator")
             LocationManager.shared.requestPermission()
             LocationManager.shared.startUpdatingLocation()
             startNavigationFromCurrentWaypoint()

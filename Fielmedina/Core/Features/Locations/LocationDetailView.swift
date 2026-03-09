@@ -92,6 +92,9 @@ struct LocationDetailView: View {
         } message: {
             Text(String(localized: "This location has no AR experience yet."))
         }
+        .onAppear {
+            FirebaseUtils.trackScreenView(screenName: "location_detail_\(location.displayName)", screenClass: "LocationDetailView")
+        }
     }
     
     private var detailsCard: some View {
@@ -104,7 +107,7 @@ struct LocationDetailView: View {
             
             HStack(spacing: 12) {
                 Button {
-                    FirebaseUtils.trackButtonTap(buttonName: "start_navigation", screenName: "LocationDetail")
+                    FirebaseUtils.trackButtonTap(buttonName: "start_navigation_\(location.displayName)", screenName: "LocationDetailView")
                     startNavigation()
                 } label: {
                     Label("Start Navigation", systemImage: "location.north.line")
@@ -118,7 +121,7 @@ struct LocationDetailView: View {
                 .buttonStyle(.plain)
                 
                 Button {
-                    FirebaseUtils.trackButtonTap(buttonName: "open_ar", screenName: "LocationDetail")
+                    FirebaseUtils.trackButtonTap(buttonName: "open_ar_\(location.displayName)", screenName: "LocationDetailView")
                     showARUnavailableAlert = true
                 } label: {
                     Image(systemName: "cube.transparent")

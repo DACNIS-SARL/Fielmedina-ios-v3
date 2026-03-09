@@ -40,6 +40,9 @@ struct EventDetailView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 12)
         }
+        .onAppear {
+            FirebaseUtils.trackScreenView(screenName: "event_detail_\(event.displayName)", screenClass: "EventDetailView")
+        }
     }
 
     private var detailsCard: some View {
@@ -86,7 +89,7 @@ struct EventDetailView: View {
 
     private var reserveButton: some View {
         Button {
-            FirebaseUtils.trackButtonTap(buttonName: "event_reserve_spot", screenName: "EventDetail")
+            FirebaseUtils.trackButtonTap(buttonName: "event_reserve_\(event.displayName)", screenName: "EventDetailView")
             openEventLink()
         } label: {
             Text("Reserve Your Spot")
