@@ -321,15 +321,15 @@ struct HikingCardView: View {
                     .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 220)
                     .clipped()
 
-                Circle()
-                    .fill(Color.pink)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(systemName: "mappin.and.ellipse")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                    )
-                    .padding(12)
+//                Circle()
+//                    .fill(Color.pink)
+//                    .frame(width: 36, height: 36)
+//                    .overlay(
+//                        Image(systemName: "mappin.and.ellipse")
+//                            .font(.system(size: 16, weight: .semibold))
+//                            .foregroundColor(.white)
+//                    )
+//                    .padding(12)
             }
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 

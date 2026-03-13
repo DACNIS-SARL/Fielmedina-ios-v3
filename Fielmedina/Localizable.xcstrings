@@ -1097,6 +1097,12 @@
         }
       }
     },
+    "Unable to load event" : {
+
+    },
+    "Unable to load location" : {
+
+    },
     "Upcoming events" : {
       "localizations" : {
         "fr" : {

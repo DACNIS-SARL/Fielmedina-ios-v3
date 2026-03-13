@@ -8,13 +8,16 @@
 import SwiftUI
 import Combine
 
+/// Deep link destinations handled at the root navigation level
+enum DeepLinkDestination: Hashable {
+    case eventDetail(id: String)
+    case locationDetail(id: String)
+}
+
 struct MainNavigationView: View {
     @State private var selectedTab = 0
     @State private var deepLinkCancellable: AnyCancellable?
-    
-    // Deep link navigation state
-    @State private var pendingEventId: String? = nil
-    @State private var pendingLocationId: String? = nil
+    @State private var deepLinkPath = NavigationPath()
     
     init() {
         let appearance = UITabBarAppearance()
@@ -25,30 +28,40 @@ struct MainNavigationView: View {
     }
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView()
-                .tabItem {
-                    Label("home_button", systemImage: selectedTab == 0 ? "house.fill" : "house")
+        NavigationStack(path: $deepLinkPath) {
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem {
+                        Label("home_button", systemImage: selectedTab == 0 ? "house.fill" : "house")
+                    }
+                    .tag(0)
+                
+                MapView()
+                    .tabItem {
+                        Label("map_button", systemImage: selectedTab == 1 ? "safari.fill" : "safari")
+                    }
+                    .tag(1)
+                
+                HikingView()
+                    .tabItem {
+                        Label("hiking_button", systemImage: "figure.hiking")
+                    }
+                    .tag(2)
+                
+                UtilView()
+                    .tabItem {
+                        Label("util_button", systemImage: selectedTab == 3 ? "phone.badge.waveform.fill" : "phone.badge.waveform")
+                    }
+                    .tag(3)
+            }
+            .navigationDestination(for: DeepLinkDestination.self) { destination in
+                switch destination {
+                case .eventDetail(let id):
+                    DeepLinkEventDetailView(eventId: id)
+                case .locationDetail(let id):
+                    DeepLinkLocationDetailView(locationId: id)
                 }
-                .tag(0)
-            
-            MapView()
-                .tabItem {
-                    Label("map_button", systemImage: selectedTab == 1 ? "safari.fill" : "safari")
-                }
-                .tag(1)
-            
-            HikingView()
-                .tabItem {
-                    Label("hiking_button", systemImage: "figure.hiking")
-                }
-                .tag(2)
-            
-            UtilView()
-                .tabItem {
-                    Label("util_button", systemImage: selectedTab == 3 ? "phone.badge.waveform.fill" : "phone.badge.waveform")
-                }
-                .tag(3)
+            }
         }
         .onAppear {
             setupDeepLinking()
@@ -76,28 +89,26 @@ struct MainNavigationView: View {
         let screen = userInfo["screen"] as? String ?? ""
         let payload = userInfo["payload"] as? [AnyHashable: Any] ?? userInfo
         
+        // Clear any existing deep link navigation first
+        deepLinkPath = NavigationPath()
+        
         switch screen.lowercased() {
         case "event_detail":
             if let eventId = payload["event_id"] as? String {
                 selectedTab = 0
-                // Post a notification that HomeView can listen for to navigate to event detail
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    NotificationCenter.default.post(
-                        name: .navigateToEventDetail,
-                        object: nil,
-                        userInfo: ["event_id": eventId]
-                    )
+                FirebaseUtils.trackScreenView(screenName: "event_detail", screenClass: "DeepLink_Notification")
+                // Navigate directly — no delay, no NotificationCenter hack
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    deepLinkPath.append(DeepLinkDestination.eventDetail(id: eventId))
                 }
             }
         case "location_detail":
             if let locationId = payload["location_id"] as? String {
                 selectedTab = 0
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    NotificationCenter.default.post(
-                        name: .navigateToLocationDetail,
-                        object: nil,
-                        userInfo: ["location_id": locationId]
-                    )
+                FirebaseUtils.trackScreenView(screenName: "location_detail", screenClass: "DeepLink_Notification")
+                // Navigate directly — no delay, no NotificationCenter hack
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    deepLinkPath.append(DeepLinkDestination.locationDetail(id: locationId))
                 }
             }
         case "home":
@@ -123,4 +134,3 @@ extension Notification.Name {
 #Preview {
     MainNavigationView()
 }
-

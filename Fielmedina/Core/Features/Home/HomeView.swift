@@ -21,7 +21,7 @@ struct HomeView: View {
     @State private var showTaxiButton = false
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
-    @State private var isLoadingDeepLink = false
+
     
     private let buttonStickyThreshold: CGFloat = 180
     
@@ -110,65 +110,11 @@ struct HomeView: View {
                     LocationDetailView(location: location)
                 }
             }
-            .overlay {
-                if isLoadingDeepLink {
-                    ZStack {
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea()
-                        ProgressView()
-                            .tint(.white)
-                            .scaleEffect(1.5 as CGFloat)
-                    }
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .navigateToEventDetail)) { notification in
-                if let eventId = notification.userInfo?["event_id"] as? String {
-                    handleEventDeepLink(eventId: eventId)
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .navigateToLocationDetail)) { notification in
-                if let locationId = notification.userInfo?["location_id"] as? String {
-                    handleLocationDeepLink(locationId: locationId)
-                }
-            }
+
         }
     }
     
-    private func handleEventDeepLink(eventId: String) {
-        isLoadingDeepLink = true
-        Task {
-            do {
-                let event = try await EventService.shared.fetchEvent(id: eventId)
-                await MainActor.run {
-                    isLoadingDeepLink = false
-                    navigationPath.append(HomeNavigationDestination.eventDetail(event))
-                }
-            } catch {
-                await MainActor.run {
-                    isLoadingDeepLink = false
-                    LogUtils.e("HomeView", "Error fetching event for deep link: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-    
-    private func handleLocationDeepLink(locationId: String) {
-        isLoadingDeepLink = true
-        Task {
-            do {
-                let location = try await LocationService.shared.fetchLocation(id: locationId)
-                await MainActor.run {
-                    isLoadingDeepLink = false
-                    navigationPath.append(HomeNavigationDestination.locationDetail(location))
-                }
-            } catch {
-                await MainActor.run {
-                    isLoadingDeepLink = false
-                    LogUtils.e("HomeView", "Error fetching location for deep link: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
+
     
     private var areButtonsSticky: Bool {
         scrollOffset > buttonStickyThreshold
