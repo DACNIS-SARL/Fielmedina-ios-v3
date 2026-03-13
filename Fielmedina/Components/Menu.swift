@@ -8,16 +8,13 @@
 import SwiftUI
 import Combine
 
-/// Deep link destinations handled at the root navigation level
-enum DeepLinkDestination: Hashable {
-    case eventDetail(id: String)
-    case locationDetail(id: String)
-}
-
 struct MainNavigationView: View {
     @State private var selectedTab = 0
     @State private var deepLinkCancellable: AnyCancellable?
-    @State private var deepLinkPath = NavigationPath()
+    
+    // Deep link state — presented as fullScreenCover
+    @State private var deepLinkEventId: String?
+    @State private var deepLinkLocationId: String?
     
     init() {
         let appearance = UITabBarAppearance()
@@ -28,39 +25,67 @@ struct MainNavigationView: View {
     }
     
     var body: some View {
-        NavigationStack(path: $deepLinkPath) {
-            TabView(selection: $selectedTab) {
-                HomeView()
-                    .tabItem {
-                        Label("home_button", systemImage: selectedTab == 0 ? "house.fill" : "house")
-                    }
-                    .tag(0)
-                
-                MapView()
-                    .tabItem {
-                        Label("map_button", systemImage: selectedTab == 1 ? "safari.fill" : "safari")
-                    }
-                    .tag(1)
-                
-                HikingView()
-                    .tabItem {
-                        Label("hiking_button", systemImage: "figure.hiking")
-                    }
-                    .tag(2)
-                
-                UtilView()
-                    .tabItem {
-                        Label("util_button", systemImage: selectedTab == 3 ? "phone.badge.waveform.fill" : "phone.badge.waveform")
-                    }
-                    .tag(3)
-            }
-            .navigationDestination(for: DeepLinkDestination.self) { destination in
-                switch destination {
-                case .eventDetail(let id):
-                    DeepLinkEventDetailView(eventId: id)
-                case .locationDetail(let id):
-                    DeepLinkLocationDetailView(locationId: id)
+        TabView(selection: $selectedTab) {
+            HomeView()
+                .tabItem {
+                    Label("home_button", systemImage: selectedTab == 0 ? "house.fill" : "house")
                 }
+                .tag(0)
+            
+            MapView()
+                .tabItem {
+                    Label("map_button", systemImage: selectedTab == 1 ? "safari.fill" : "safari")
+                }
+                .tag(1)
+            
+            HikingView()
+                .tabItem {
+                    Label("hiking_button", systemImage: "figure.hiking")
+                }
+                .tag(2)
+            
+            UtilView()
+                .tabItem {
+                    Label("util_button", systemImage: selectedTab == 3 ? "phone.badge.waveform.fill" : "phone.badge.waveform")
+                }
+                .tag(3)
+        }
+        .fullScreenCover(item: $deepLinkEventId) { eventId in
+            NavigationStack {
+                DeepLinkEventDetailView(eventId: eventId)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                deepLinkEventId = nil
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 32, height: 32)
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
+            }
+        }
+        .fullScreenCover(item: $deepLinkLocationId) { locationId in
+            NavigationStack {
+                DeepLinkLocationDetailView(locationId: locationId)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                deepLinkLocationId = nil
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 32, height: 32)
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
             }
         }
         .onAppear {
@@ -89,30 +114,18 @@ struct MainNavigationView: View {
         let screen = userInfo["screen"] as? String ?? ""
         let payload = userInfo["payload"] as? [AnyHashable: Any] ?? userInfo
         
-        // Clear any existing deep link navigation first
-        deepLinkPath = NavigationPath()
-        
         switch screen.lowercased() {
         case "event_detail":
             if let eventId = payload["event_id"] as? String {
-                selectedTab = 0
                 FirebaseUtils.trackScreenView(screenName: "event_detail", screenClass: "DeepLink_Notification")
-                // Navigate directly — no delay, no NotificationCenter hack
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    deepLinkPath.append(DeepLinkDestination.eventDetail(id: eventId))
-                }
+                deepLinkEventId = eventId
             }
         case "location_detail":
             if let locationId = payload["location_id"] as? String {
-                selectedTab = 0
                 FirebaseUtils.trackScreenView(screenName: "location_detail", screenClass: "DeepLink_Notification")
-                // Navigate directly — no delay, no NotificationCenter hack
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    deepLinkPath.append(DeepLinkDestination.locationDetail(id: locationId))
-                }
+                deepLinkLocationId = locationId
             }
         case "home":
-            // Tips notification → just go to Home tab
             selectedTab = 0
         case "map", "maps":
             selectedTab = 1
@@ -126,9 +139,9 @@ struct MainNavigationView: View {
     }
 }
 
-extension Notification.Name {
-    static let navigateToEventDetail = Notification.Name("navigate_to_event_detail")
-    static let navigateToLocationDetail = Notification.Name("navigate_to_location_detail")
+// Make String conform to Identifiable for .fullScreenCover(item:)
+extension String: @retroactive Identifiable {
+    public var id: String { self }
 }
 
 #Preview {

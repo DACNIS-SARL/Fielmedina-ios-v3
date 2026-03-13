@@ -114,8 +114,6 @@ struct HomeView: View {
         }
     }
     
-
-    
     private var areButtonsSticky: Bool {
         scrollOffset > buttonStickyThreshold
     }
