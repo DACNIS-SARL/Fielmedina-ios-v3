@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-common-ios.git",
       "state" : {
-        "revision" : "42a95d102636ceb953fa8065afa4eb8109f3edf0",
-        "version" : "24.20.0"
+        "revision" : "75b31c67a8fdaa9ded07701f92a744cc3480fc5c",
+        "version" : "24.19.0"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-core-maps-ios.git",
       "state" : {
-        "revision" : "e5afc4705621bee543dd622b91a44f03df850041",
-        "version" : "11.20.0"
+        "revision" : "08eafe5c6dd0bb54df218ce4340ceceaf3a64ce1",
+        "version" : "11.19.0"
       }
     },
     {
@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-maps-ios.git",
       "state" : {
-        "revision" : "5d1fb74dc5e4100b7a2284e15f209654f3b5811b",
-        "version" : "11.20.0"
+        "revision" : "3605c262e9da9d4059fb32132718640c998dba8b",
+        "version" : "11.19.0"
       }
     },
     {
@@ -150,8 +150,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-ios.git",
       "state" : {
-        "revision" : "c97f5fcdbca90b8a9caa8e28969151737b71cea5",
-        "version" : "3.20.0"
+        "revision" : "877aa0b9ad4ff80f5f8351af3b122be90c387b4a",
+        "version" : "3.19.0"
       }
     },
     {
@@ -159,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-native-ios.git",
       "state" : {
-        "revision" : "91d2dff0691a6f1def37d6898394d3f440bc4632",
-        "version" : "324.20.0"
+        "revision" : "1b67cbd5a26657a6633c6c57d3be76a8abbf3f57",
+        "version" : "324.19.0"
       }
     },
     {

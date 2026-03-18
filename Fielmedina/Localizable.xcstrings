@@ -82,7 +82,14 @@
       }
     },
     "ALL TIPS" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TOUTES LES ASTUCES"
+          }
+        }
+      }
     },
     "AR not available" : {
       "localizations" : {
@@ -623,7 +630,14 @@
       }
     },
     "No Tips Yet" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun astuces pour l'instant"
+          }
+        }
+      }
     },
     "No trips available" : {
       "localizations" : {
@@ -973,7 +987,14 @@
       }
     },
     "There are no tips available yet.\nCheck back soon!" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a pas encore de astuces disponibles.\nRevenez bientôt !"
+          }
+        }
+      }
     },
     "These numbers are for genuine emergencies only. Misuse may result in legal consequences." : {
       "localizations" : {
@@ -996,7 +1017,14 @@
       }
     },
     "Tips" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Astuces"
+          }
+        }
+      }
     },
     "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {
@@ -1110,10 +1138,24 @@
       }
     },
     "Unable to load event" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de charger l'événement"
+          }
+        }
+      }
     },
     "Unable to load location" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de charger l'emplacement"
+          }
+        }
+      }
     },
     "Upcoming events" : {
       "localizations" : {
