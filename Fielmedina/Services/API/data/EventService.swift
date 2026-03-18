@@ -53,7 +53,7 @@ class EventService {
     ///   - cityId: The ID of the city (optional).
     ///   - limit: Number of events to fetch.
     /// - Returns: An array of domain `Event` models.
-    func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil) async throws -> [Event] {
+    func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil, forceRefresh: Bool = false) async throws -> [Event] {
         var allEvents: [Event] = []
         var currentOffset: Int32 = 0
         let batchSize = max(limit, 50)
@@ -63,7 +63,8 @@ class EventService {
                 cityId: cityId,
                 limit: batchSize,
                 offset: currentOffset,
-                boost: boost
+                boost: boost,
+                forceRefresh: forceRefresh
             )
             allEvents.append(contentsOf: page)
 
@@ -80,7 +81,8 @@ class EventService {
         cityId: Int32?,
         limit: Int32,
         offset: Int32,
-        boost: Bool?
+        boost: Bool?,
+        forceRefresh: Bool = false
     ) async throws -> [Event] {
         let query = FielmedinaAPI.GetEventsByCityQuery(
             cityId: cityId != nil ? .init(integerLiteral: cityId!) : .none,
@@ -90,7 +92,9 @@ class EventService {
             boost: boost != nil ? .some(boost!) : .none
         )
 
-        let data = try await apollo.fetchNetworkAware(query: query)
+        let data = forceRefresh
+            ? try await apollo.fetchFresh(query: query)
+            : try await apollo.fetchNetworkAware(query: query)
 
         return data.events.map { gEvent in
             Event(

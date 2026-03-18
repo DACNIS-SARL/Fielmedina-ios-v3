@@ -39,6 +39,18 @@ extension ApolloClient {
 
         return try await fetchData(query: query, cachePolicy: .cacheFirst)
     }
+    
+    /// Network-first fetch used for pull-to-refresh and explicit reload.
+    /// - Online: always hits the network and updates the cache.
+    /// - Offline: falls back to fetchNetworkAware (cache-first).
+    func fetchFresh<Query: GraphQLQuery>(
+        query: Query
+    ) async throws -> Query.Data where Query.ResponseFormat == SingleResponseFormat {
+        if NetworkMonitor.shared.isConnected {
+            return try await fetchData(query: query, cachePolicy: .networkOnly)
+        }
+        return try await fetchNetworkAware(query: query)
+    }
 
     private func fetchCachedData<Query: GraphQLQuery>(
         query: Query
@@ -80,3 +92,4 @@ extension ApolloClient {
         throw NSError(domain: "Apollo", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data"])
     }
 }
+

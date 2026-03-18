@@ -13,6 +13,7 @@ struct CarouselListLocations: View {
     let showShowAllButton: Bool
     let limit: Int
     
+    @Environment(\.scenePhase) private var scenePhase
     @State private var locations: [Location] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -129,6 +130,14 @@ struct CarouselListLocations: View {
         .task {
             await loadLocations()
         }
+        .refreshable {
+            await loadLocations(forceRefresh: true)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await loadLocations(forceRefresh: true) }
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
             guard let newCityId = notification.object as? Int32 else { return }
             currentCityId = newCityId
@@ -138,17 +147,21 @@ struct CarouselListLocations: View {
         }
     }
     
-    private func loadLocations() async {
-        isLoading = true
+    private func loadLocations(forceRefresh: Bool = false) async {
+        // Only show loading skeleton on first load, not on refresh
+        if locations.isEmpty { isLoading = true }
         errorMessage = nil
 
         do {
             locations = try await LocationService.shared.fetchLocations(
                 cityId: CitySelectionStore.shared.cityId,
-                limit: Int32(limit)
+                limit: Int32(limit),
+                forceRefresh: forceRefresh
             )
         } catch {
-            errorMessage = error.localizedDescription
+            if locations.isEmpty {
+                errorMessage = error.localizedDescription
+            }
         }
         
         isLoading = false

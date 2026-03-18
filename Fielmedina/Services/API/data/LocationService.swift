@@ -60,14 +60,16 @@ class LocationService {
         cityId: Int32? = nil,
         categoryId: Int32? = nil,
         limit: Int32 = 10,
-        offset: Int32? = nil
+        offset: Int32? = nil,
+        forceRefresh: Bool = false
     ) async throws -> [Location] {
         if let offset {
             return try await fetchLocationsPage(
                 cityId: cityId,
                 categoryId: categoryId,
                 limit: limit,
-                offset: offset
+                offset: offset,
+                forceRefresh: forceRefresh
             )
         }
 
@@ -80,7 +82,8 @@ class LocationService {
                 cityId: cityId,
                 categoryId: categoryId,
                 limit: batchSize,
-                offset: currentOffset
+                offset: currentOffset,
+                forceRefresh: forceRefresh
             )
             allLocations.append(contentsOf: page)
 
@@ -97,7 +100,8 @@ class LocationService {
         cityId: Int32?,
         categoryId: Int32?,
         limit: Int32,
-        offset: Int32
+        offset: Int32,
+        forceRefresh: Bool = false
     ) async throws -> [Location] {
         let query = FielmedinaAPI.GetLocationsByCityQuery(
             cityId: cityId != nil ? .some(cityId!) : .none,
@@ -106,7 +110,9 @@ class LocationService {
             offset: .some(offset)
         )
 
-        let data = try await apollo.fetchNetworkAware(query: query)
+        let data = forceRefresh
+            ? try await apollo.fetchFresh(query: query)
+            : try await apollo.fetchNetworkAware(query: query)
 
         return data.locations.compactMap { gLocation in
             Location(

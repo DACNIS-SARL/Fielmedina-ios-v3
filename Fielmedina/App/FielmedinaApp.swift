@@ -91,20 +91,23 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         // Handle deep linking or navigation based on notification data
         // Expecting a payload like { "screen": "map" } or { "target_screen": "hiking" }
-        if let screen = (userInfo["screen"] as? String) ?? (userInfo["target_screen"] as? String) {
-            LogUtils.d("AppDelegate", "🔗 Deep link target screen: \(screen)")
-            NotificationCenter.default.post(name: .pushDeepLink,
-                                            object: nil,
-                                            userInfo: [
-                                                "screen": screen,
-                                                "payload": userInfo
-                                            ])
-        } else {
-            NotificationCenter.default.post(name: .pushDeepLink,
-                                            object: nil,
-                                            userInfo: [
-                                                "payload": userInfo
-                                            ])
+        // Dispatch async to ensure MainNavigationView has subscribed on cold launch
+        DispatchQueue.main.async {
+            if let screen = (userInfo["screen"] as? String) ?? (userInfo["target_screen"] as? String) {
+                LogUtils.d("AppDelegate", "🔗 Deep link target screen: \(screen)")
+                NotificationCenter.default.post(name: .pushDeepLink,
+                                                object: nil,
+                                                userInfo: [
+                                                    "screen": screen,
+                                                    "payload": userInfo
+                                                ])
+            } else {
+                NotificationCenter.default.post(name: .pushDeepLink,
+                                                object: nil,
+                                                userInfo: [
+                                                    "payload": userInfo
+                                                ])
+            }
         }
         
         completionHandler()

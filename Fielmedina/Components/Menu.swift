@@ -8,13 +8,23 @@
 import SwiftUI
 import Combine
 
+// MARK: - Deep Link Destination
+
+/// Each notification tap creates a fresh UUID so SwiftUI always presents the cover.
+struct DeepLinkDestination: Identifiable {
+    let id = UUID()
+    let entityId: String
+    
+    enum Kind { case event, location }
+    let kind: Kind
+}
+
+// MARK: - Main Navigation
+
 struct MainNavigationView: View {
     @State private var selectedTab = 0
     @State private var deepLinkCancellable: AnyCancellable?
-    
-    // Deep link state — presented as fullScreenCover
-    @State private var deepLinkEventId: String?
-    @State private var deepLinkLocationId: String?
+    @State private var deepLinkDestination: DeepLinkDestination?
     
     init() {
         let appearance = UITabBarAppearance()
@@ -50,42 +60,30 @@ struct MainNavigationView: View {
                 }
                 .tag(3)
         }
-        .fullScreenCover(item: $deepLinkEventId) { eventId in
+        .fullScreenCover(item: $deepLinkDestination) { destination in
             NavigationStack {
-                DeepLinkEventDetailView(eventId: eventId)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                deepLinkEventId = nil
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                    .frame(width: 32, height: 32)
-                                    .background(.ultraThinMaterial)
-                                    .clipShape(Circle())
-                            }
+                Group {
+                    switch destination.kind {
+                    case .event:
+                        DeepLinkEventDetailView(eventId: destination.entityId)
+                    case .location:
+                        DeepLinkLocationDetailView(locationId: destination.entityId)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            deepLinkDestination = nil
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .frame(width: 32, height: 32)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
                         }
                     }
-            }
-        }
-        .fullScreenCover(item: $deepLinkLocationId) { locationId in
-            NavigationStack {
-                DeepLinkLocationDetailView(locationId: locationId)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                deepLinkLocationId = nil
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                    .frame(width: 32, height: 32)
-                                    .background(.ultraThinMaterial)
-                                    .clipShape(Circle())
-                            }
-                        }
-                    }
+                }
             }
         }
         .onAppear {
@@ -118,12 +116,19 @@ struct MainNavigationView: View {
         case "event_detail":
             if let eventId = payload["event_id"] as? String {
                 FirebaseUtils.trackScreenView(screenName: "event_detail", screenClass: "DeepLink_Notification")
-                deepLinkEventId = eventId
+                // Dismiss any existing cover first, then present the new one
+                deepLinkDestination = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    deepLinkDestination = DeepLinkDestination(entityId: eventId, kind: .event)
+                }
             }
         case "location_detail":
             if let locationId = payload["location_id"] as? String {
                 FirebaseUtils.trackScreenView(screenName: "location_detail", screenClass: "DeepLink_Notification")
-                deepLinkLocationId = locationId
+                deepLinkDestination = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    deepLinkDestination = DeepLinkDestination(entityId: locationId, kind: .location)
+                }
             }
         case "home":
             selectedTab = 0
@@ -137,11 +142,6 @@ struct MainNavigationView: View {
             break
         }
     }
-}
-
-// Make String conform to Identifiable for .fullScreenCover(item:)
-extension String: @retroactive Identifiable {
-    public var id: String { self }
 }
 
 #Preview {

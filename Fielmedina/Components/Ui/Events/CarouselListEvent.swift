@@ -15,6 +15,7 @@ struct CarouselListEvent: View {
     let limit: Int
     let bottomPadding: CGFloat
     
+    @Environment(\.scenePhase) private var scenePhase
     @State private var events: [Event] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -141,10 +142,19 @@ struct CarouselListEvent: View {
         .task {
             await loadEvents()
         }
+        .refreshable {
+            await loadEvents(forceRefresh: true)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await loadEvents(forceRefresh: true) }
+            }
+        }
     }
     
-    private func loadEvents() async {
-        isLoading = true
+    private func loadEvents(forceRefresh: Bool = false) async {
+        // Only show loading skeleton on first load, not on refresh
+        if events.isEmpty { isLoading = true }
         errorMessage = nil
         let previousEvents = events
         defer { isLoading = false }
@@ -152,7 +162,8 @@ struct CarouselListEvent: View {
         do {
             events = try await EventService.shared.fetchEvents(
                 limit: Int32(limit),
-                boost: isBoostedOnly ? true : nil
+                boost: isBoostedOnly ? true : nil,
+                forceRefresh: forceRefresh
             )
         } catch {
             events = previousEvents
