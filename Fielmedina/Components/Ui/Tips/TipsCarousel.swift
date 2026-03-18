@@ -45,10 +45,26 @@ struct TipsCarousel: View {
                 EmptyView()
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Hacks and tips")
-                        .font(.title2)
-                        .bold()
-                        .padding(.horizontal)
+                    HStack {
+                        Text("Hacks and tips")
+                            .font(.title2)
+                            .bold()
+                        
+                        Spacer()
+                        
+                        NavigationLink(value: HomeNavigationDestination.allTips) {
+                            Text("Show All")
+                                .font(.system(size: 16, weight: .semibold))
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 12)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("show_all_tips_button")
+                    }
+                    .padding(.horizontal)
                     
                     ZStack(alignment: .bottom) {
                         TabView(selection: $currentPageIndex) {

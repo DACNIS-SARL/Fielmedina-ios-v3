@@ -81,6 +81,9 @@
         }
       }
     },
+    "ALL TIPS" : {
+
+    },
     "AR not available" : {
       "localizations" : {
         "fr" : {
@@ -619,6 +622,9 @@
         }
       }
     },
+    "No Tips Yet" : {
+
+    },
     "No trips available" : {
       "localizations" : {
         "fr" : {
@@ -966,6 +972,9 @@
         }
       }
     },
+    "There are no tips available yet.\nCheck back soon!" : {
+
+    },
     "These numbers are for genuine emergencies only. Misuse may result in legal consequences." : {
       "localizations" : {
         "fr" : {
@@ -985,6 +994,9 @@
           }
         }
       }
+    },
+    "Tips" : {
+
     },
     "To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'." : {
       "localizations" : {

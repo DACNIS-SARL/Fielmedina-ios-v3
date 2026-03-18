@@ -292,8 +292,8 @@ final class OfflineContentPrefetcher {
     
     private func fetchTipImageUrls() async -> Set<String> {
         do {
-            _ = try await TipService.shared.fetchTips(cityId: nil, limit: 200)
-            return [] // Tips currently don't have images in the model?
+            _ = try await TipService.shared.fetchTips(cityId: nil, limit: 500)
+            return []
         } catch { return [] }
     }
 

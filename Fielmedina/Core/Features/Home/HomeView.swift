@@ -11,6 +11,7 @@ import SwiftUI
 enum HomeNavigationDestination: Hashable {
     case allLocations
     case allEvents
+    case allTips
     case publicTransports
     case taxiBooking
     case eventDetail(Event)
@@ -100,6 +101,8 @@ struct HomeView: View {
                     AllLocationListView()
                 case .allEvents:
                     AllEventsListView()
+                case .allTips:
+                    AllTipsListView()
                 case .publicTransports:
                     PublicTransports()
                 case .taxiBooking:
