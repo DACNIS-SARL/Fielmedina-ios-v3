@@ -15,7 +15,7 @@ struct DeepLinkDestination: Identifiable {
     let id = UUID()
     let entityId: String
     
-    enum Kind { case event, location }
+    enum Kind { case event, location, allTips }
     let kind: Kind
 }
 
@@ -68,6 +68,8 @@ struct MainNavigationView: View {
                         DeepLinkEventDetailView(eventId: destination.entityId)
                     case .location:
                         DeepLinkLocationDetailView(locationId: destination.entityId)
+                    case .allTips:
+                        AllTipsListView()
                     }
                 }
                 .toolbar {
@@ -129,6 +131,12 @@ struct MainNavigationView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     deepLinkDestination = DeepLinkDestination(entityId: locationId, kind: .location)
                 }
+            }
+        case "tips", "all_tips", "alltips":
+            FirebaseUtils.trackScreenView(screenName: "all_tips", screenClass: "DeepLink_Notification")
+            deepLinkDestination = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                deepLinkDestination = DeepLinkDestination(entityId: "", kind: .allTips)
             }
         case "home":
             selectedTab = 0
