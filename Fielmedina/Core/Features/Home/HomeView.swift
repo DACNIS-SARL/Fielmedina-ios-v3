@@ -23,6 +23,8 @@ struct HomeView: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
     @State private var refreshTrigger = 0
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showOnboarding = false
 
     
     private let buttonStickyThreshold: CGFloat = 180
@@ -122,6 +124,23 @@ struct HomeView: View {
                 }
             }
 
+        }
+        .overlay {
+            if showOnboarding {
+                OnboardingOverlay(
+                    onDismiss: {
+                        hasSeenOnboarding = true
+                        showOnboarding = false
+                    }
+                )
+            }
+        }
+        .onAppear {
+            if !hasSeenOnboarding {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    showOnboarding = true
+                }
+            }
         }
     }
     

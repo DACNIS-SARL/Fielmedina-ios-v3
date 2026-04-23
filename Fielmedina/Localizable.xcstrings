@@ -1213,6 +1213,23 @@
           }
         }
       }
+    },
+    "onboarding_overlay_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap here to download your first medina and explore offline — no internet needed!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez ici pour télécharger votre première médina et explorer hors ligne — pas besoin d'internet !"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
