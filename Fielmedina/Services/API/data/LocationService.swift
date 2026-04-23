@@ -75,22 +75,25 @@ class LocationService {
 
         var allLocations: [Location] = []
         var currentOffset: Int32 = 0
-        let batchSize = max(limit, 50)
+        let batchSize: Int32 = 50
 
-        while true {
+        while allLocations.count < limit {
+            let remaining = limit - Int32(allLocations.count)
+            let currentLimit = min(batchSize, remaining)
+            
             let page = try await fetchLocationsPage(
                 cityId: cityId,
                 categoryId: categoryId,
-                limit: batchSize,
+                limit: currentLimit,
                 offset: currentOffset,
                 forceRefresh: forceRefresh
             )
             allLocations.append(contentsOf: page)
 
-            if page.count < batchSize {
+            if page.count < currentLimit {
                 break
             }
-            currentOffset += batchSize
+            currentOffset += Int32(page.count)
         }
 
         return allLocations

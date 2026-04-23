@@ -11,6 +11,7 @@ struct AllTipsListView: View {
     @State private var allTips: [Tip] = []           // All fetched tips
     @State private var displayedCount: Int = 10       // Client-side pagination
     @State private var isLoading = true
+    @State private var isRefreshing = false
     @State private var errorMessage: String?
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @Environment(\.scenePhase) private var scenePhase
@@ -33,7 +34,7 @@ struct AllTipsListView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                LazyVStack(alignment: .leading, spacing: 24) {
                     CarouselListEvent(
                         title: "Upcoming events",
                         subtitle: "Top events",
@@ -95,7 +96,7 @@ struct AllTipsListView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     } else {
-                        VStack(spacing: 12) {
+                        LazyVStack(spacing: 12) {
                             ForEach(Array(visibleTips)) { tip in
                                 TipItem(tip: tip)
                                     .background(
@@ -103,14 +104,19 @@ struct AllTipsListView: View {
                                             .fill(Color(.secondarySystemBackground))
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .onAppear {
-                                        // Load more when reaching the last 3 visible items
-                                        if tip.id == Array(visibleTips).suffix(3).first?.id && hasMoreToShow {
+                                .onAppear {
+                                    // Load more when reaching the last 3 visible items
+                                    if tip.id == Array(visibleTips).suffix(3).first?.id {
+                                        if hasMoreToShow {
                                             withAnimation(.smooth) {
                                                 displayedCount = min(displayedCount + pageSize, allTips.count)
                                             }
+                                        } else if !isLoading && !isRefreshing {
+                                            // Pro refresh: Reached the end of fetched data, check network silently
+                                            Task { await refreshTips(isSilent: true) }
                                         }
                                     }
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -120,7 +126,7 @@ struct AllTipsListView: View {
                 .padding(.top, 12)
             }
             .refreshable {
-                await refreshTips()
+                await refreshTips(isSilent: false)
             }
         }
         .navigationTitle("Tips")
@@ -140,11 +146,11 @@ struct AllTipsListView: View {
         }
         .onChange(of: isConnected) { _, newValue in
             guard newValue else { return }
-            Task { await refreshTips() }
+            Task { await refreshTips(isSilent: true) }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
-                Task { await refreshTips() }
+                Task { await refreshTips(isSilent: true) }
             }
         }
     }
@@ -155,7 +161,8 @@ struct AllTipsListView: View {
         errorMessage = nil
         
         do {
-            allTips = try await TipService.shared.fetchTips(cityId: nil, limit: 500)
+            let tips = try await TipService.shared.fetchTips(cityId: nil, limit: 500)
+            allTips = tips.reversed()
             displayedCount = min(pageSize, allTips.count)
         } catch {
             if allTips.isEmpty {
@@ -166,13 +173,25 @@ struct AllTipsListView: View {
         isLoading = false
     }
     
-    /// Pull-to-refresh — force network fetch, keep old data as fallback
-    private func refreshTips() async {
+    /// Force network fetch, keep old data as fallback
+    private func refreshTips(isSilent: Bool) async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        
         let previousTips = allTips
         
         do {
-            allTips = try await TipService.shared.fetchTips(cityId: nil, limit: 500, forceRefresh: true)
-            displayedCount = min(pageSize, allTips.count)
+            let tips = try await TipService.shared.fetchTips(cityId: nil, limit: 500, forceRefresh: true)
+            allTips = tips.reversed()
+            
+            if !isSilent {
+                // For manual pull-to-refresh, we can reset view
+                displayedCount = min(pageSize, allTips.count)
+            } else {
+                // For background refresh, ensure we still show at least what we had
+                displayedCount = max(displayedCount, min(pageSize, allTips.count))
+            }
         } catch {
             if allTips.isEmpty && !previousTips.isEmpty {
                 allTips = previousTips

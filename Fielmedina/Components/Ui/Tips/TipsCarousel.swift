@@ -120,6 +120,7 @@ struct TipsCarousel: View {
                     .frame(height: cardHeight)
                     .background(cardGradient)
                     .cornerRadius(24)
+                    .clipped()
                     .padding(.horizontal)
                 }
             }

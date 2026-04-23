@@ -13,9 +13,12 @@ struct AllEventsListView: View {
     @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Events")]
     @State private var isLoadingEvents = true
+    @State private var isRefreshing = false
     @State private var isLoadingCategories = false
     @State private var errorMessage: String?
     @State private var isConnected = NetworkMonitor.shared.isConnected
+    @State private var currentLimit: Int32 = 20
+    @State private var hasMoreData = true
     
     var filteredEvents: [Event] {
         if selectedCategory == String(localized: "All Events") {
@@ -31,7 +34,7 @@ struct AllEventsListView: View {
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                LazyVStack(alignment: .leading, spacing: 24) {
                     CarouselListEvent(
                         title: "Upcoming events",
                         subtitle: "Top events",
@@ -109,7 +112,7 @@ struct AllEventsListView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     } else {
-                        VStack(spacing: 12) {
+                        LazyVStack(spacing: 12) {
                             ForEach(filteredEvents) { event in
                                 NavigationLink {
                                     EventDetailView(event: event)
@@ -122,6 +125,13 @@ struct AllEventsListView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
                                 .buttonStyle(.plain)
+                                .onAppear {
+                                    // Detect when user hits the bottom of the vertical list
+                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
+                                        currentLimit += 20
+                                        Task { await refreshFromNetwork() }
+                                    }
+                                }
                                 .simultaneousGesture(TapGesture().onEnded {
                                     FirebaseUtils.trackButtonTap(
                                         buttonName: "event_item",
@@ -135,6 +145,9 @@ struct AllEventsListView: View {
                     }
                 }
                 .padding(.top, 12)
+            }
+            .refreshable {
+                await refreshFromNetwork()
             }
         }
         .navigationTitle("Events")
@@ -164,8 +177,10 @@ struct AllEventsListView: View {
         }
     }
     
-    private func loadData() async {
-        isLoadingEvents = true
+    private func loadData(forceRefresh: Bool = false) async {
+        if events.isEmpty {
+            isLoadingEvents = true
+        }
         isLoadingCategories = true
         errorMessage = nil
         
@@ -173,7 +188,7 @@ struct AllEventsListView: View {
         let previousCategories = categories
         
         await withTaskGroup(of: Void.self) { group in
-            group.addTask { await loadEvents() }
+            group.addTask { await loadEvents(forceRefresh: forceRefresh) }
             group.addTask { await loadCategories() }
         }
         
@@ -198,9 +213,19 @@ struct AllEventsListView: View {
         isLoadingCategories = false
     }
     
-    private func loadEvents() async {
+    private func loadEvents(forceRefresh: Bool = false) async {
         do {
-            self.events = try await EventService.shared.fetchEvents(limit: 200)
+            if forceRefresh && events.isEmpty {
+                 currentLimit = 20
+                 hasMoreData = true
+            }
+            let fetched = try await EventService.shared.fetchEvents(limit: currentLimit, forceRefresh: forceRefresh)
+            if fetched.count < currentLimit {
+                hasMoreData = false
+            } else {
+                hasMoreData = true
+            }
+            self.events = fetched
         } catch {
             if events.isEmpty {
                 errorMessage = error.localizedDescription
@@ -225,7 +250,10 @@ struct AllEventsListView: View {
     }
 
     private func refreshFromNetwork() async {
-        await loadData()
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        await loadData(forceRefresh: true)
     }
 }
 

@@ -16,19 +16,24 @@ struct CarouselListLocations: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var locations: [Location] = []
     @State private var isLoading = true
+    @State private var isRefreshing = false
+    @State private var isHorizontalRefreshing = false
     @State private var errorMessage: String?
     @State private var currentCityId = CitySelectionStore.shared.cityId
+    @Binding var refreshTrigger: Int
     
     init(
         title: LocalizedStringKey,
         subtitle: LocalizedStringKey? = nil,
         showShowAllButton: Bool = true,
-        limit: Int = 10
+        limit: Int = 10,
+        refreshTrigger: Binding<Int> = .constant(0)
     ) {
         self.title = title
         self.subtitle = subtitle
         self.showShowAllButton = showShowAllButton
         self.limit = limit
+        self._refreshTrigger = refreshTrigger
     }
     
     var displayedLocations: [Location] {
@@ -64,7 +69,6 @@ struct CarouselListLocations: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("show_all_locations_button")
-                    .sensoryFeedback(.impact(weight: .light), trigger: isLoading)
                 }
             }
             .padding(.horizontal)
@@ -105,6 +109,12 @@ struct CarouselListLocations: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
+                        if isHorizontalRefreshing {
+                            ProgressView()
+                                .padding(.leading, 16)
+                                .transition(.scale)
+                        }
+                        
                         ForEach(displayedLocations) { location in
                             NavigationLink {
                                 LocationDetailView(location: location)
@@ -122,7 +132,20 @@ struct CarouselListLocations: View {
                     }
                     .padding(.horizontal)
                 }
-                .scrollClipDisabled()
+                .onScrollGeometryChange(for: CGFloat.self, of: { geo in
+                    return geo.contentOffset.x
+                }, action: { oldValue, newValue in
+                    let threshold: CGFloat = 100
+                    if newValue < -threshold && !isRefreshing && !isHorizontalRefreshing {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        isHorizontalRefreshing = true
+                        Task { 
+                            await loadLocations(forceRefresh: true) 
+                            isHorizontalRefreshing = false
+                        }
+                    }
+                })
+                .clipped()
                 .transition(.opacity.animation(.easeIn(duration: 0.3)))
             }
         }
@@ -130,13 +153,14 @@ struct CarouselListLocations: View {
         .task {
             await loadLocations()
         }
-        .refreshable {
-            await loadLocations(forceRefresh: true)
-        }
+
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task { await loadLocations(forceRefresh: true) }
             }
+        }
+        .onChange(of: refreshTrigger) { _, _ in
+            Task { await loadLocations(forceRefresh: true) }
         }
         .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
             guard let newCityId = notification.object as? Int32 else { return }
@@ -148,25 +172,31 @@ struct CarouselListLocations: View {
     }
     
     private func loadLocations(forceRefresh: Bool = false) async {
-        // Only show loading skeleton on first load, not on refresh
-        if locations.isEmpty { isLoading = true }
-        errorMessage = nil
-
+        if forceRefresh {
+            isRefreshing = true
+        } else {
+            isLoading = true
+        }
+        defer { 
+            isLoading = false
+            isRefreshing = false
+        }
+        
         do {
-            locations = try await LocationService.shared.fetchLocations(
-                cityId: CitySelectionStore.shared.cityId,
+            let fetchedLocations = try await LocationService.shared.fetchLocations(
+                cityId: currentCityId,
                 limit: Int32(limit),
                 forceRefresh: forceRefresh
             )
+            self.locations = fetchedLocations
         } catch {
-            if locations.isEmpty {
+            if !forceRefresh {
                 errorMessage = error.localizedDescription
             }
         }
-        
-        isLoading = false
     }
 }
+
 #Preview {
     NavigationStack {
         ScrollView {
@@ -179,8 +209,6 @@ struct CarouselListLocations: View {
         }
     }
 }
-
-
 
 extension Location {
     static let sampleLocations: [Location] = [
@@ -205,8 +233,8 @@ extension Location {
         ),
         Location(
             id: "2",
-            nameEn: "Great Mosque of Kairouan Great Mosque of Kairouan",
-            nameFr: "Grande Mosquée de Kairouan Great Mosque of Kairouan",
+            nameEn: "Great Mosque of Kairouan",
+            nameFr: "Grande Mosquée de Kairouan",
             latitude: 35.6781,
             longitude: 10.1042,
             category: LocationCategory(

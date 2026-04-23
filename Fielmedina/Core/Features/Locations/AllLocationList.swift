@@ -15,9 +15,12 @@ struct AllLocationListView: View {
     @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Locations")]
     @State private var isLoading = true
+    @State private var isRefreshing = false
     @State private var errorMessage: String?
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
+    @State private var currentLimit: Int32 = 20
+    @State private var hasMoreData = true
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
@@ -60,7 +63,7 @@ struct AllLocationListView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                LazyVStack(alignment: .leading, spacing: 24) {
                     CarouselListEvent(
                         title: "Upcoming events",
                         subtitle: "Top events",
@@ -138,7 +141,7 @@ struct AllLocationListView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     } else {
-                        VStack(spacing: 12) {
+                        LazyVStack(spacing: 12) {
                             ForEach(filteredLocations) { location in
                                 NavigationLink {
                                     LocationDetailView(location: location)
@@ -151,6 +154,13 @@ struct AllLocationListView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
                                 .buttonStyle(.plain)
+                                .onAppear {
+                                    // Detect when user hits the bottom of the vertical list
+                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
+                                        currentLimit += 20
+                                        Task { await refreshFromNetwork() }
+                                    }
+                                }
                                 .simultaneousGesture(TapGesture().onEnded {
                                     FirebaseUtils.trackButtonTap(
                                         buttonName: "location_item",
@@ -164,6 +174,9 @@ struct AllLocationListView: View {
                     }
                 }
                 .padding(.top, 12)
+            }
+            .refreshable {
+                await refreshFromNetwork()
             }
         }
         .navigationTitle("Locations")
@@ -195,8 +208,10 @@ struct AllLocationListView: View {
         }
     }
     
-    private func loadData() async {
-        isLoading = true
+    private func loadData(forceRefresh: Bool = false) async {
+        if locations.isEmpty {
+            isLoading = true
+        }
         isLoadingCategories = true
         errorMessage = nil
         
@@ -204,7 +219,7 @@ struct AllLocationListView: View {
         let previousCategories = categories
         
         await withTaskGroup(of: Void.self) { group in
-            group.addTask { await loadLocations() }
+            group.addTask { await loadLocations(forceRefresh: forceRefresh) }
             group.addTask { await loadLocationCategories() }
         }
         
@@ -249,15 +264,25 @@ struct AllLocationListView: View {
         }
     }
     
-    private func loadLocations() async {
-        isLoading = true
+    private func loadLocations(forceRefresh: Bool = false) async {
         errorMessage = nil
 
         do {
+            if forceRefresh && locations.isEmpty {
+                 currentLimit = 20
+                 hasMoreData = true
+            }
             let fetchedLocations = try await LocationService.shared.fetchLocations(
                 cityId: nil,
-                limit: 500
+                limit: currentLimit,
+                forceRefresh: forceRefresh
             )
+            
+            if fetchedLocations.count < currentLimit {
+                hasMoreData = false
+            } else {
+                hasMoreData = true
+            }
             self.locations = fetchedLocations
             
             // Extract unique categories
@@ -273,7 +298,10 @@ struct AllLocationListView: View {
     }
 
     private func refreshFromNetwork() async {
-        await loadData()
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        await loadData(forceRefresh: true)
     }
 }
 

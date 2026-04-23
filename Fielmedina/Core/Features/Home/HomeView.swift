@@ -22,6 +22,7 @@ struct HomeView: View {
     @State private var showTaxiButton = false
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
+    @State private var refreshTrigger = 0
 
     
     private let buttonStickyThreshold: CGFloat = 180
@@ -47,15 +48,17 @@ struct HomeView: View {
                     VStack(spacing: 32) {
                         CarouselListLocations(
                             title: "Top Attractions",
-                            subtitle: "Top places for you"
+                            subtitle: "Top places for you",
+                            refreshTrigger: $refreshTrigger
                         )
                         .padding(.top, 24)
                         
-                        AdsCarousel()
+                        AdsCarousel(refreshTrigger: $refreshTrigger)
                         
                         CarouselListEvent(
                             title: "Best Experiences",
-                            subtitle: "Top events"
+                            subtitle: "Top events",
+                            refreshTrigger: $refreshTrigger
                         )
                         .padding(.top, 16)
                         
@@ -66,6 +69,11 @@ struct HomeView: View {
                     .padding(.bottom, 100)
                 }
                 .frame(maxWidth: .infinity)
+            }
+            .refreshable {
+                refreshTrigger += 1
+                // We add a small delay to allow child views to start their tasks
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             .coordinateSpace(name: "scroll")
             .onScrollGeometryChange(for: CGFloat.self) { geo in

@@ -59,22 +59,25 @@ class EventService {
     func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil, forceRefresh: Bool = false) async throws -> [Event] {
         var allEvents: [Event] = []
         var currentOffset: Int32 = 0
-        let batchSize = max(limit, 50)
-
-        while true {
+        let batchSize: Int32 = 50
+        
+        while allEvents.count < limit {
+            let remaining = limit - Int32(allEvents.count)
+            let currentLimit = min(batchSize, remaining)
+            
             let page = try await fetchEventsPage(
                 cityId: cityId,
-                limit: batchSize,
+                limit: currentLimit,
                 offset: currentOffset,
                 boost: boost,
                 forceRefresh: forceRefresh
             )
             allEvents.append(contentsOf: page)
-
-            if page.count < batchSize {
+            
+            if page.count < currentLimit {
                 break
             }
-            currentOffset += batchSize
+            currentOffset += Int32(page.count)
         }
 
         return allEvents

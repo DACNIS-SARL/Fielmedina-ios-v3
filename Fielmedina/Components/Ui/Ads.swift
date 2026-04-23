@@ -16,10 +16,12 @@ struct AdsCarousel: View {
     @State private var ads: [Advertisement] = []
     @State private var isLoading = true
     @State private var currentIndex: Int
+    @Binding var refreshTrigger: Int
     
-    init(startIndex: Int = 0) {
+    init(startIndex: Int = 0, refreshTrigger: Binding<Int> = .constant(0)) {
         self.startIndex = startIndex
         _currentIndex = State(initialValue: startIndex)
+        self._refreshTrigger = refreshTrigger
     }
     
     private var adHeight: CGFloat {
@@ -64,6 +66,9 @@ struct AdsCarousel: View {
         }
         .task {
             await refreshAds()
+        }
+        .onChange(of: refreshTrigger) { _, _ in
+            Task { await loadAds() }
         }
     }
     
