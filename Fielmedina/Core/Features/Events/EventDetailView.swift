@@ -60,7 +60,7 @@ struct EventDetailView: View {
             HStack(spacing: 8) {
                 Image(systemName: "calendar")
                     .foregroundStyle(.secondary)
-                Text(event.displayDateFormatted)
+                Text(event.displayFullInfo)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

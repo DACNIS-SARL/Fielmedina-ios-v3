@@ -43,7 +43,7 @@ struct EventCardView: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                Text(event.displayDateFormatted)
+                Text(event.displayFullInfo)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.9))
             }

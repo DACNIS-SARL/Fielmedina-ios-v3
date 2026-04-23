@@ -141,6 +141,7 @@ query GetEventsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int,
       nameEn
       nameFr
     }
+    city { ...CityFields }
   }
 }
 
@@ -172,6 +173,7 @@ query GetEventDetails($id: ID!) {
       nameEn
       nameFr
     }
+    city { ...CityFields }
   }
 }
 

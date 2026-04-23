@@ -20,7 +20,7 @@ struct EventItem: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                Text(event.displayDate)
+                Text(event.displayFullInfo)
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
             }

@@ -36,6 +36,7 @@ struct Event: Codable, Identifiable, Hashable {
     let images: [ImageContainer]?
     let location: EventLocation?
     let category: EventCategory?
+    let city: EventCity?
     
     var displayName: String {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
@@ -81,6 +82,18 @@ struct Event: Codable, Identifiable, Hashable {
             return "\(formatDateModern(startDate)), \(formatTimeModern(time))"
         }
         return formatDateModern(startDate)
+    }
+    
+    var displayFullInfo: String {
+        var parts: [String] = []
+        if let cityDisplayName = city?.displayName, !cityDisplayName.isEmpty {
+            parts.append(cityDisplayName)
+        }
+        let dateStr = displayDateFormatted
+        if !dateStr.isEmpty {
+            parts.append(dateStr)
+        }
+        return parts.joined(separator: " · ")
     }
     
     var imageURL: String? {
@@ -167,5 +180,20 @@ struct EventLocation: Codable, Identifiable, Hashable {
     
     var displayName: String {
         nameFr ?? nameEn
+    }
+}
+
+struct EventCity: Codable, Identifiable, Hashable {
+    let id: String
+    let nameEn: String?
+    let nameFr: String?
+    let nameAr: String?
+    
+    var displayName: String {
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let nameFr, !nameFr.isEmpty {
+            return nameFr
+        }
+        return nameEn ?? ""
     }
 }

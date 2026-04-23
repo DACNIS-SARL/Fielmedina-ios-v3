@@ -9,8 +9,8 @@ extension FielmedinaAPI {
     static let operationName: String = "GetEventDetails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query GetEventDetails($id: ID!) { event(id: $id) { __typename id nameEn nameFr descriptionEn descriptionFr shortLink startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } boost location { __typename id nameEn nameFr } } }"#,
-        fragments: [ImageFields.self]
+        #"query GetEventDetails($id: ID!) { event(id: $id) { __typename id nameEn nameFr descriptionEn descriptionFr shortLink startDate endDate time price category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } boost location { __typename id nameEn nameFr } city { __typename ...CityFields } } }"#,
+        fragments: [CityFields.self, ImageFields.self]
       ))
 
     public var id: ID
@@ -59,6 +59,7 @@ extension FielmedinaAPI {
           .field("images", [Image].self),
           .field("boost", Bool.self),
           .field("location", Location?.self),
+          .field("city", City?.self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
           GetEventDetailsQuery.Data.Event.self
@@ -78,6 +79,7 @@ extension FielmedinaAPI {
         var images: [Image] { __data["images"] }
         var boost: Bool { __data["boost"] }
         var location: Location? { __data["location"] }
+        var city: City? { __data["city"] }
 
         /// Event.Category
         ///
@@ -198,6 +200,42 @@ extension FielmedinaAPI {
           var id: FielmedinaAPI.ID { __data["id"] }
           var nameEn: String { __data["nameEn"] }
           var nameFr: String { __data["nameFr"] }
+        }
+
+        /// Event.City
+        ///
+        /// Parent Type: `CityType`
+        struct City: FielmedinaAPI.SelectionSet {
+          let __data: DataDict
+          init(_dataDict: DataDict) { __data = _dataDict }
+
+          static var __parentType: any ApolloAPI.ParentType { FielmedinaAPI.Objects.CityType }
+          static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
+            .fragment(CityFields.self),
+          ] }
+          static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            GetEventDetailsQuery.Data.Event.City.self,
+            CityFields.self
+          ] }
+
+          var id: FielmedinaAPI.ID { __data["id"] }
+          var nameEn: String? { __data["nameEn"] }
+          var nameFr: String? { __data["nameFr"] }
+          var nameAr: String? { __data["nameAr"] }
+          var regionEn: String? { __data["regionEn"] }
+          var regionFr: String? { __data["regionFr"] }
+          var regionAr: String? { __data["regionAr"] }
+          var countryEn: String? { __data["countryEn"] }
+          var countryFr: String? { __data["countryFr"] }
+          var countryAr: String? { __data["countryAr"] }
+
+          struct Fragments: FragmentContainer {
+            let __data: DataDict
+            init(_dataDict: DataDict) { __data = _dataDict }
+
+            var cityFields: CityFields { _toFragment() }
+          }
         }
       }
     }

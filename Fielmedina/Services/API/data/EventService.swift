@@ -44,6 +44,9 @@ class EventService {
             },
             category: gEvent.category.map { cat in
                 EventCategory(id: cat.id, nameEn: cat.nameEn, nameFr: cat.nameFr)
+            },
+            city: gEvent.city.map { city in
+                EventCity(id: city.id, nameEn: city.nameEn, nameFr: city.nameFr, nameAr: city.nameAr)
             }
         )
     }
@@ -120,6 +123,9 @@ class EventService {
                 },
                 category: gEvent.category.map { cat in
                     EventCategory(id: cat.id, nameEn: cat.nameEn, nameFr: cat.nameFr)
+                },
+                city: gEvent.city.map { city in
+                    EventCity(id: city.id, nameEn: city.nameEn, nameFr: city.nameFr, nameAr: city.nameAr)
                 }
             )
         }
