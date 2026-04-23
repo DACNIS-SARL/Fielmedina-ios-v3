@@ -157,4 +157,4 @@ The app targets travelers in low-connectivity areas. Our offline system has two 
 - **Simulating Hikes**: Use the Xcode Simulator's `Features > Location` menu to test navigation logic without leaving your desk.
 
 ---
-*Developed by Muhammad Aslan & The Fielmedina Engineering Team - 2026* 🚀
+*Developed by Muhammad Aslan & The Fielmedina Engineering Team - 2025-2026* 🚀
