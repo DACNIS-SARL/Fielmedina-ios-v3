@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		BE059AD72F0EB06700A609D5 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = BE059AD62F0EB05F00A609D5 /* Readme.md */; };
+		BE9839452F9A33F80059CF74 /* MonastirLocation.gpx in Resources */ = {isa = PBXBuildFile; fileRef = BE9839422F9A33F80059CF74 /* MonastirLocation.gpx */; };
+		BE9839462F9A33F80059CF74 /* SousseLocation.gpx in Resources */ = {isa = PBXBuildFile; fileRef = BE9839432F9A33F80059CF74 /* SousseLocation.gpx */; };
+		BE9839472F9A33F80059CF74 /* TunisLocation.gpx in Resources */ = {isa = PBXBuildFile; fileRef = BE9839442F9A33F80059CF74 /* TunisLocation.gpx */; };
 		BECD93332F0FBB2800462C35 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93322F0FBB2800462C35 /* FirebaseAnalytics */; };
 		BECD93352F0FBB2800462C35 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93342F0FBB2800462C35 /* FirebaseCrashlytics */; };
 		BECD93372F0FBB2800462C35 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = BECD93362F0FBB2800462C35 /* FirebaseMessaging */; };
@@ -44,9 +47,9 @@
 		BE059AA82F0EA7F400A609D5 /* FielmedinaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AB22F0EA7F400A609D5 /* FielmedinaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FielmedinaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE059AD62F0EB05F00A609D5 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
-		BE985BE22F11C47400FC6061 /* SousseLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = SousseLocation.gpx; path = ../SousseLocation.gpx; sourceTree = "<group>"; };
-		BEAE8E462F2432F5001BF86B /* MonastirLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = MonastirLocation.gpx; path = ../MonastirLocation.gpx; sourceTree = "<group>"; };
-		BED4AADE2F262E070015E510 /* TunisLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = TunisLocation.gpx; path = ../TunisLocation.gpx; sourceTree = "<group>"; };
+		BE9839422F9A33F80059CF74 /* MonastirLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = MonastirLocation.gpx; sourceTree = "<group>"; };
+		BE9839432F9A33F80059CF74 /* SousseLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = SousseLocation.gpx; sourceTree = "<group>"; };
+		BE9839442F9A33F80059CF74 /* TunisLocation.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = TunisLocation.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -120,9 +123,9 @@
 		BE059A902F0EA7EF00A609D5 = {
 			isa = PBXGroup;
 			children = (
-				BED4AADE2F262E070015E510 /* TunisLocation.gpx */,
-				BEAE8E462F2432F5001BF86B /* MonastirLocation.gpx */,
-				BE985BE22F11C47400FC6061 /* SousseLocation.gpx */,
+				BE9839422F9A33F80059CF74 /* MonastirLocation.gpx */,
+				BE9839432F9A33F80059CF74 /* SousseLocation.gpx */,
+				BE9839442F9A33F80059CF74 /* TunisLocation.gpx */,
 				BE059AD62F0EB05F00A609D5 /* Readme.md */,
 				BE059A9B2F0EA7EF00A609D5 /* Fielmedina */,
 				BE059AAB2F0EA7F400A609D5 /* FielmedinaTests */,
@@ -289,6 +292,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				BE059AD72F0EB06700A609D5 /* Readme.md in Resources */,
+				BE9839452F9A33F80059CF74 /* MonastirLocation.gpx in Resources */,
+				BE9839462F9A33F80059CF74 /* SousseLocation.gpx in Resources */,
+				BE9839472F9A33F80059CF74 /* TunisLocation.gpx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
