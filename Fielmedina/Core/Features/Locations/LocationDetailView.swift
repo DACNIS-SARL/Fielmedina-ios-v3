@@ -25,6 +25,7 @@ struct LocationDetailView: View {
     @State private var showNavigationErrorAlert = false
     @State private var navigationErrorMessage = ""
     @State private var showARUnavailableAlert = false
+    private let speechManager = LocationSpeechManager()
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -158,7 +159,9 @@ struct LocationDetailView: View {
                 Spacer(minLength: 0)
                 
                 Button {
-                    // No function yet
+                    let htmlText = location.displayStory ?? ""
+                    let plainText = htmlText.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                    speechManager.speak(text: plainText)
                 } label: {
                     Image(systemName: "waveform")
                         .font(.system(size: 20, weight: .bold))
@@ -360,6 +363,7 @@ final class LocationSpeechManager {
         guard !trimmed.isEmpty else { return }
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
+            return
         }
         
         configureAudioSession()
@@ -373,7 +377,7 @@ final class LocationSpeechManager {
         let spokenText = sanitizedText(trimmed, language: normalizedLang, voice: selectedVoice)
         let utterance = AVSpeechUtterance(string: spokenText)
         utterance.voice = selectedVoice
-        utterance.rate = 0.48
+        utterance.rate = 0.44
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
         
