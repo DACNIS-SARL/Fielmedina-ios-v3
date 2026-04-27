@@ -157,6 +157,17 @@ struct LocationDetailView: View {
                 }
                 Spacer(minLength: 0)
                 
+                Button {
+                    // No function yet
+                } label: {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 20, weight: .bold))
+                        .frame(width: 44, height: 44)
+                        .background(Color(red: 0.72, green: 0.41, blue: 0.25))
+                        .foregroundStyle(.white)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
             }
             if let story = location.displayStory {
                 HTMLTextView(
