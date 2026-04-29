@@ -160,7 +160,7 @@ struct LocationDetailView: View {
                 
                 Button {
                     let htmlText = location.displayStory ?? ""
-                    let plainText = htmlText.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                    let plainText = htmlText.decodedHTMLToPlainText
                     speechManager.speak(text: plainText)
                 } label: {
                     Image(systemName: "waveform")
@@ -367,11 +367,8 @@ final class LocationSpeechManager {
         }
         
         configureAudioSession()
-        
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(trimmed)
-        let detectedLang = recognizer.dominantLanguage?.rawValue ?? "en"
-        let normalizedLang = normalizedLanguage(from: detectedLang)
+        let currentLangCode = Locale.current.language.languageCode?.identifier ?? "en"
+        let normalizedLang = normalizedLanguage(from: currentLangCode)
         
         let selectedVoice = preferredVoice(for: normalizedLang) ?? AVSpeechSynthesisVoice(language: normalizedLang)
         let spokenText = sanitizedText(trimmed, language: normalizedLang, voice: selectedVoice)
@@ -419,7 +416,7 @@ final class LocationSpeechManager {
     
     private func sanitizedText(_ text: String, language: String, voice: AVSpeechSynthesisVoice?) -> String {
         let prefix = String(language.prefix(2))
-        guard prefix == "fr", voice?.quality == .default else {
+        guard prefix == "fr" else {
             return text
         }
         let folded = text.folding(options: [.diacriticInsensitive, .widthInsensitive], locale: Locale(identifier: "fr"))
@@ -430,6 +427,20 @@ final class LocationSpeechManager {
     
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
+    }
+}
+
+extension String {
+    var decodedHTMLToPlainText: String {
+        guard let data = self.data(using: .utf8) else { return self }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        if let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
+            return attributedString.string
+        }
+        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
     }
 }
 
