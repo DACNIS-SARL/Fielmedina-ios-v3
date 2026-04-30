@@ -27,7 +27,8 @@ struct SettingsView: View {
     private let offlineCities: [OfflineCity] = [
         OfflineCity(id: "sousse_medina", name: "Sousse Medina", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448), radius: 2000, cityId: 15),
         OfflineCity(id: "monastir_medina", name: "Monastir Medina", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262), radius: 2000, cityId: 18),
-        OfflineCity(id: "tunis_medina", name: "Tunis Medina", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706), radius: 2500, cityId: 14)
+        OfflineCity(id: "tunis_medina", name: "Tunis Medina", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706), radius: 2500, cityId: 14),
+        OfflineCity(id: "zaghouan_south", name: "Zaghouan South", coordinate: CLLocationCoordinate2D(latitude: 36.33297, longitude: 10.22389), radius: 5000, cityId: 142)
     ]
     
     @State private var regionStatus: [String: OfflineRegionStatus] = [:]
@@ -35,6 +36,7 @@ struct SettingsView: View {
     @State private var isOfflineReady = OfflineContentPrefetcher.shared.isComplete
     @State private var offlineStatus = OfflineContentPrefetcher.shared.status
     @State private var offlineProgress = OfflineContentPrefetcher.shared.progress
+    @State private var fcmToken: String? = FirebaseUtils.getSavedToken()
     
     var body: some View {
         ScrollView {
@@ -42,6 +44,19 @@ struct SettingsView: View {
                 header
                 
                 offlineSection
+                
+                if let token = fcmToken, token.count >= 6 {
+                    HStack(spacing: 4) {
+                        Text("ID: ")
+                            .font(.caption)
+                            .foregroundStyle(.secondary.opacity(0.8))
+                        Text(token.suffix(6).uppercased())
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 16)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
