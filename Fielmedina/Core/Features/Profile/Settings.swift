@@ -47,7 +47,7 @@ struct SettingsView: View {
                 
                 if let token = fcmToken, token.count >= 6 {
                     HStack(spacing: 4) {
-                        Text("ID: ")
+                        Text("ID :")
                             .font(.caption)
                             .foregroundStyle(.secondary.opacity(0.8))
                         Text(token.suffix(6).uppercased())
@@ -56,12 +56,13 @@ struct SettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 16)
+                    .padding(.bottom, 32)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
-        .navigationTitle("Settings")
+        .navigationTitle(String(localized: "Offline Maps"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .task {
@@ -110,18 +111,18 @@ struct SettingsView: View {
     }
     
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Offline Maps")
-                .font(.title2.bold())
-            Text("Download city medinas to use maps and navigation without internet.")
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(localized: "Download city medinas to use maps and navigation without internet."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            
             Text(offlineStatusMessage)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            
             if shouldShowOfflineProgress {
                 ProgressView(value: offlineProgress)
-                    .tint(Color(red: 0.72, green: 0.41, blue: 0.25))
+                    .tint(Color(red: 0.88, green: 0.43, blue: 0.20))
             }
         }
     }
@@ -155,20 +156,37 @@ struct SettingsView: View {
     }
     
     private var offlineSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ForEach(offlineCities) { city in
-                OfflineRegionCard(
-                    city: city,
-                    status: regionStatus[city.id] ?? .notDownloaded,
-                    isLoadingRegions: isLoadingRegions,
-                    onDownload: {
-                        download(city)
-                    },
-                    onRemove: {
-                        remove(city)
-                    }
-                )
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(String(localized: "AVAILABLE MEDINAS").uppercased())
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(offlineCities.count) \(String(localized: "regions"))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+            .padding(.horizontal, 4)
+            
+            VStack(spacing: 0) {
+                ForEach(Array(offlineCities.enumerated()), id: \.element.id) { index, city in
+                    OfflineRegionCard(
+                        city: city,
+                        status: regionStatus[city.id] ?? .notDownloaded,
+                        isLoadingRegions: isLoadingRegions,
+                        onDownload: { download(city) },
+                        onRemove: { remove(city) }
+                    )
+                    
+                    if index < offlineCities.count - 1 {
+                        Divider()
+                            .padding(.horizontal, 16)
+                    }
+                }
+            }
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
     
@@ -229,99 +247,105 @@ private struct OfflineRegionCard: View {
     let onRemove: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(city.name)
                         .font(.headline)
-                    Text("Offline navigation + maps")
-                        .font(.caption)
+                    Text(String(localized: "Offline navigation + maps"))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
-                statusBadge
+                
+                Spacer(minLength: 8)
+                
+                actionButtons
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
             
             if case .downloading(let progress) = status {
-                ProgressView(value: progress)
-                    .tint(Color(red: 0.72, green: 0.41, blue: 0.25))
-            }
-            
-            HStack(spacing: 12) {
-                switch status {
-                case .notDownloaded, .failed:
-                    Button("Download") {
-                        onDownload()
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(String(localized: "Downloading..."))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(Int(progress * 100))%")
+                            .font(.caption.bold())
+                            .foregroundColor(Color(red: 0.88, green: 0.43, blue: 0.20))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(red: 0.72, green: 0.41, blue: 0.25))
-                case .downloading:
-                    Button("Downloading…") { }
-                        .buttonStyle(.bordered)
-                        .disabled(true)
-                case .downloaded:
-                    Button("Remove") {
-                        onRemove()
-                    }
-                    .buttonStyle(.bordered)
+                    
+                    ProgressView(value: progress)
+                        .tint(Color(red: 0.88, green: 0.43, blue: 0.20))
+                        .scaleEffect(x: 1, y: 0.8, anchor: .center)
                 }
-                
-                if case .failed(let message) = status {
-                    Text(message)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                
-                Spacer(minLength: 0)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.black.opacity(0.04), lineWidth: 1)
-        )
         .redacted(reason: isLoadingRegions ? .placeholder : [])
     }
     
-    private var statusBadge: some View {
-        switch status {
-        case .downloaded:
-            return Text("Ready")
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.green.opacity(0.2))
-                .clipShape(Capsule())
-        case .downloading:
-            return Text("Downloading")
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.orange.opacity(0.2))
-                .clipShape(Capsule())
-        case .failed:
-            return Text("Failed")
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.red.opacity(0.2))
-                .clipShape(Capsule())
-        case .notDownloaded:
-            return Text("Not downloaded")
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.gray.opacity(0.2))
-                .clipShape(Capsule())
+    @ViewBuilder
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            switch status {
+            case .notDownloaded, .failed:
+                Text(String(localized: "Not downloaded"))
+                    .font(.caption.bold())
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color(.systemGray6))
+                    .clipShape(Capsule())
+                
+                Button {
+                    onDownload()
+                } label: {
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Color(red: 0.88, green: 0.43, blue: 0.20))
+                        .clipShape(Circle())
+                }
+                
+            case .downloading:
+                Text(String(localized: "Downloading..."))
+                    .font(.caption.bold())
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .foregroundColor(Color(red: 0.88, green: 0.43, blue: 0.20))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color(red: 0.88, green: 0.43, blue: 0.20).opacity(0.15))
+                    .clipShape(Capsule())
+                
+            case .downloaded:
+                Text(String(localized: "Downloaded"))
+                    .font(.caption.bold())
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .foregroundColor(Color(red: 0.1, green: 0.6, blue: 0.4))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color(red: 0.1, green: 0.6, blue: 0.4).opacity(0.15))
+                    .clipShape(Capsule())
+                
+                Button {
+                    onRemove()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Color.red.opacity(0.8))
+                        .clipShape(Circle())
+                }
+            }
         }
     }
-}
-
-#Preview {
-    SettingsView()
 }
