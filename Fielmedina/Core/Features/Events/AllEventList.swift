@@ -17,7 +17,7 @@ struct AllEventsListView: View {
     @State private var isLoadingCategories = false
     @State private var errorMessage: String?
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentLimit: Int32 = 20
+    @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     
     var filteredEvents: [Event] {
@@ -128,7 +128,7 @@ struct AllEventsListView: View {
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list
                                     if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
-                                        currentLimit += 20
+                                        currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
                                 }
@@ -216,7 +216,7 @@ struct AllEventsListView: View {
     private func loadEvents(forceRefresh: Bool = false) async {
         do {
             if forceRefresh && events.isEmpty {
-                 currentLimit = 20
+                 currentLimit = 50
                  hasMoreData = true
             }
             let fetched = try await EventService.shared.fetchEvents(limit: currentLimit, forceRefresh: forceRefresh)

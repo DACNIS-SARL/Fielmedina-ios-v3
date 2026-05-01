@@ -267,20 +267,43 @@ final class OfflineContentPrefetcher {
     // MARK: - Metadata Fetchers
     
     private func fetchLocationImageUrls() async -> Set<String> {
+        let cityId = CitySelectionStore.shared.cityId
         do {
-            // Prefetch exact query variant used by AllLocationsList (limit:20, offset:0)
-            _ = try? await LocationService.shared.fetchLocations(cityId: nil, limit: 20)
+            // 1) Prefetch exact query variants used by AllLocationsList (limit:50, offset:0)
+            _ = try? await LocationService.shared.fetchLocations(cityId: nil, limit: 50)
+            if let id = cityId {
+                _ = try? await LocationService.shared.fetchLocations(cityId: id, limit: 50)
+            }
+            
+            // 2) Prefetch variants used by CarouselListLocations (limit:10)
+            _ = try? await LocationService.shared.fetchLocations(cityId: nil, limit: 10)
+            if let id = cityId {
+                _ = try? await LocationService.shared.fetchLocations(cityId: id, limit: 10)
+            }
+
             let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
             return extractUrls(from: locations.flatMap { $0.images ?? [] })
         } catch { return [] }
     }
 
     private func fetchEventImageUrls() async -> Set<String> {
+        let cityId = CitySelectionStore.shared.cityId
         do {
-            // Prefetch exact query variants used by AllEventList (limit:20, offset:0)
-            // and by pagination (batches of 50) so all cache keys are populated
-            _ = try? await EventService.shared.fetchEvents(limit: 20)
+            // 1) Prefetch exact query variants used by AllEventList (limit:50, offset:0)
+            _ = try? await EventService.shared.fetchEvents(cityId: nil, limit: 50)
+            if let id = cityId {
+                _ = try? await EventService.shared.fetchEvents(cityId: id, limit: 50)
+            }
+
+            // 2) Prefetch variants used by CarouselListEvent (limit:5, boost:true)
+            _ = try? await EventService.shared.fetchEvents(cityId: nil, limit: 5, boost: true)
+            if let id = cityId {
+                _ = try? await EventService.shared.fetchEvents(cityId: id, limit: 5, boost: true)
+            }
+            
+            // 3) Pagination variants (batches of 50)
             _ = try? await EventService.shared.fetchEvents(limit: 50, boost: true)
+            
             let events = try await EventService.shared.fetchEvents(limit: 200)
             let boostedEvents = (try? await EventService.shared.fetchEvents(limit: 200, boost: true)) ?? []
             return extractUrls(from: (events + boostedEvents).flatMap { $0.images ?? [] })

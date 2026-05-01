@@ -271,7 +271,7 @@ private struct OfflineRegionCard: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(Int(progress * 100))%")
+                        Text(progress.formatted(.percent.precision(.fractionLength(0))))
                             .font(.caption.bold())
                             .foregroundColor(Color(red: 0.88, green: 0.43, blue: 0.20))
                     }

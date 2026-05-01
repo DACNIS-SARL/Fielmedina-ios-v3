@@ -19,7 +19,7 @@ struct AllLocationListView: View {
     @State private var errorMessage: String?
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentLimit: Int32 = 20
+    @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
 
     private var isFilteringCategory: Bool {
@@ -157,7 +157,7 @@ struct AllLocationListView: View {
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list
                                     if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
-                                        currentLimit += 20
+                                        currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
                                 }
@@ -269,7 +269,7 @@ struct AllLocationListView: View {
 
         do {
             if forceRefresh && locations.isEmpty {
-                 currentLimit = 20
+                 currentLimit = 50
                  hasMoreData = true
             }
             let fetchedLocations = try await LocationService.shared.fetchLocations(
