@@ -15,7 +15,7 @@ final class NetworkMonitor: @unchecked Sendable {
     
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "com.fielmedina.networkmonitor", attributes: .concurrent)
-    private var _isConnected: Bool = true
+    private var _isConnected: Bool = false
     
     var isConnected: Bool {
         queue.sync { _isConnected }

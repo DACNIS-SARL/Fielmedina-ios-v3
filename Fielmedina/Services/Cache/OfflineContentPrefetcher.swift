@@ -268,6 +268,8 @@ final class OfflineContentPrefetcher {
     
     private func fetchLocationImageUrls() async -> Set<String> {
         do {
+            // Prefetch exact query variant used by AllLocationsList (limit:20, offset:0)
+            _ = try? await LocationService.shared.fetchLocations(cityId: nil, limit: 20)
             let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
             return extractUrls(from: locations.flatMap { $0.images ?? [] })
         } catch { return [] }
@@ -275,8 +277,12 @@ final class OfflineContentPrefetcher {
 
     private func fetchEventImageUrls() async -> Set<String> {
         do {
+            // Prefetch exact query variants used by AllEventList (limit:20, offset:0)
+            // and by pagination (batches of 50) so all cache keys are populated
+            _ = try? await EventService.shared.fetchEvents(limit: 20)
+            _ = try? await EventService.shared.fetchEvents(limit: 50, boost: true)
             let events = try await EventService.shared.fetchEvents(limit: 200)
-            let boostedEvents = try await EventService.shared.fetchEvents(limit: 50, boost: true)
+            let boostedEvents = (try? await EventService.shared.fetchEvents(limit: 200, boost: true)) ?? []
             return extractUrls(from: (events + boostedEvents).flatMap { $0.images ?? [] })
         } catch { return [] }
     }
