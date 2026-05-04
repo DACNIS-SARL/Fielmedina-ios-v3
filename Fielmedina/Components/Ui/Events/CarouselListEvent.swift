@@ -46,6 +46,9 @@ struct CarouselListEvent: View {
     }
     
     var body: some View {
+        if isBoostedOnly && !isLoading && displayedEvents.isEmpty {
+            EmptyView()
+        } else {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -100,7 +103,7 @@ struct CarouselListEvent: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-            } else if displayedEvents.isEmpty {
+            } else if displayedEvents.isEmpty && !isBoostedOnly {
                 VStack(spacing: 12) {
                     Image(systemName: "calendar.badge.exclamationmark")
                         .font(.system(size: 40))
@@ -169,7 +172,7 @@ struct CarouselListEvent: View {
             Task { await loadEvents(forceRefresh: true) }
         }
     }
-    
+    }
     private func loadEvents(forceRefresh: Bool = false) async {
         if forceRefresh {
             isRefreshing = true
