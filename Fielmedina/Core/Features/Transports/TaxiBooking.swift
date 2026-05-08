@@ -15,7 +15,6 @@ struct TaxiBooking: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 HeroBanner(imageName: "booking-taxi", showText: false)
                     .frame(maxWidth: .infinity)
-                
                 VStack {
                     VStack(spacing: 16){
                         Image(systemName: "car.fill")

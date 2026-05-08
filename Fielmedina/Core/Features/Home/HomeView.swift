@@ -14,12 +14,14 @@ enum HomeNavigationDestination: Hashable {
     case allTips
     case publicTransports
     case taxiBooking
+    case allTopPicks
     case eventDetail(Event)
     case locationDetail(Location)
 }
 
 struct HomeView: View {
     @State private var showTaxiButton = false
+    @State private var showTopPicksButton = true
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
     @State private var refreshTrigger = 0
@@ -98,6 +100,10 @@ struct HomeView: View {
                                 taxiBookingIcon
                                     .transition(.move(edge: .trailing).combined(with: .opacity))
                             }
+                            if showTopPicksButton {
+                                topPicksIcon
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                            }
                         }
                         SettingsButton()
                     }
@@ -117,6 +123,8 @@ struct HomeView: View {
                     PublicTransports()
                 case .taxiBooking:
                     TaxiBooking()
+                case .allTopPicks:
+                    AllTopPicks()
                 case .eventDetail(let event):
                     EventDetailView(event: event)
                 case .locationDetail(let location):
@@ -155,6 +163,9 @@ struct HomeView: View {
                 if showTaxiButton {
                     taxiBookingButton
                 }
+                if showTopPicksButton {
+                    topPicksButton
+                }
             }
             
             HStack(spacing: 8) {
@@ -162,12 +173,18 @@ struct HomeView: View {
                 if showTaxiButton {
                     taxiBookingButton.scaleEffect(CGFloat(0.9), anchor: .center)
                 }
+                if showTopPicksButton {
+                    topPicksButton.scaleEffect(CGFloat(0.9), anchor: .center)
+                }
             }
             
             VStack(spacing: 8) {
                 publicTransportButton
                 if showTaxiButton {
                     taxiBookingButton
+                }
+                if showTopPicksButton {
+                    topPicksButton
                 }
             }
         }
@@ -230,6 +247,37 @@ struct HomeView: View {
                 .foregroundStyle(.black)
                 .frame(width: 32, height: 32)
                 .background(Color.yellow)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var topPicksButton: some View {
+        NavigationLink(value: HomeNavigationDestination.allTopPicks) {
+            HStack(spacing: 8) {
+                Image(systemName: "rosette")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Our Pick")
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .frame(height: 50)
+            .background(Color.accent)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.1), radius: 4)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var topPicksIcon: some View {
+        NavigationLink(value: HomeNavigationDestination.allTopPicks) {
+            Image(systemName: "rosette")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Color.accent)
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)
