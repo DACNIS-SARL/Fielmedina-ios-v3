@@ -143,17 +143,17 @@ final class OfflineContentPrefetcher {
         imageUrls.formUnion(await fetchTipImageUrls())
         imageUrls.formUnion(await fetchAdImageUrls())
         
-        let allUrls = Array(imageUrls).filter { !$0.isEmpty }
+        let imageUrlList = Array(imageUrls).filter { !$0.isEmpty }
         
-        if allUrls.isEmpty {
+        if imageUrlList.isEmpty {
             finalizePrefetch()
             return true
         }
         
-        // Phase 2: Force Image Prefetching
+        // Phase 2: Images + voiceovers (AAC) — voice files use disk cache for offline playback.
         let prefetcher = ImagePrefetcher()
         
-        for await progressUpdate in await prefetcher.prefetch(urls: allUrls) {
+        for await progressUpdate in await prefetcher.prefetch(urls: imageUrlList) {
             updateProgress(progressUpdate.fraction)
             let statusMsg = String(localized: "Downloading images (\(progressUpdate.completed)/\(progressUpdate.total))")
             updateStatus(.downloading(statusMsg))
@@ -282,8 +282,23 @@ final class OfflineContentPrefetcher {
             }
 
             let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
-            return extractUrls(from: locations.flatMap { $0.images ?? [] })
+            var urls = extractUrls(from: locations.flatMap { $0.images ?? [] })
+            urls.formUnion(Self.voiceoverRemoteURLs(from: locations))
+            return urls
         } catch { return [] }
+    }
+
+    private static func voiceoverRemoteURLs(from locations: [Location]) -> Set<String> {
+        var out = Set<String>()
+        for loc in locations {
+            if let e = loc.voiceoverEn?.trimmingCharacters(in: .whitespacesAndNewlines), !e.isEmpty {
+                out.insert(e)
+            }
+            if let f = loc.voiceoverFr?.trimmingCharacters(in: .whitespacesAndNewlines), !f.isEmpty {
+                out.insert(f)
+            }
+        }
+        return out
     }
 
     private func fetchEventImageUrls() async -> Set<String> {
@@ -410,14 +425,32 @@ actor ImagePrefetcher {
     }
     
     private func download(url urlString: String, attempt: Int = 1) async {
-        guard let url = URL(string: urlString) else { return }
-        
+        guard let remote = URL(string: urlString) else { return }
+
+        let path = remote.path.lowercased()
+        let isVoiceoverAsset =
+            path.contains("voiceover")
+            || path.hasSuffix(".aac")
+            || path.hasSuffix(".m4a")
+
+        if isVoiceoverAsset {
+            do {
+                try await VoiceoverDiskCache.downloadIfNeeded(remote: remote)
+            } catch {
+                if attempt < 3 {
+                    try? await Task.sleep(for: .seconds(Double(attempt) * 2))
+                    await download(url: urlString, attempt: attempt + 1)
+                }
+            }
+            return
+        }
+
         let request = URLRequest(
-            url: url,
+            url: remote,
             cachePolicy: .returnCacheDataElseLoad,
             timeoutInterval: 20
         )
-        
+
         do {
             _ = try await URLSession.shared.data(for: request)
         } catch {

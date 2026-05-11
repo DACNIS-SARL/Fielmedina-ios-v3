@@ -46,10 +46,23 @@ struct Location: Codable, Identifiable, Hashable {
     
     var voiceoverURL: String? {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
-        if isFrench, let voiceoverFr, !voiceoverFr.isEmpty {
-            return voiceoverFr
+        let en = voiceoverEn.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        let fr = voiceoverFr.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        if isFrench {
+            if let fr { return fr }
+            if let en { return en }
+            return nil
         }
-        return voiceoverEn
+        if let en { return en }
+        if let fr { return fr }
+        return nil
+    }
+    
+    /// True when the location has at least one non-empty voiceover asset (any language).
+    var hasVoiceover: Bool {
+        let en = voiceoverEn.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        let fr = voiceoverFr.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        return en != nil || fr != nil
     }
     
     var displayAdmission: String? {

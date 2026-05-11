@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import AVFoundation
-import NaturalLanguage
 import CoreLocation
 import MapboxNavigationCore
 import MapboxDirections
@@ -25,7 +23,7 @@ struct LocationDetailView: View {
     @State private var showNavigationErrorAlert = false
     @State private var navigationErrorMessage = ""
     @State private var showARUnavailableAlert = false
-    private let speechManager = LocationSpeechManager()
+    @State private var voiceoverPlayer = LocationVoiceoverPlayer()
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -58,6 +56,7 @@ struct LocationDetailView: View {
         }
         .onDisappear {
             locationManager.stopUpdatingLocation()
+            voiceoverPlayer.stop()
         }
         .fullScreenCover(isPresented: $isNavigationPresented) {
             NavigationCoverView(
@@ -157,20 +156,22 @@ struct LocationDetailView: View {
                     detailBadge(title: String(localized: "Admission Fee"), value: "\(admission) TND", systemImage: "dollarsign.circle")
                 }
                 Spacer(minLength: 0)
-                
-                Button {
-                    let htmlText = location.displayStory ?? ""
-                    let plainText = htmlText.decodedHTMLToPlainText
-                    speechManager.speak(text: plainText)
-                } label: {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 20, weight: .bold))
-                        .frame(width: 44, height: 44)
-                        .background(Color(red: 0.72, green: 0.41, blue: 0.25))
-                        .foregroundStyle(.white)
-                        .clipShape(Circle())
+
+                if location.hasVoiceover, let urlString = location.voiceoverURL {
+                    Button {
+                        FirebaseUtils.trackButtonTap(buttonName: "voiceover_listen_\(location.displayName)", screenName: "LocationDetailView")
+                        voiceoverPlayer.toggle(remoteURLString: urlString)
+                    } label: {
+                        Image(systemName: voiceoverPlayer.isPlaying ? "stop.fill" : "speaker.wave.2.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .frame(width: 44, height: 44)
+                            .background(Color(red: 0.72, green: 0.41, blue: 0.25))
+                            .foregroundStyle(.white)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(String(localized: "Listen to audio guide"))
                 }
-                .buttonStyle(.plain)
             }
             if let story = location.displayStory {
                 HTMLTextView(
@@ -352,95 +353,6 @@ private struct NavigationCoverView: View {
         .onChange(of: routes != nil) {
              // Routes changed, view will update automatically
         }
-    }
-}
-
-final class LocationSpeechManager {
-    private let synthesizer = AVSpeechSynthesizer()
-    
-    func speak(text: String) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        if synthesizer.isSpeaking {
-            synthesizer.stopSpeaking(at: .immediate)
-            return
-        }
-        
-        configureAudioSession()
-        let currentLangCode = Locale.current.language.languageCode?.identifier ?? "en"
-        let normalizedLang = normalizedLanguage(from: currentLangCode)
-        
-        let selectedVoice = preferredVoice(for: normalizedLang) ?? AVSpeechSynthesisVoice(language: normalizedLang)
-        let spokenText = sanitizedText(trimmed, language: normalizedLang, voice: selectedVoice)
-        let utterance = AVSpeechUtterance(string: spokenText)
-        utterance.voice = selectedVoice
-        utterance.rate = 0.44
-        utterance.pitchMultiplier = 1.0
-        utterance.volume = 1.0
-        
-        synthesizer.speak(utterance)
-    }
-    
-    private func configureAudioSession() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("Speech audio session error: \(error.localizedDescription)")
-        }
-    }
-    
-    private func preferredVoice(for language: String) -> AVSpeechSynthesisVoice? {
-        let prefix = String(language.prefix(2))
-        let candidates = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(prefix) }
-        for quality in [AVSpeechSynthesisVoiceQuality.premium, .enhanced, .default] {
-            if let voice = candidates.first(where: { $0.quality == quality }) {
-                return voice
-            }
-        }
-        return candidates.first
-    }
-    
-    private func normalizedLanguage(from detected: String) -> String {
-        let prefix = String(detected.prefix(2))
-        switch prefix {
-        case "fr":
-            return "fr-FR"
-        case "en":
-            return "en-US"
-        default:
-            return detected
-        }
-    }
-    
-    private func sanitizedText(_ text: String, language: String, voice: AVSpeechSynthesisVoice?) -> String {
-        let prefix = String(language.prefix(2))
-        guard prefix == "fr" else {
-            return text
-        }
-        let folded = text.folding(options: [.diacriticInsensitive, .widthInsensitive], locale: Locale(identifier: "fr"))
-        return folded
-            .replacingOccurrences(of: "œ", with: "oe")
-            .replacingOccurrences(of: "Œ", with: "OE")
-    }
-    
-    func stop() {
-        synthesizer.stopSpeaking(at: .immediate)
-    }
-}
-
-extension String {
-    var decodedHTMLToPlainText: String {
-        guard let data = self.data(using: .utf8) else { return self }
-        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
-            .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
-        ]
-        if let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
-            return attributedString.string
-        }
-        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
     }
 }
 

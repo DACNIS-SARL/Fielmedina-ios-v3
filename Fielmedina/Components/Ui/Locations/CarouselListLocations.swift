@@ -19,7 +19,6 @@ struct CarouselListLocations: View {
     @State private var isRefreshing = false
     @State private var isHorizontalRefreshing = false
     @State private var errorMessage: String?
-    @State private var currentCityId = CitySelectionStore.shared.cityId
     @Binding var refreshTrigger: Int
     
     init(
@@ -162,13 +161,6 @@ struct CarouselListLocations: View {
         .onChange(of: refreshTrigger) { _, _ in
             Task { await loadLocations(forceRefresh: true) }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .cityDidChange)) { notification in
-            guard let newCityId = notification.object as? Int32 else { return }
-            currentCityId = newCityId
-        }
-        .onChange(of: currentCityId) { _, _ in
-            Task { await loadLocations() }
-        }
     }
     
     private func loadLocations(forceRefresh: Bool = false) async {
@@ -183,16 +175,16 @@ struct CarouselListLocations: View {
         }
         
         do {
+            // Match Android home: global locations for "Top Attractions" (offline city id is for maps/prefetch only).
             let fetchedLocations = try await LocationService.shared.fetchLocations(
-                cityId: currentCityId,
+                cityId: nil,
                 limit: Int32(limit),
                 forceRefresh: forceRefresh
             )
             self.locations = fetchedLocations
+            errorMessage = nil
         } catch {
-            if !forceRefresh {
-                errorMessage = error.localizedDescription
-            }
+            errorMessage = error.localizedDescription
         }
     }
 }
