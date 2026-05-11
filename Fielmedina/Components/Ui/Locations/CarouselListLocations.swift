@@ -229,7 +229,9 @@ extension Location {
             storyEn: "A historic fortress built in the 8th century",
             storyFr: "Une forteresse historique construite au 8ème siècle",
             admissionFee: "8.00",
-            closedDays: nil
+            closedDays: nil,
+            voiceoverEn: nil,
+            voiceoverFr: nil
         ),
         Location(
             id: "2",
@@ -248,7 +250,9 @@ extension Location {
             storyEn: "One of the most important mosques in Tunisia",
             storyFr: "L'une des mosquées les plus importantes de Tunisie",
             admissionFee: "0",
-            closedDays: nil
+            closedDays: nil,
+            voiceoverEn: nil,
+            voiceoverFr: nil
         )
     ]
 }

@@ -157,7 +157,9 @@ private struct InfoChip: View {
             storyEn: nil,
             storyFr: nil,
             admissionFee: "8.00",
-            closedDays: nil
+            closedDays: nil,
+            voiceoverEn: nil,
+            voiceoverFr: nil
         )
     )
     .padding()

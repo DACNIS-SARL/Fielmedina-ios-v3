@@ -166,6 +166,8 @@ type LocationType {
   category: LocationCategoryType
   images: [ImageLocationType!]!
   closedDays: [WeekdayType!]!
+  voiceoverEn: String
+  voiceoverFr: String
 }
 
 type Mutation {

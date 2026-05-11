@@ -71,6 +71,8 @@ extension FielmedinaAPI {
         var longitude: FielmedinaAPI.Decimal { __data["longitude"] }
         var category: Category? { __data["category"] }
         var images: [Image] { __data["images"] }
+        var voiceoverEn: String? { __data["voiceoverEn"] }
+        var voiceoverFr: String? { __data["voiceoverFr"] }
 
         struct Fragments: FragmentContainer {
           let __data: DataDict

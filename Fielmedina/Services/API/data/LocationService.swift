@@ -45,7 +45,9 @@ class LocationService {
             storyEn: gLocation.storyEn,
             storyFr: gLocation.storyFr,
             admissionFee: gLocation.admissionFee,
-            closedDays: nil
+            closedDays: nil,
+            voiceoverEn: gLocation.voiceoverEn,
+            voiceoverFr: gLocation.voiceoverFr
         )
     }
     
@@ -142,7 +144,9 @@ class LocationService {
                 storyEn: gLocation.storyEn,
                 storyFr: gLocation.storyFr,
                 admissionFee: gLocation.admissionFee,
-                closedDays: nil
+                closedDays: nil,
+                voiceoverEn: gLocation.voiceoverEn,
+                voiceoverFr: gLocation.voiceoverFr
             )
         }
     }

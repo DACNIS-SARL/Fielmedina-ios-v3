@@ -7,7 +7,7 @@
 extension FielmedinaAPI {
   struct LocationSummary: FielmedinaAPI.SelectionSet, Fragment {
     static var fragmentDefinition: StaticString {
-      #"fragment LocationSummary on LocationType { __typename id nameEn nameFr latitude longitude category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } }"#
+      #"fragment LocationSummary on LocationType { __typename id nameEn nameFr latitude longitude category { __typename id nameEn nameFr } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } voiceoverEn voiceoverFr }"#
     }
 
     let __data: DataDict
@@ -23,6 +23,8 @@ extension FielmedinaAPI {
       .field("longitude", FielmedinaAPI.Decimal.self),
       .field("category", Category?.self),
       .field("images", [Image].self),
+      .field("voiceoverEn", String?.self),
+      .field("voiceoverFr", String?.self),
     ] }
     static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
       LocationSummary.self
@@ -35,6 +37,8 @@ extension FielmedinaAPI {
     var longitude: FielmedinaAPI.Decimal { __data["longitude"] }
     var category: Category? { __data["category"] }
     var images: [Image] { __data["images"] }
+    var voiceoverEn: String? { __data["voiceoverEn"] }
+    var voiceoverFr: String? { __data["voiceoverFr"] }
 
     /// Category
     ///

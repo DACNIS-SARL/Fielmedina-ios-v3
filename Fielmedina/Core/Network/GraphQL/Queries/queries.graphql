@@ -32,6 +32,8 @@ fragment LocationSummary on LocationType {
     image { ...ImageFields }
     imageMobile { ...ImageFields }
   }
+  voiceoverEn
+  voiceoverFr
 }
 
 # --- Queries ---

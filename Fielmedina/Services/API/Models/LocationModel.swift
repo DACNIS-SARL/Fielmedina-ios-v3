@@ -21,6 +21,8 @@ struct Location: Codable, Identifiable, Hashable {
     let storyFr: String?
     let admissionFee: String?
     let closedDays: [ClosedDay]?
+    let voiceoverEn: String?
+    let voiceoverFr: String?
     
     var displayName: String {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
@@ -40,6 +42,14 @@ struct Location: Codable, Identifiable, Hashable {
     
     var imageURL: String? {
         images?.first?.displayURL
+    }
+    
+    var voiceoverURL: String? {
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let voiceoverFr, !voiceoverFr.isEmpty {
+            return voiceoverFr
+        }
+        return voiceoverEn
     }
     
     var displayAdmission: String? {
