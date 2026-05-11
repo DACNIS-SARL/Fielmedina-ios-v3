@@ -22,32 +22,49 @@ enum VoiceoverDiskCache {
     private static func fileURL(forRemote remote: URL) -> URL {
         let digest = SHA256.hash(data: Data(remote.absoluteString.utf8))
         let hex = digest.map { String(format: "%02x", $0) }.joined()
-        return directoryURL.appendingPathComponent("\(hex).m4a")
+        // Use .aac to match the server format and Android implementation
+        return directoryURL.appendingPathComponent("\(hex).aac")
     }
 
     static func cachedFileURL(forRemote remote: URL) -> URL? {
         let local = fileURL(forRemote: remote)
-        return FileManager.default.fileExists(atPath: local.path) ? local : nil
+        let exists = FileManager.default.fileExists(atPath: local.path)
+        if exists {
+            print("🔊 [VoiceoverCache] Local file found: \(local.lastPathComponent)")
+        }
+        return exists ? local : nil
     }
 
     /// Writes the remote file to disk if missing. Safe to call from prefetch or background tasks.
     static func downloadIfNeeded(remote: URL) async throws {
         let destination = fileURL(forRemote: remote)
-        guard !FileManager.default.fileExists(atPath: destination.path) else { return }
+        guard !FileManager.default.fileExists(atPath: destination.path) else { 
+            print("🔊 [VoiceoverCache] Already cached: \(destination.lastPathComponent)")
+            return 
+        }
 
+        print("🔊 [VoiceoverCache] Downloading: \(remote.absoluteString)")
         var request = URLRequest(url: remote)
-        request.cachePolicy = .returnCacheDataElseLoad
-        request.timeoutInterval = 45
+        request.cachePolicy = .reloadIgnoringLocalCacheData // Ensure fresh download for prefetch
+        request.timeoutInterval = 60 // Increased timeout for slower connections
 
         let (data, response) = try await URLSession.shared.data(for: request)
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            print("❌ [VoiceoverCache] Download failed (\(http.statusCode)): \(remote.absoluteString)")
             throw URLError(.badServerResponse)
         }
         try data.write(to: destination, options: .atomic)
+        print("✅ [VoiceoverCache] Saved to disk: \(destination.lastPathComponent)")
     }
 
     /// URL to pass to `AVPlayer`: local copy when prefetched, otherwise the remote URL.
     static func playbackURL(forRemote remote: URL) -> URL {
-        cachedFileURL(forRemote: remote) ?? remote
+        if let local = cachedFileURL(forRemote: remote) {
+            print("🚀 [VoiceoverCache] Playing from OFFLINE CACHE")
+            return local
+        } else {
+            print("🌐 [VoiceoverCache] Playing from REMOTE STREAM")
+            return remote
+        }
     }
 }
