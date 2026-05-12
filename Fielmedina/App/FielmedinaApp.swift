@@ -77,7 +77,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        
+        UNUserNotificationCenter.current().setBadgeCount(0)
         let userInfo = response.notification.request.content.userInfo
         LogUtils.d("AppDelegate", "👆 Notification tapped: \(userInfo)")
         
@@ -123,7 +123,7 @@ extension Notification.Name {
 struct FielmedinaApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var locationManager = LocationManager()
-    
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
@@ -131,6 +131,11 @@ struct FielmedinaApp: App {
                 .onAppear {
                     locationManager.requestPermission()
                 }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                UNUserNotificationCenter.current().setBadgeCount(0)
+            }
         }
     }
 }

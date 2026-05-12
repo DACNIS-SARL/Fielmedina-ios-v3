@@ -14,25 +14,11 @@ class HikingService {
     private let apollo = Network.shared.apollo
 
     func fetchHikings(cityId: Int32? = nil, limit: Int32 = 20, offset: Int32? = nil) async throws -> [Hiking] {
-        var allTrails: [Hiking] = []
-        var currentOffset = offset ?? 0
-        let batchSize = max(limit, 50)
-
-        while true {
-            let page = try await fetchHikingsPage(
-                cityId: cityId,
-                limit: batchSize,
-                offset: currentOffset
-            )
-            allTrails.append(contentsOf: page)
-
-            if page.count < batchSize {
-                break
-            }
-            currentOffset += batchSize
-        }
-
-        return allTrails
+        return try await fetchHikingsPage(
+            cityId: cityId,
+            limit: limit,
+            offset: offset ?? 0
+        )
     }
 
     private func fetchHikingsPage(

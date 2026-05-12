@@ -134,10 +134,14 @@ struct HikingView: View {
         isLoading = true
         errorMessage = nil
         do {
-            trails = try await HikingService.shared.fetchHikings(cityId: nil, limit: 200)
+            // Use limit 200 to match the prefetcher cache query exactly.
+            let limit: Int32 = 200
+            trails = try await HikingService.shared.fetchHikings(cityId: nil, limit: limit)
+            LogUtils.d("HikingView", "Loaded \(trails.count) trails (limit: \(limit))")
             sortTrailsByDistanceIfPossible()
             await updateMetrics()
         } catch {
+            LogUtils.e("HikingView", "Failed to load trails: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false

@@ -268,20 +268,25 @@ struct AllLocationListView: View {
         errorMessage = nil
 
         do {
+            // We always use 500 for the initial load to ensure we hit the same cache key
+            // that the OfflineContentPrefetcher uses. 
+            let effectiveLimit: Int32 = locations.isEmpty ? 500 : (isConnected ? currentLimit : 500)
+            
             if forceRefresh && locations.isEmpty {
                  currentLimit = 50
                  hasMoreData = true
             }
+            
             let fetchedLocations = try await LocationService.shared.fetchLocations(
                 cityId: nil,
-                limit: currentLimit,
+                limit: effectiveLimit,
                 forceRefresh: forceRefresh
             )
             
-            if fetchedLocations.count < currentLimit {
+            if fetchedLocations.count < effectiveLimit {
                 hasMoreData = false
             } else {
-                hasMoreData = true
+                hasMoreData = isConnected // Only allow pagination when online
             }
             self.locations = fetchedLocations
             

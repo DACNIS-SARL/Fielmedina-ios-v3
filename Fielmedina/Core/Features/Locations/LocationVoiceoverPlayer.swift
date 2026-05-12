@@ -35,7 +35,9 @@ final class LocationVoiceoverPlayer {
             object: item,
             queue: .main
         ) { [weak self] _ in
-            self?.stop()
+            Task { @MainActor [weak self] in
+                self?.stop()
+            }
         }
 
         newPlayer.play()

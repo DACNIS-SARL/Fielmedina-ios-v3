@@ -65,40 +65,13 @@ class LocationService {
         offset: Int32? = nil,
         forceRefresh: Bool = false
     ) async throws -> [Location] {
-        if let offset {
-            return try await fetchLocationsPage(
-                cityId: cityId,
-                categoryId: categoryId,
-                limit: limit,
-                offset: offset,
-                forceRefresh: forceRefresh
-            )
-        }
-
-        var allLocations: [Location] = []
-        var currentOffset: Int32 = 0
-        let batchSize: Int32 = 50
-
-        while allLocations.count < limit {
-            let remaining = limit - Int32(allLocations.count)
-            let currentLimit = min(batchSize, remaining)
-            
-            let page = try await fetchLocationsPage(
-                cityId: cityId,
-                categoryId: categoryId,
-                limit: currentLimit,
-                offset: currentOffset,
-                forceRefresh: forceRefresh
-            )
-            allLocations.append(contentsOf: page)
-
-            if page.count < currentLimit {
-                break
-            }
-            currentOffset += Int32(page.count)
-        }
-
-        return allLocations
+        return try await fetchLocationsPage(
+            cityId: cityId,
+            categoryId: categoryId,
+            limit: limit,
+            offset: offset ?? 0,
+            forceRefresh: forceRefresh
+        )
     }
 
     private func fetchLocationsPage(

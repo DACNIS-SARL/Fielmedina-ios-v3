@@ -278,7 +278,7 @@ final class OfflineContentPrefetcher {
             // 2) Prefetch variants used by CarouselListLocations (limit:10)
             _ = try? await LocationService.shared.fetchLocations(cityId: nil, limit: 10)
             if let id = cityId {
-                _ = try? await LocationService.shared.fetchLocations(cityId: id, limit: 10)
+                _ = try? await LocationService.shared.fetchLocations(cityId: id, limit: 500)
             }
 
             let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
