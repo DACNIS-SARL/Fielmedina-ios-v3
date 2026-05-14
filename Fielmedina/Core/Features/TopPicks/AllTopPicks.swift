@@ -13,14 +13,13 @@ struct AllTopPicks: View {
     var body: some View {
         ScrollView(showsIndicators: false){
             LazyVStack(alignment: .leading, spacing: 0) {
-                HeroBanner(imageName: "booking-taxi", showText: false)
+                HeroBanner(imageName: "our-pick", showText: false)
                     .frame(maxWidth: .infinity)
                 VStack {
                     VStack(spacing: 16){
                         Image(systemName: "car.fill")
                             .font(.system(size: 60))
                             .foregroundColor(.yellow)
-                        
                         Text("Our Pick")
                             .font(.system(size: 24, weight: .bold))
                         
