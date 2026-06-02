@@ -42,6 +42,11 @@ extension FielmedinaAPI {
       case "ImageLocationType": return FielmedinaAPI.Objects.ImageLocationType
       case "LocationCategoryType": return FielmedinaAPI.Objects.LocationCategoryType
       case "LocationType": return FielmedinaAPI.Objects.LocationType
+      case "MerchantCategoryType": return FielmedinaAPI.Objects.MerchantCategoryType
+      case "MerchantImageType": return FielmedinaAPI.Objects.MerchantImageType
+      case "MerchantProductType": return FielmedinaAPI.Objects.MerchantProductType
+      case "MerchantRatingType": return FielmedinaAPI.Objects.MerchantRatingType
+      case "MerchantType": return FielmedinaAPI.Objects.MerchantType
       case "Mutation": return FielmedinaAPI.Objects.Mutation
       case "PublicTransportNodeType": return FielmedinaAPI.Objects.PublicTransportNodeType
       case "PublicTransportTimeType": return FielmedinaAPI.Objects.PublicTransportTimeType

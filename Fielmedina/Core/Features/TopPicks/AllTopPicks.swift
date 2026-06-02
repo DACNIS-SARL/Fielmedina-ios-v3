@@ -15,25 +15,10 @@ struct AllTopPicks: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 HeroBanner(imageName: "our-pick", showText: false)
                     .frame(maxWidth: .infinity)
-                VStack {
-                    VStack(spacing: 16){
-                        Image(systemName: "car.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.yellow)
-                        Text("Our Pick")
-                            .font(.system(size: 24, weight: .bold))
-                        
-                        Text("Coming soon!")
-                            .font(.system(size: 16))
-                            .foregroundColor(.secondary)
-                        
-                    }
+                VStack(spacing: 24) {
+                    CarouselListMerchants()
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .containerRelativeFrame(.vertical){
-                    size, axis in
-                    size - (verticalSizeClass == .compact ? 180.0 : 320.0)
-                }
+                .padding(.vertical, 20)
                 
             }
             .frame(maxWidth: .infinity)

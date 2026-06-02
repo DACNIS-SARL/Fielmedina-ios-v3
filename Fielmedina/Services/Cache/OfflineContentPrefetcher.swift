@@ -142,6 +142,7 @@ final class OfflineContentPrefetcher {
         imageUrls.formUnion(await fetchHikingImageUrls())
         imageUrls.formUnion(await fetchTipImageUrls())
         imageUrls.formUnion(await fetchAdImageUrls())
+        imageUrls.formUnion(await fetchMerchantImageUrls())
         
         let imageUrlList = Array(imageUrls).filter { !$0.isEmpty }
         
@@ -351,6 +352,18 @@ final class OfflineContentPrefetcher {
                     return ad.imageMobile?.url ?? ad.imageTablet?.url
                 }
             })
+        } catch { return [] }
+    }
+
+    private func fetchMerchantImageUrls() async -> Set<String> {
+        let cityId = CitySelectionStore.shared.cityId
+        do {
+            _ = try? await MerchantService.shared.fetchMerchants(cityId: nil, limit: 50)
+            if let id = cityId {
+                _ = try? await MerchantService.shared.fetchMerchants(cityId: id, limit: 50)
+            }
+            let merchants = try await MerchantService.shared.fetchMerchants(limit: 200)
+            return extractUrls(from: merchants.flatMap { $0.images ?? [] })
         } catch { return [] }
     }
 

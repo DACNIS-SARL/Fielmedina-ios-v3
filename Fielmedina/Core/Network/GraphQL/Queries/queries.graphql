@@ -245,3 +245,83 @@ query GetTransports($cityId: Int, $limit: Int, $offset: Int) {
     }
   }
 }
+
+# 9. Merchants List
+query GetMerchantsByCity($cityId: Int, $categoryId: Int, $limit: Int, $offset: Int) {
+  merchants(cityId: $cityId, categoryId: $categoryId, limit: $limit, offset: $offset) {
+    id
+    nameEn
+    nameFr
+    descriptionEn
+    descriptionFr
+    shortLink
+    latitude
+    longitude
+    priceRange
+    openFrom
+    openTo
+    isFeatured
+    addressEn
+    addressFr
+    phone
+    website
+    category {
+      id
+      nameEn
+      nameFr
+      icon
+    }
+    images {
+      image { ...ImageFields }
+      imageMobile { ...ImageFields }
+    }
+    city { ...CityFields }
+  }
+}
+
+# 10. Merchant Full Details
+query GetMerchantDetails($id: ID!) {
+  merchant(id: $id) {
+    id
+    nameEn
+    nameFr
+    descriptionEn
+    descriptionFr
+    shortLink
+    latitude
+    longitude
+    priceRange
+    openFrom
+    openTo
+    isFeatured
+    addressEn
+    addressFr
+    phone
+    website
+    category {
+      id
+      nameEn
+      nameFr
+      icon
+    }
+    images {
+      image { ...ImageFields }
+      imageMobile { ...ImageFields }
+    }
+    products {
+      id
+      nameEn
+      nameFr
+      price
+      image
+    }
+    ratings {
+      id
+      stars
+      reviewerName
+      comment
+      createdAt
+    }
+    city { ...CityFields }
+  }
+}
