@@ -130,7 +130,7 @@ struct MerchantDetailView: View {
             
             HStack(spacing: 16) {
                 if let openFrom = merchant.openFrom, let openTo = merchant.openTo {
-                    detailBadge(title: String(localized: "Opening Hours"), value: "\(openFrom) - \(openTo)", systemImage: "clock")
+                    detailBadge(title: String(localized: "Opening Hours"), value: "\(formatTime(openFrom)) - \(formatTime(openTo))", systemImage: "clock")
                 }
                 if let priceRange = merchant.priceRange, !priceRange.isEmpty {
                     detailBadge(title: String(localized: "Price Range"), value: priceRange, systemImage: "dollarsign.circle")
@@ -148,23 +148,41 @@ struct MerchantDetailView: View {
                 }
             }
             
-            if let phone = merchant.phone {
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "phone.fill")
+            HStack(spacing: 12) {
+                if let phone = merchant.phone, let url = URL(string: "tel://\(phone.replacingOccurrences(of: " ", with: ""))") {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "phone.fill")
+                            Text("Call")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
                         .foregroundStyle(Color(red: 0.72, green: 0.41, blue: 0.25))
-                    Text(phone)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .clipShape(Capsule())
+                    }
                 }
-            }
-            
-            if let website = merchant.website {
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "globe")
+                
+                if let shortLink = merchant.shortLink, let url = URL(string: shortLink) {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "globe")
+                            Text("Website")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
                         .foregroundStyle(Color(red: 0.72, green: 0.41, blue: 0.25))
-                    Text(website)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .clipShape(Capsule())
+                    }
                 }
             }
             
@@ -237,6 +255,14 @@ struct MerchantDetailView: View {
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
+    }
+
+    private func formatTime(_ timeString: String) -> String {
+        let parts = timeString.split(separator: ":")
+        if parts.count >= 2 {
+            return "\(parts[0]):\(parts[1])"
+        }
+        return timeString
     }
 
     private func startNavigation() {
