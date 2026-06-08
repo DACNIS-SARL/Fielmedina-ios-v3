@@ -105,7 +105,9 @@ struct CarouselListMerchants: View {
                             }
                             
                             ForEach(displayedMerchants) { merchant in
-                                NavigationLink(value: merchant) {
+                                NavigationLink {
+                                    MerchantDetailView(merchant: merchant)
+                                } label: {
                                     MerchantCardView(merchant: merchant)
                                 }
                             }
