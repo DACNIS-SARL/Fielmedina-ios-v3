@@ -11,7 +11,11 @@ import MapboxNavigationCore
 import MapboxDirections
 
 struct MerchantDetailView: View {
-    let merchant: Merchant
+    @State private var merchant: Merchant
+    
+    init(merchant: Merchant) {
+        self._merchant = State(initialValue: merchant)
+    }
     
     @State private var selectedImageIndex: Int? = 0
     @State private var locationManager = LocationManager()
@@ -51,6 +55,14 @@ struct MerchantDetailView: View {
         .task {
             locationManager.requestPermission()
             locationManager.startUpdatingLocation()
+            do {
+                let fullMerchant = try await MerchantService.shared.fetchMerchant(id: merchant.id)
+                await MainActor.run {
+                    self.merchant = fullMerchant
+                }
+            } catch {
+                print("Failed to fetch merchant details: \(error)")
+            }
         }
         .onDisappear {
             locationManager.stopUpdatingLocation()
@@ -113,7 +125,9 @@ struct MerchantDetailView: View {
                 .buttonStyle(.plain)
             }
             
-            imageCarousel
+            if (merchant.images?.count ?? 0) > 1 {
+                imageCarousel
+            }
             
             AdsCarousel()
             
@@ -182,6 +196,36 @@ struct MerchantDetailView: View {
                         .background(Color(.systemGray6))
                         .foregroundStyle(Color(red: 0.72, green: 0.41, blue: 0.25))
                         .clipShape(Capsule())
+                    }
+                }
+            }
+            
+            if let products = merchant.products, !products.isEmpty {
+                Divider()
+                    .padding(.vertical, 8)
+                
+                Text(String(localized: "Products & Services"))
+                    .font(.title3.weight(.bold))
+                
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+                    ForEach(products) { product in
+                        VStack(alignment: .leading, spacing: 8) {
+                            FielmedinaImage(url: product.image, contentMode: .fill)
+                                .frame(height: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            
+                            Text(product.displayName)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .lineLimit(2)
+                            
+                            if let price = product.price {
+                                Text("\(price, specifier: "%.2f") TND")
+                                    .font(.footnote)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(red: 0.72, green: 0.41, blue: 0.25))
+                            }
+                        }
                     }
                 }
             }
