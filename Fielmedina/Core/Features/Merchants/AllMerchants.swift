@@ -8,7 +8,7 @@
 import SwiftUI
 import CoreLocation
 
-struct AllTopPicks: View {
+struct AllMerchants: View {
     @State private var merchants: [Merchant] = []
     @State private var locationManager = LocationManager()
     @State private var selectedCategory: String = String(localized: "All Picks")
@@ -169,7 +169,7 @@ struct AllTopPicks: View {
                                 .simultaneousGesture(TapGesture().onEnded {
                                     FirebaseUtils.trackButtonTap(
                                         buttonName: "merchant_item",
-                                        screenName: "AllTopPicks"
+                                        screenName: "AllMerchants"
                                     )
                                 })
                             }
@@ -294,7 +294,7 @@ struct MerchantCategoryFilterView: View {
                         
                         FirebaseUtils.trackButtonTap(
                             buttonName: "filter_\(category)",
-                            screenName: "AllTopPicks"
+                            screenName: "AllMerchants"
                         )
                     } label: {
                         HStack {
@@ -330,5 +330,5 @@ struct MerchantCategoryFilterView: View {
 }
 
 #Preview {
-    AllTopPicks()
+    AllMerchants()
 }

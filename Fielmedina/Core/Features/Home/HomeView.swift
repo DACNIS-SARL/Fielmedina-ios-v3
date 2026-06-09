@@ -124,7 +124,7 @@ struct HomeView: View {
                 case .taxiBooking:
                     TaxiBooking()
                 case .allTopPicks:
-                    AllTopPicks()
+                    AllMerchants()
                 case .eventDetail(let event):
                     EventDetailView(event: event)
                 case .locationDetail(let location):
