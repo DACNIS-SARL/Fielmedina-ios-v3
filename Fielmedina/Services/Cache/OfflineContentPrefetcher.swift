@@ -358,13 +358,19 @@ final class OfflineContentPrefetcher {
     private func fetchMerchantImageUrls() async -> Set<String> {
         let cityId = CitySelectionStore.shared.cityId
         do {
-            // 1) Prefetch list query variants (same as other features)
+            // 1) Prefetch exact query variants used by AllMerchants list (limit:50)
             _ = try? await MerchantService.shared.fetchMerchants(cityId: nil, limit: 50)
             if let id = cityId {
                 _ = try? await MerchantService.shared.fetchMerchants(cityId: id, limit: 50)
             }
             
-            // 2) Fetch all merchants for image extraction
+            // 2) Prefetch exact query variants used by CarouselListMerchants (limit:10)
+            _ = try? await MerchantService.shared.fetchMerchants(cityId: nil, limit: 10)
+            if let id = cityId {
+                _ = try? await MerchantService.shared.fetchMerchants(cityId: id, limit: 10)
+            }
+            
+            // 3) Fetch all merchants for image extraction
             let merchants = try await MerchantService.shared.fetchMerchants(limit: 200)
             var urls = extractUrls(from: merchants.flatMap { $0.images ?? [] })
             

@@ -73,7 +73,7 @@ struct AllMerchants: View {
                         .frame(maxWidth: .infinity)
                     
                     CarouselListMerchants(
-                        title: "Loved by our clients",
+                        title: "Top Picks Right Now",
                         isFeaturedOnly: true,
                         refreshTrigger: $carouselRefreshTrigger
                     )
