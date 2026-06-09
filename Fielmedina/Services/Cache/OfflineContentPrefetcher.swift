@@ -358,12 +358,57 @@ final class OfflineContentPrefetcher {
     private func fetchMerchantImageUrls() async -> Set<String> {
         let cityId = CitySelectionStore.shared.cityId
         do {
+            // 1) Prefetch list query variants (same as other features)
             _ = try? await MerchantService.shared.fetchMerchants(cityId: nil, limit: 50)
             if let id = cityId {
                 _ = try? await MerchantService.shared.fetchMerchants(cityId: id, limit: 50)
             }
+            
+            // 2) Fetch all merchants for image extraction
             let merchants = try await MerchantService.shared.fetchMerchants(limit: 200)
-            return extractUrls(from: merchants.flatMap { $0.images ?? [] })
+            var urls = extractUrls(from: merchants.flatMap { $0.images ?? [] })
+            
+            // 3) Prefetch individual merchant details (populates Apollo cache with products/ratings)
+            //    This ensures MerchantDetailView works fully offline.
+            var productImageUrls = Set<String>()
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            await withTaskGroup(of: Set<String>.self) { group in
+                for merchant in merchants {
+                    group.addTask {
+                        do {
+                            let detail = try await MerchantService.shared.fetchMerchant(id: merchant.id)
+                            // Collect product image URLs
+                            var pUrls = Set<String>()
+                            if let products = detail.products {
+                                for product in products {
+                                    if let imageUrl = product.image, !imageUrl.isEmpty {
+                                        pUrls.insert(imageUrl)
+                                    }
+                                }
+                            }
+                            // Collect detail-level carousel images
+                            pUrls.formUnion(
+                                Set((detail.images ?? []).compactMap { container in
+                                    if isPad {
+                                        return container.image?.url ?? container.imageMobile?.url
+                                    } else {
+                                        return container.imageMobile?.url ?? container.image?.url
+                                    }
+                                })
+                            )
+                            return pUrls
+                        } catch {
+                            return []
+                        }
+                    }
+                }
+                for await result in group {
+                    productImageUrls.formUnion(result)
+                }
+            }
+            
+            urls.formUnion(productImageUrls)
+            return urls
         } catch { return [] }
     }
 
