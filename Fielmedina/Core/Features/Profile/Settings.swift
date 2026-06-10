@@ -24,12 +24,7 @@ struct SettingsView: View {
         case failed(String)
     }
     
-    private let offlineCities: [OfflineCity] = [
-        OfflineCity(id: "sousse_medina", name: "Sousse Medina", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448), radius: 2000, cityId: 15),
-        OfflineCity(id: "monastir_medina", name: "Monastir Medina", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262), radius: 2000, cityId: 18),
-        OfflineCity(id: "tunis_medina", name: "Tunis Medina", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706), radius: 2500, cityId: 14),
-        // OfflineCity(id: "zaghouan_south", name: "Zaghouan South", coordinate: CLLocationCoordinate2D(latitude: 36.33297, longitude: 10.22389), radius: 5000, cityId: 142)
-    ]
+    @State private var offlineCities: [OfflineCity] = []
     
     @State private var regionStatus: [String: OfflineRegionStatus] = [:]
     @State private var isLoadingRegions = true
@@ -66,6 +61,7 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .task {
+            await fetchOfflineCities()
             await loadExistingRegions()
             OfflineContentPrefetcher.shared.prefetchIfNeeded()
             offlineStatus = OfflineContentPrefetcher.shared.status
@@ -235,6 +231,30 @@ struct SettingsView: View {
                 }
             }
             isLoadingRegions = false
+        }
+    }
+    
+    private func fetchOfflineCities() async {
+        do {
+            let query = FielmedinaAPI.GetOfflineCitiesQuery(isActive: .some(true))
+            let data = try await Network.shared.apollo.fetchNetworkAware(query: query)
+            let fetchedCities = data.offlineCities.compactMap { city -> OfflineCity? in
+                guard let lat = Double(city.latitude),
+                      let lon = Double(city.longitude),
+                      let cityIdStr = city.city?.id, let cityId = Int32(cityIdStr) else {
+                    return nil
+                }
+                return OfflineCity(
+                    id: city.regionId,
+                    name: city.name,
+                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                    radius: city.radius,
+                    cityId: cityId
+                )
+            }
+            self.offlineCities = fetchedCities
+        } catch {
+            print("Error fetching offline cities: \(error)")
         }
     }
 }

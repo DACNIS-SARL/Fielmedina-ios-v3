@@ -1,0 +1,13 @@
+query GetOfflineCities($isActive: Boolean) {
+  offlineCities(isActive: $isActive) {
+    id
+    regionId
+    name
+    latitude
+    longitude
+    radius
+    city {
+      id
+    }
+  }
+}

@@ -48,6 +48,7 @@ extension FielmedinaAPI {
       case "MerchantRatingType": return FielmedinaAPI.Objects.MerchantRatingType
       case "MerchantType": return FielmedinaAPI.Objects.MerchantType
       case "Mutation": return FielmedinaAPI.Objects.Mutation
+      case "OfflineCityType": return FielmedinaAPI.Objects.OfflineCityType
       case "PublicTransportNodeType": return FielmedinaAPI.Objects.PublicTransportNodeType
       case "PublicTransportTimeType": return FielmedinaAPI.Objects.PublicTransportTimeType
       case "PublicTransportTypeType": return FielmedinaAPI.Objects.PublicTransportTypeType
