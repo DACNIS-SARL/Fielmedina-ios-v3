@@ -130,12 +130,27 @@ struct FielmedinaApp: App {
             MainNavigationView().environment(locationManager)
                 .onAppear {
                     locationManager.requestPermission()
+                    checkAndHandleAppUpdate()
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 UNUserNotificationCenter.current().setBadgeCount(0)
             }
+        }
+    }
+
+    private func checkAndHandleAppUpdate() {
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        let currentVersionFull = "\(currentVersion).\(currentBuild)"
+
+        let storedVersion = UserDefaults.standard.string(forKey: "last_known_app_version") ?? ""
+
+        if storedVersion != currentVersionFull {
+            // App was updated or first launch — reset prefetch so new content gets downloaded
+            OfflineContentPrefetcher.shared.markNeedsRefresh()
+            UserDefaults.standard.set(currentVersionFull, forKey: "last_known_app_version")
         }
     }
 }
