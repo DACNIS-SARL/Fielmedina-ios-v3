@@ -60,6 +60,10 @@ struct SettingsView: View {
         .navigationTitle(String(localized: "Offline Maps"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
+        .refreshable {
+            await fetchOfflineCities()
+            await loadExistingRegions()
+        }
         .task {
             await fetchOfflineCities()
             await loadExistingRegions()
