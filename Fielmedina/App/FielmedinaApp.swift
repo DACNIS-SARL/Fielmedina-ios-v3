@@ -148,7 +148,6 @@ struct FielmedinaApp: App {
         let storedVersion = UserDefaults.standard.string(forKey: "last_known_app_version") ?? ""
 
         if storedVersion != currentVersionFull {
-            // App was updated or first launch — reset prefetch so new content gets downloaded
             OfflineContentPrefetcher.shared.markNeedsRefresh()
             UserDefaults.standard.set(currentVersionFull, forKey: "last_known_app_version")
         }
