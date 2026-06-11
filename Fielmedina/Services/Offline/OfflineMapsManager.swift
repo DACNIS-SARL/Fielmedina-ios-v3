@@ -24,15 +24,17 @@ final class OfflineMapsManager {
     
     private let offlineManager = OfflineManager()
     private var tileStore: TileStore {
-        TileStore.default
+        OfflineTileStore.shared
     }
     
     // Track active downloads: RegionId -> Progress (0.0...1.0)
     private(set) var activeDownloads: [String: Double] = [:]
     
-    private init() {
-        tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
-    }
+    private init() { }
+    
+//    private init() {
+//        tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
+//    }
     
     func downloadRegion(
         id: String,

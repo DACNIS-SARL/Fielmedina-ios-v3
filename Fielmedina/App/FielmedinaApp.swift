@@ -39,6 +39,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         LogConfiguration.setLoggingLevelForUpTo(NSNumber(value: LoggingLevel.error.rawValue))
 
         CacheConfigurator.configureURLCache()
+        OfflineTileStore.configure()
         
         _ = MapboxNavigationProviderStore.shared
         
