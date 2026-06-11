@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct CarouselListLocations: View {
     let title: LocalizedStringKey
@@ -138,8 +139,8 @@ struct CarouselListLocations: View {
                     if newValue < -threshold && !isRefreshing && !isHorizontalRefreshing {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         isHorizontalRefreshing = true
-                        Task { 
-                            await loadLocations(forceRefresh: true) 
+                        Task {
+                            await loadLocations(forceRefresh: true)
                             isHorizontalRefreshing = false
                         }
                     }
@@ -161,6 +162,11 @@ struct CarouselListLocations: View {
         .onChange(of: refreshTrigger) { _, _ in
             Task { await loadLocations(forceRefresh: true) }
         }
+        // Re-sort when the user location becomes available (mirrors Android's
+        // remember(userLocation) recomputation). LocationManager is observable.
+        .onChange(of: LocationManager.shared.userLocation?.latitude) { _, _ in
+            self.locations = sortByDistance(self.locations, user: LocationManager.shared.userLocation)
+        }
     }
     
     private func loadLocations(forceRefresh: Bool = false) async {
@@ -169,23 +175,42 @@ struct CarouselListLocations: View {
         } else {
             isLoading = true
         }
-        defer { 
+        defer {
             isLoading = false
             isRefreshing = false
         }
         
         do {
-            // Match Android home: global locations for "Top Attractions" (offline city id is for maps/prefetch only).
+            // Match Android home: fetch a large pool of locations and pick the closest
+            // `limit` to the user. Android sorts the full map location set, not a
+            // server-truncated list, so fetching only `limit` here would never let us
+            // surface the nearest places.
             let fetchedLocations = try await LocationService.shared.fetchLocations(
                 cityId: nil,
-                limit: Int32(limit),
+                limit: 500,
                 forceRefresh: forceRefresh
             )
-            self.locations = fetchedLocations
+            self.locations = sortByDistance(fetchedLocations, user: LocationManager.shared.userLocation)
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    /// Mirrors Android `sortLocationsByDistance`: when no user location is available
+    /// the server order is kept; (0,0) coordinates are pushed to the end.
+    private func sortByDistance(_ locations: [Location],
+                                user: CLLocationCoordinate2D?) -> [Location] {
+        guard let user else { return locations }
+        let origin = CLLocation(latitude: user.latitude, longitude: user.longitude)
+        return locations.sorted { distance($0, from: origin) < distance($1, from: origin) }
+    }
+    
+    private func distance(_ location: Location, from origin: CLLocation) -> CLLocationDistance {
+        if location.latitude == 0 && location.longitude == 0 {
+            return .greatestFiniteMagnitude
+        }
+        return CLLocation(latitude: location.latitude, longitude: location.longitude).distance(from: origin)
     }
 }
 

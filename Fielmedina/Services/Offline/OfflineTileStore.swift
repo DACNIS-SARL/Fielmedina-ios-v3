@@ -5,22 +5,27 @@
 //  Created by Aslan on 11/6/2026.
 //
 
+import Foundation
 import MapboxCommon
 import MapboxMaps
 
 enum OfflineTileStore {
-    static let shared: TileStore = {
-        let store = TileStore.default
-        store.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
-        return store
+    private static let tilesURL: URL = {
+        let base = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let url = base.appendingPathComponent("mapbox-tiles", isDirectory: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
     }()
 
-    /// Call ONCE at launch, before any MapView, navigation provider,
-    /// or OfflineManager is created.
+    /// Resolved AFTER configure() sets dataPath, so TileStore.default points here.
+    static var shared: TileStore {
+        TileStore.default
+    }
+
+    /// MUST be the first Mapbox-related call at launch.
     static func configure() {
-        // Bind the Maps SDK (and therefore Nav, which shares it) to our store.
-        MapboxMapsOptions.tileStore = shared
-        MapboxMapsOptions.tileStoreUsageMode = .readAndUpdate
+        MapboxMapsOptions.dataPath = tilesURL
     }
 }
 
