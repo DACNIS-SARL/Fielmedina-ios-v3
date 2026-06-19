@@ -156,7 +156,7 @@ final class OfflineContentPrefetcher {
         
         for await progressUpdate in await prefetcher.prefetch(urls: imageUrlList) {
             updateProgress(progressUpdate.fraction)
-            let statusMsg = String(localized: "Downloading images (\(progressUpdate.completed)/\(progressUpdate.total))")
+            let statusMsg = String(localized: "Downloading data (\(progressUpdate.completed)/\(progressUpdate.total))")
             updateStatus(.downloading(statusMsg))
         }
         
