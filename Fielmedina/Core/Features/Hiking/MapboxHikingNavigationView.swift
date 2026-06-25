@@ -233,7 +233,12 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
     }
 
     class Coordinator: NSObject, NavigationViewControllerDelegate {
-        private static let imageCache = NSCache<NSString, UIImage>()
+        private static let imageCache: NSCache<NSString, UIImage> = {
+            let cache = NSCache<NSString, UIImage>()
+            cache.countLimit = 100 // Maximum 100 images in memory
+            cache.totalCostLimit = 50 * 1024 * 1024 // Maximum 50 MB in memory
+            return cache
+        }()
         let parent: MapboxHikingNavigationView
         var annotationManager: PointAnnotationManager?
         private var waypointImages: [String: UIImage] = [:]
@@ -316,7 +321,8 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
 
                 if let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)),
                    let cachedImage = UIImage(data: cachedResponse.data) {
-                    Self.imageCache.setObject(cachedImage, forKey: urlString as NSString)
+                    let cost = Int(cachedImage.size.width * cachedImage.size.height * 4)
+                    Self.imageCache.setObject(cachedImage, forKey: urlString as NSString, cost: cost)
                     waypointImages[annotationId] = cachedImage
                     if let annotationManager {
                         let image = parent.createRoundedWaypointImage(
@@ -338,7 +344,8 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
                     do {
                         let (data, _) = try await URLSession.shared.data(from: url)
                         guard let downloaded = UIImage(data: data) else { return }
-                        Self.imageCache.setObject(downloaded, forKey: urlString as NSString)
+                        let cost = Int(downloaded.size.width * downloaded.size.height * 4)
+                        Self.imageCache.setObject(downloaded, forKey: urlString as NSString, cost: cost)
 
                         guard let self else { return }
                         self.waypointImages[annotationId] = downloaded
@@ -382,7 +389,8 @@ struct MapboxHikingNavigationView: UIViewControllerRepresentable {
             guard let url = URL(string: urlString) else { return nil }
             guard let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)),
                   let cachedImage = UIImage(data: cachedResponse.data) else { return nil }
-            Self.imageCache.setObject(cachedImage, forKey: urlString as NSString)
+            let cost = Int(cachedImage.size.width * cachedImage.size.height * 4)
+            Self.imageCache.setObject(cachedImage, forKey: urlString as NSString, cost: cost)
             return cachedImage
         }
     }
