@@ -330,10 +330,12 @@ struct MerchantDetailView: View {
 
         let destination = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let cityId = OfflineCityDataStore.shared.getCityId(for: destination)
-        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
-            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
-            showDownloadRequiredAlert = true
-            return
+        if !NetworkMonitor.shared.isConnected {
+            if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+                missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+                showDownloadRequiredAlert = true
+                return
+            }
         }
 
         isNavigationLoading = true

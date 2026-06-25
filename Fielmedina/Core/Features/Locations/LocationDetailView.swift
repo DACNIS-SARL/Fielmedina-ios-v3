@@ -262,10 +262,12 @@ struct LocationDetailView: View {
         print("Fielmedina Debug: resolved cityId = \(cityId)")
         print("Fielmedina Debug: downloadedCityIds = \(OfflineCityDataStore.shared.downloadedCityIds)")
         print("Fielmedina Debug: cachedCities = \(OfflineCityDataStore.shared.cachedCities)")
-        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
-            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
-            showDownloadRequiredAlert = true
-            return
+        if !NetworkMonitor.shared.isConnected {
+            if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+                missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+                showDownloadRequiredAlert = true
+                return
+            }
         }
 
         isNavigationLoading = true

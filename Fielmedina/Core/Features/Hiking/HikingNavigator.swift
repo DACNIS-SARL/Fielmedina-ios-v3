@@ -202,10 +202,12 @@ struct HikingNavigator: View {
     private func startNavigationFromCurrentWaypoint() {
         let firstCoord = CLLocationCoordinate2D(latitude: hikingRoute.waypoints.first?.latitude ?? 0.0, longitude: hikingRoute.waypoints.first?.longitude ?? 0.0)
         let cityId = OfflineCityDataStore.shared.getCityId(for: firstCoord)
-        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
-            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
-            showDownloadRequiredAlert = true
-            return
+        if !NetworkMonitor.shared.isConnected {
+            if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+                missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+                showDownloadRequiredAlert = true
+                return
+            }
         }
 
         loadNavigationProgress()
