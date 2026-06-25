@@ -24,6 +24,8 @@ struct LocationDetailView: View {
     @State private var navigationErrorMessage = ""
     @State private var showARUnavailableAlert = false
     @State private var voiceoverPlayer = LocationVoiceoverPlayer()
+    @State private var showDownloadRequiredAlert = false
+    @State private var missingCityName = ""
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -91,6 +93,11 @@ struct LocationDetailView: View {
             Button(String(localized: "OK"), role: .cancel) { }
         } message: {
             Text(String(localized: "This location has no AR experience yet."))
+        }
+        .alert(String(localized: "Offline Map Required"), isPresented: $showDownloadRequiredAlert) {
+            Button(String(localized: "OK"), role: .cancel) { }
+        } message: {
+            Text(String(format: String(localized: "You need to download the offline map for %@ Medina under Settings before starting navigation."), missingCityName))
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "location_detail_\(location.displayName)", screenClass: "LocationDetailView")
@@ -249,12 +256,22 @@ struct LocationDetailView: View {
             return
         }
 
-        // 1. Show loader immediately
+        let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+        let cityId = OfflineCityDataStore.shared.getCityId(for: destination)
+        print("Fielmedina Debug: destination = \(destination.latitude), \(destination.longitude)")
+        print("Fielmedina Debug: resolved cityId = \(cityId)")
+        print("Fielmedina Debug: downloadedCityIds = \(OfflineCityDataStore.shared.downloadedCityIds)")
+        print("Fielmedina Debug: cachedCities = \(OfflineCityDataStore.shared.cachedCities)")
+        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+            showDownloadRequiredAlert = true
+            return
+        }
+
         isNavigationLoading = true
         isNavigationPresented = true
 
         let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-        let destination = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
         let options = NavigationRouteOptions(coordinates: [origin, destination])
         options.profileIdentifier = .walking
 

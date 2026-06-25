@@ -1440,6 +1440,26 @@
           }
         }
       }
+    },
+    "Offline Map Required" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte hors ligne requise"
+          }
+        }
+      }
+    },
+    "You need to download the offline map for %@ Medina under Settings before starting navigation." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous devez télécharger la carte hors ligne pour la médina de %@ dans les paramètres avant de démarrer la navigation."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

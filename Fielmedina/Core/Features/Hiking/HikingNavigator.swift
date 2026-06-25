@@ -41,6 +41,8 @@ struct HikingNavigator: View {
     // UI State
     @State private var selectedWaypoint: TrailWaypoint?
     @State private var isAnimating = false
+    @State private var showDownloadRequiredAlert = false
+    @State private var missingCityName = ""
     
     @Environment(\.dismiss) private var dismiss
     
@@ -89,6 +91,11 @@ struct HikingNavigator: View {
             HikingLocationSheet(waypoint: waypoint)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+        }
+        .alert(String(localized: "Offline Map Required"), isPresented: $showDownloadRequiredAlert) {
+            Button("OK", role: .cancel) { dismiss() }
+        } message: {
+            Text(String(format: String(localized: "You need to download the offline map for %@ Medina under Settings before starting navigation."), missingCityName))
         }
     }
     
@@ -193,17 +200,20 @@ struct HikingNavigator: View {
     // MARK: - Logic
     
     private func startNavigationFromCurrentWaypoint() {
+        let firstCoord = CLLocationCoordinate2D(latitude: hikingRoute.waypoints.first?.latitude ?? 0.0, longitude: hikingRoute.waypoints.first?.longitude ?? 0.0)
+        let cityId = OfflineCityDataStore.shared.getCityId(for: firstCoord)
+        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+            showDownloadRequiredAlert = true
+            return
+        }
+
         loadNavigationProgress()
         
         if canResume {
-            // For simplicity, we can just ask or start fresh?
-            // User code showed an alert. For this "modern" version, let's just resume if possible, or maybe just start fresh for MVP stability.
-            // Let's implement auto-resume logic or start fresh if finished.
             if completedWaypoints.count == hikingRoute.waypoints.count {
                 startFreshNavigation()
             } else {
-                // Determine start index.
-                // If we are resuming, we should ideally start from the last user location or the last completed waypoint.
                 calculateHikingRoute()
             }
         } else {

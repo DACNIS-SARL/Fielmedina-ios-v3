@@ -26,6 +26,8 @@ struct MerchantDetailView: View {
     @State private var showLocationAlert = false
     @State private var showNavigationErrorAlert = false
     @State private var navigationErrorMessage = ""
+    @State private var showDownloadRequiredAlert = false
+    @State private var missingCityName = ""
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -95,6 +97,11 @@ struct MerchantDetailView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(navigationErrorMessage)
+        }
+        .alert(String(localized: "Offline Map Required"), isPresented: $showDownloadRequiredAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(String(format: String(localized: "You need to download the offline map for %@ Medina under Settings before starting navigation."), missingCityName))
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "merchant_detail_\(merchant.displayName)", screenClass: "MerchantDetailView")
@@ -321,12 +328,18 @@ struct MerchantDetailView: View {
             return
         }
 
-        // 1. Show loader immediately
+        let destination = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        let cityId = OfflineCityDataStore.shared.getCityId(for: destination)
+        if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
+            missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
+            showDownloadRequiredAlert = true
+            return
+        }
+
         isNavigationLoading = true
         isNavigationPresented = true
 
         let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-        let destination = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let options = NavigationRouteOptions(coordinates: [origin, destination])
         options.profileIdentifier = .walking
 

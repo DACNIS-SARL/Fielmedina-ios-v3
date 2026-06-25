@@ -257,6 +257,17 @@ struct SettingsView: View {
                 )
             }
             self.offlineCities = fetchedCities
+            let cached = fetchedCities.map {
+                OfflineCityDataStore.CachedCity(
+                    id: $0.id,
+                    cityId: $0.cityId,
+                    name: $0.name,
+                    latitude: $0.coordinate.latitude,
+                    longitude: $0.coordinate.longitude,
+                    radius: $0.radius
+                )
+            }
+            OfflineCityDataStore.shared.updateCitiesCache(cities: cached)
         } catch {
             print("Error fetching offline cities: \(error)")
         }
