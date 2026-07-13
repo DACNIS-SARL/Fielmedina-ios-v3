@@ -6,13 +6,35 @@
 import CryptoKit
 import Foundation
 
-/// Persists remote voiceover AAC files under Caches so `AVPlayer` can play offline after prefetch.
+/// Persists remote voiceover AAC files under Application Support so `AVPlayer` can play
+/// offline after prefetch. Application Support is never purged by iOS under storage pressure.
 enum VoiceoverDiskCache {
     private static let subdirectory = "Voiceovers"
 
+    /// One-time move of files from the old purgeable Caches/Voiceovers location.
+    private static let legacyMigration: Void = {
+        let fileManager = FileManager.default
+        guard let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
+        let legacyDir = caches.appendingPathComponent(subdirectory, isDirectory: true)
+        guard fileManager.fileExists(atPath: legacyDir.path) else { return }
+
+        let newDir = CacheConfigurator.offlineDataDirectoryURL()
+            .appendingPathComponent(subdirectory, isDirectory: true)
+        if !fileManager.fileExists(atPath: newDir.path) {
+            try? fileManager.createDirectory(at: newDir, withIntermediateDirectories: true)
+        }
+        if let files = try? fileManager.contentsOfDirectory(at: legacyDir, includingPropertiesForKeys: nil) {
+            for file in files {
+                try? fileManager.moveItem(at: file, to: newDir.appendingPathComponent(file.lastPathComponent))
+            }
+        }
+        try? fileManager.removeItem(at: legacyDir)
+    }()
+
     private static var directoryURL: URL {
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let dir = base.appendingPathComponent(subdirectory, isDirectory: true)
+        _ = legacyMigration
+        let dir = CacheConfigurator.offlineDataDirectoryURL()
+            .appendingPathComponent(subdirectory, isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         }

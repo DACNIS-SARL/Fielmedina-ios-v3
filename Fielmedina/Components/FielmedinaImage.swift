@@ -81,11 +81,20 @@ struct FielmedinaImage: View {
             return
         }
 
+        // Durable fallback: survives iOS purging the Caches directory.
+        if let diskData = MediaDiskCache.cachedData(forRemote: url),
+           let diskImage = UIImage(data: diskData) {
+            uiImage = diskImage
+            isLoading = false
+            return
+        }
+
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             if let image = UIImage(data: data) {
                 let cachedResponse = CachedURLResponse(response: response, data: data)
                 URLCache.shared.storeCachedResponse(cachedResponse, for: request)
+                MediaDiskCache.store(data, forRemote: url)
                 uiImage = image
             } else {
                 uiImage = nil

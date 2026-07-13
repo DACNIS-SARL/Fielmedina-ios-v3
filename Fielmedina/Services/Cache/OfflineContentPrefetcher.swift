@@ -17,6 +17,10 @@ final class OfflineContentPrefetcher {
     private let completionKey = "offline_prefetch_completed"
     private let statusKey = "offline_prefetch_status"
     private let progressKey = "offline_prefetch_progress"
+    private let lastPrefetchDateKey = "offline_prefetch_last_date"
+    // New content is published daily, so refresh the offline snapshot once a day.
+    // Already-downloaded images and voiceovers are skipped, so only deltas are fetched.
+    private let staleRefreshInterval: TimeInterval = 24 * 60 * 60
     private var isRunning = false
     private var isObservingLocation = false
     private var retryTask: Task<Void, Never>?
@@ -103,7 +107,22 @@ final class OfflineContentPrefetcher {
         Task { await self.prefetchEventCategories() }
         Task { await self.prefetchLocationCategories() }
 
-        guard !isRunning, !isComplete else { return }
+        // The completion flag lives in UserDefaults and survives iOS purging the
+        // Caches directory, so verify the data actually still exists on disk.
+        // Consume the flag unconditionally: on a fresh install it is also set, and
+        // must not linger past the first prefetch or it would trigger a re-download.
+        let graphQLCacheWasRecreated = CacheConfigurator.consumeGraphQLCacheFreshFlag()
+        if isComplete && (graphQLCacheWasRecreated || offlineDataIsMissing()) {
+            markNeedsRefresh()
+        }
+
+        guard !isRunning else { return }
+
+        if isComplete {
+            refreshStaleDataIfNeeded()
+            return
+        }
+
         isRunning = true
         updateProgress(0)
 
@@ -116,7 +135,38 @@ final class OfflineContentPrefetcher {
         }
     }
 
+    /// Detects the case where iOS evicted the offline data while the app was unused:
+    /// the "prefetch completed" flag survives in UserDefaults, but the GraphQL store is gone.
+    private func offlineDataIsMissing() -> Bool {
+        !FileManager.default.fileExists(atPath: CacheConfigurator.graphQLCacheFileURL.path)
+    }
+
+    /// Silently re-runs the prefetch when the last one is older than `staleRefreshInterval`,
+    /// so content added to the backend since then becomes available offline too. The
+    /// completion flag stays true, so existing offline data keeps serving meanwhile.
+    private func refreshStaleDataIfNeeded() {
+        guard NetworkMonitor.shared.isConnected else { return }
+
+        guard let lastPrefetch = UserDefaults.standard.object(forKey: lastPrefetchDateKey) as? Date else {
+            // Older app versions never stored the date; stamp now to start the clock.
+            UserDefaults.standard.set(Date(), forKey: lastPrefetchDateKey)
+            return
+        }
+        guard Date().timeIntervalSince(lastPrefetch) > staleRefreshInterval else { return }
+
+        isRunning = true
+        Task {
+            _ = await runPrefetch()
+            isRunning = false
+        }
+    }
+
     private func runPrefetch() async -> Bool {
+        guard NetworkMonitor.shared.isConnected else {
+            updateStatus(.failed(String(localized: "No internet connection")))
+            return false
+        }
+
         updateStatus(.downloading(String(localized: "Initializing...")))
         _ = await resolveCityIdIfPossible()
 
@@ -147,8 +197,11 @@ final class OfflineContentPrefetcher {
         let imageUrlList = Array(imageUrls).filter { !$0.isEmpty }
         
         if imageUrlList.isEmpty {
-            finalizePrefetch()
-            return true
+            // Real content always yields image URLs, so an empty list means the
+            // metadata fetches failed (server unreachable, connection dropped mid-run).
+            // Don't mark complete with nothing cached — fail and let the retry handle it.
+            updateStatus(.failed(String(localized: "Download failed")))
+            return false
         }
         
         // Phase 2: Images + voiceovers (AAC) — voice files use disk cache for offline playback.
@@ -166,6 +219,7 @@ final class OfflineContentPrefetcher {
     
     private func finalizePrefetch() {
         UserDefaults.standard.set(true, forKey: completionKey)
+        UserDefaults.standard.set(Date(), forKey: lastPrefetchDateKey)
         updateStatus(.completed)
         updateProgress(1)
         NotificationCenter.default.post(name: .offlinePrefetchCompleted, object: nil)
@@ -509,6 +563,9 @@ actor ImagePrefetcher {
             return
         }
 
+        // Already persisted durably — nothing to do.
+        if MediaDiskCache.hasCachedData(forRemote: remote) { return }
+
         let request = URLRequest(
             url: remote,
             cachePolicy: .returnCacheDataElseLoad,
@@ -516,7 +573,8 @@ actor ImagePrefetcher {
         )
 
         do {
-            _ = try await URLSession.shared.data(for: request)
+            let (data, _) = try await URLSession.shared.data(for: request)
+            MediaDiskCache.store(data, forRemote: remote)
         } catch {
             if attempt < 3 {
                 try? await Task.sleep(for: .seconds(Double(attempt) * 2))
