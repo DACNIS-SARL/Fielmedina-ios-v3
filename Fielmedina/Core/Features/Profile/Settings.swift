@@ -206,6 +206,12 @@ struct SettingsView: View {
             case .success:
                 regionStatus[city.id] = .downloaded
                 OfflineCityDataStore.shared.markCityDataDownloaded(cityId: city.cityId, regionId: city.id)
+                OfflineMapsManager.recordRegionGeometry(
+                    regionId: city.id,
+                    latitude: city.coordinate.latitude,
+                    longitude: city.coordinate.longitude,
+                    radius: city.radius
+                )
                 OfflineContentPrefetcher.shared.prefetchForCity(city.cityId)
             case .failure(let error):
                 regionStatus[city.id] = .failed(error.localizedDescription)

@@ -47,9 +47,7 @@ class FirebaseUtils {
             if let token = token {
                 LogUtils.d(TAG, "FCM Token retrieved successfully")
                 saveTokenLocally(token)
-                
-                Crashlytics.crashlytics().setCustomValue(token, forKey: "fcm_token")
-                
+
                 // Sync with backend
                 Task {
                     await SyncService.shared.registerDevice(token: token)
@@ -404,25 +402,6 @@ class FirebaseUtils {
         subscribeToTopic("test_topic")
     }
     
-    static func printCurrentFCMToken() {
-        LogUtils.d(TAG, "Retrieving current FCM token...")
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                LogUtils.e(TAG, "Error getting current FCM token: \(error.localizedDescription)")
-                print("❌ Error getting FCM token: \(error.localizedDescription)")
-                return
-            }
-            
-            if let token = token {
-                LogUtils.d(TAG, "Current FCM Token: \(token)")
-                print("🔥 Current FCM Token: \(token)")
-            } else {
-                LogUtils.w(TAG, "No FCM token available")
-                print("⚠️ No FCM token available")
-            }
-        }
-    }
-    
     static func testRemoteConfig() {
         LogUtils.d(TAG, "Testing Remote Config functionality...")
         fetchAndActivateRemoteConfig()
@@ -443,9 +422,7 @@ class FCMDelegate: NSObject, MessagingDelegate {
         LogUtils.d(FirebaseUtils.TAG, "FCM registration token refreshed")
         
         if let token = fcmToken {
-            LogUtils.d(FirebaseUtils.TAG, "FCM Token (refreshed): \(token)")
             FirebaseUtils.saveTokenLocally(token)
-            Crashlytics.crashlytics().setCustomValue(token, forKey: "fcm_token")
             
             // Now that we have a token, it's safe to subscribe to topics
             FirebaseUtils.subscribeToDefaultTopics()

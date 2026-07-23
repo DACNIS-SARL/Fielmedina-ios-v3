@@ -41,9 +41,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         LogConfiguration.setLoggingLevelForUpTo(NSNumber(value: LoggingLevel.error.rawValue))
 
         CacheConfigurator.configureURLCache()
-        
-        _ = MapboxNavigationProviderStore.shared
-        
+
+        // Resolve the routing-tiles version BEFORE creating the navigation provider:
+        // the provider pins the version at creation, and without one the on-device
+        // router cannot initialize offline (RoutingTilesConfig NoVersionFound).
+        Task { @MainActor in
+            await OfflineMapsManager.resolveNavigationTilesVersionIfNeeded()
+            _ = MapboxNavigationProviderStore.shared
+        }
+
         return true
     }
     
@@ -81,7 +87,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         UNUserNotificationCenter.current().setBadgeCount(0)
         let userInfo = response.notification.request.content.userInfo
-        LogUtils.d("AppDelegate", "👆 Notification tapped: \(userInfo)")
+        LogUtils.d("AppDelegate", "👆 Notification tapped")
         
        
         FirebaseUtils.trackFeatureUsage(featureName: "notification_tapped",
@@ -89,7 +95,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         
         FirebaseUtils.logFCMEvent(event: "notification_tapped",
-                                  details: "data: \(userInfo)")
+                                  details: "notification_id: \(userInfo["notification_id"] ?? "unknown")")
         
         // Handle deep linking or navigation based on notification data
         // Expecting a payload like { "screen": "map" } or { "target_screen": "hiking" }

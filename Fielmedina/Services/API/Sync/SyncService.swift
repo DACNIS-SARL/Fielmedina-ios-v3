@@ -45,7 +45,7 @@ actor SyncService {
             let newUUID = UUID()
             KeychainStore.set(newUUID.uuidString, forKey: DEVICE_UUID_KEY)
             cachedUUID = newUUID
-            LogUtils.d("SyncService", "Generated fresh secure device UUID: \(newUUID.uuidString)")
+            LogUtils.d("SyncService", "Generated fresh secure device UUID")
             return newUUID
         }
     }
@@ -64,7 +64,7 @@ actor SyncService {
         // 2. Token is same as last registered
         // 3. We ALREADY successfully registered this specific token in this app session
         if !force && lastToken == token && hasAttemptedRegistrationThisSession {
-            LogUtils.d("SyncService", "Token \(token.prefix(5))... already verified this session. Skipping.")
+            LogUtils.d("SyncService", "Token already verified this session. Skipping.")
             return
         }
         
@@ -84,7 +84,7 @@ actor SyncService {
             // Detect device language matched against app supported localizations (e.g. "en", "fr")
             let deviceLanguage = Bundle.main.preferredLocalizations.first ?? "en"
             
-            LogUtils.d("SyncService", "🚀 Registering LATEST token [ID: \(uuid.suffix(5))]: \(token.prefix(10))... (lang=\(deviceLanguage))")
+            LogUtils.d("SyncService", "🚀 Registering latest FCM token (lang=\(deviceLanguage))")
             
             let mutation = FielmedinaAPI.RegisterFcmDeviceMutation(
                 registrationId: token,

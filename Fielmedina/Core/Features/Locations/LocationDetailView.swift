@@ -288,7 +288,7 @@ struct LocationDetailView: View {
                 }
             } catch {
                 await MainActor.run {
-                    navigationErrorMessage = error.localizedDescription
+                    navigationErrorMessage = OfflineNavigationDiagnostics.failureMessage(for: error)
                     showNavigationErrorAlert = true
                     isNavigationLoading = false
                     isNavigationPresented = false // Dismiss loader on error

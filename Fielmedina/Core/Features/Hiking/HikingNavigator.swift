@@ -338,7 +338,7 @@ struct HikingNavigator: View {
                 LogUtils.e("HikingNavigator", "Error calculating route", error)
                 await MainActor.run {
                     isCalculatingRoute = false
-                    errorMessage = "Navigation failed. If you are offline, please ensure you have downloaded the maps for this area.\n\nError: \(error.localizedDescription)"
+                    errorMessage = OfflineNavigationDiagnostics.failureMessage(for: error)
                 }
             }
         }
