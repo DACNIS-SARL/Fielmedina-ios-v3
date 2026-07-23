@@ -278,8 +278,13 @@ final class OfflineMapsManager {
     /// first session already has a pinned tiles version — otherwise the router of a
     /// fresh install can't route offline until the second launch.
     static func resolveNavigationTilesVersionIfNeeded() async {
-        guard NavigationTilesVersionStore.stored == nil,
-              NetworkMonitor.shared.isConnected else { return }
+        guard NavigationTilesVersionStore.stored == nil else { return }
+        // NWPathMonitor needs a moment to report connectivity on cold launch —
+        // wait briefly instead of misreading the race as "offline".
+        for _ in 0..<10 where !NetworkMonitor.shared.isConnected {
+            try? await Task.sleep(for: .milliseconds(300))
+        }
+        guard NetworkMonitor.shared.isConnected else { return }
         _ = await fetchLatestNavigationTilesVersion()
     }
 

@@ -43,11 +43,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         CacheConfigurator.configureURLCache()
 
         // Resolve the routing-tiles version BEFORE creating the navigation provider:
-        // the provider pins the version at creation, and without one the on-device
-        // router cannot initialize offline (RoutingTilesConfig NoVersionFound).
+        // the provider pins the version at creation (a Mapbox singleton that cannot
+        // be reconfigured), and without one the on-device router cannot initialize
+        // offline (RoutingTilesConfig NoVersionFound). If no version is available
+        // yet, leave the provider uncreated — it will be built lazily on first
+        // navigation, by which time the region download has stored the version.
         Task { @MainActor in
             await OfflineMapsManager.resolveNavigationTilesVersionIfNeeded()
-            _ = MapboxNavigationProviderStore.shared
+            if NavigationTilesVersionStore.stored != nil {
+                _ = MapboxNavigationProviderStore.shared
+            }
         }
 
         return true
