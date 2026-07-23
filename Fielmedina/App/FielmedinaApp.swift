@@ -138,6 +138,9 @@ struct FielmedinaApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 UNUserNotificationCenter.current().setBadgeCount(0)
+                // Keep offline map regions pinned to a routing-tiles version the
+                // navigator can use; otherwise offline navigation breaks over time.
+                OfflineMapsManager.shared.refreshDownloadedRegionsIfNeeded()
             }
         }
     }

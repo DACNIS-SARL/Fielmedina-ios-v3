@@ -29,18 +29,22 @@ final class OfflineMapsManager {
     
     // Track active downloads: RegionId -> Progress (0.0...1.0)
     private(set) var activeDownloads: [String: Double] = [:]
-    
+
+    private static let lastRegionRefreshKey = "offline_maps_last_region_refresh"
+    private static let regionRefreshInterval: TimeInterval = 7 * 24 * 60 * 60
+
     private init() { }
-    
+
 //    private init() {
 //        tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
 //    }
-    
+
     func downloadRegion(
         id: String,
         name: String,
         coordinate: CLLocationCoordinate2D,
         radius: CLLocationDistance,
+        silent: Bool = false,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -53,8 +57,51 @@ final class OfflineMapsManager {
                     id: id,
                     coordinate: coordinate,
                     radius: radius,
+                    silent: silent,
                     progress: progress,
                     completion: completion
+                )
+            }
+        }
+    }
+
+    /// Re-downloads every existing tile region (incremental — only changed resources are
+    /// fetched) so the offline navigation tiles stay pinned to a routing-tiles version the
+    /// navigator can still use. Without this, the navigator's "latest" version drifts ahead
+    /// of the downloaded region over time and offline routing eventually fails until the
+    /// user manually deletes and re-downloads the map.
+    func refreshDownloadedRegionsIfNeeded() {
+        guard NetworkMonitor.shared.isConnected else { return }
+
+        let defaults = UserDefaults.standard
+        if let last = defaults.object(forKey: Self.lastRegionRefreshKey) as? Date,
+           Date().timeIntervalSince(last) < Self.regionRefreshInterval {
+            return
+        }
+
+        fetchDownloadedRegionIds { [weak self] regionIds in
+            guard let self else { return }
+            defaults.set(Date(), forKey: Self.lastRegionRefreshKey)
+            guard !regionIds.isEmpty else { return }
+
+            let store = OfflineCityDataStore.shared
+            let cities = store.cachedCities
+            for regionId in regionIds {
+                guard self.activeDownloads[regionId] == nil else { continue }
+                let mappedCityId = store.cityId(for: regionId)
+                // Regions downloaded by older app versions may miss the regionId→cityId
+                // mapping; fall back to matching the region id against the city id.
+                guard let city = cities.first(where: { $0.cityId == mappedCityId })
+                        ?? cities.first(where: { $0.id == regionId }) else { continue }
+
+                self.downloadRegion(
+                    id: regionId,
+                    name: city.name,
+                    coordinate: CLLocationCoordinate2D(latitude: city.latitude, longitude: city.longitude),
+                    radius: city.radius,
+                    silent: true,
+                    progress: { _ in },
+                    completion: { _ in }
                 )
             }
         }
@@ -137,6 +184,7 @@ final class OfflineMapsManager {
         id: String,
         coordinate: CLLocationCoordinate2D,
         radius: CLLocationDistance,
+        silent: Bool = false,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -171,8 +219,10 @@ final class OfflineMapsManager {
             return
         }
         
-        activeDownloads[id] = 0.01
-        
+        if !silent {
+            activeDownloads[id] = 0.01
+        }
+
         tileStore.loadTileRegion(
             forId: id,
             loadOptions: tileRegionLoadOptions
@@ -181,25 +231,33 @@ final class OfflineMapsManager {
                 let completed = Double(tileProgress.completedResourceCount)
                 let required = max(Double(tileProgress.requiredResourceCount), 1)
                 let currentProgress = 0.15 + (min(completed / required, 1) * 0.85)
-                
-                self?.activeDownloads[id] = currentProgress
+
                 progress(currentProgress)
-                
-                NotificationCenter.default.post(
-                    name: .tileRegionProgressChanged,
-                    object: nil,
-                    userInfo: ["id": id, "progress": currentProgress]
-                )
+
+                if !silent {
+                    self?.activeDownloads[id] = currentProgress
+                    NotificationCenter.default.post(
+                        name: .tileRegionProgressChanged,
+                        object: nil,
+                        userInfo: ["id": id, "progress": currentProgress]
+                    )
+                }
             }
         } completion: { [weak self] result in
             DispatchQueue.main.async {
-                self?.activeDownloads.removeValue(forKey: id)
+                if !silent {
+                    self?.activeDownloads.removeValue(forKey: id)
+                }
                 switch result {
                 case .success:
-                    NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
+                    if !silent {
+                        NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
+                    }
                     completion(.success(()))
                 case .failure(let error):
-                    NotificationCenter.default.post(name: .tileRegionFailed, object: nil, userInfo: ["id": id, "error": error.localizedDescription])
+                    if !silent {
+                        NotificationCenter.default.post(name: .tileRegionFailed, object: nil, userInfo: ["id": id, "error": error.localizedDescription])
+                    }
                     completion(.failure(error))
                 }
             }
