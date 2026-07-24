@@ -131,40 +131,44 @@ struct GlobalSearchOverlay: View {
     /// opening the overlay looks like that field lifting up to the top.
     private var header: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Search places, events, picks", text: $model.query)
-                    .focused($focused)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                if !model.query.isEmpty {
-                    Button {
-                        model.query = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 14)
-            .glassSearchField()
-            .matchedGeometryEffect(id: fieldID, in: namespace)
+            searchField
+                .glassSearchField()
+                .matchedGeometryEffect(id: fieldID, in: namespace)
 
             Button {
                 dismiss()
             } label: {
                 Text("Cancel")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(Color.white)
             }
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search places, events, picks", text: $model.query)
+                .focused($focused)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+            if !model.query.isEmpty {
+                Button {
+                    model.query = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
     }
 
     private var resultsCard: some View {
