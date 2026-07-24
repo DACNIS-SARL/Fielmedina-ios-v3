@@ -29,6 +29,9 @@ struct HomeView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @State private var showOnboarding = false
     @State private var showSearch = false
+    @Namespace private var searchNamespace
+
+    private static let searchFieldID = "homeSearchField"
 
     
     private let buttonStickyThreshold: CGFloat = 180
@@ -52,9 +55,15 @@ struct HomeView: View {
                     
                     // Main Content
                     VStack(spacing: 32) {
-                        homeSearchBar
-                            .padding(.horizontal, 16)
-                            .padding(.top, 20)
+                        // While the overlay is open the field is "lifted" to the top:
+                        // we remove the in-place bar entirely (its slot collapses) and
+                        // let the matched-geometry transition move it up.
+                        if !showSearch {
+                            homeSearchBar
+                                .matchedGeometryEffect(id: Self.searchFieldID, in: searchNamespace)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 20)
+                        }
 
                         CarouselListLocations(
                             title: "Top Attractions",
@@ -116,6 +125,9 @@ struct HomeView: View {
                 }
             }
             .toolbarBackground(areButtonsSticky ? .visible : .hidden, for: .navigationBar)
+            // Hide the nav-bar (settings gear / sticky buttons) while searching so it
+            // doesn't sit on top of the overlay's Cancel button and steal taps.
+            .toolbar(showSearch ? .hidden : .automatic, for: .navigationBar)
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
                 case .allLocations:
@@ -142,10 +154,13 @@ struct HomeView: View {
         }
         .overlay {
             if showSearch {
-                GlobalSearchOverlay(isPresented: $showSearch) { result in
+                GlobalSearchOverlay(
+                    isPresented: $showSearch,
+                    namespace: searchNamespace,
+                    fieldID: Self.searchFieldID
+                ) { result in
                     handleSearchSelection(result)
                 }
-                .transition(.opacity)
             }
         }
         .overlay {
@@ -174,25 +189,20 @@ struct HomeView: View {
     /// Tappable (non-editable) bar that opens the global search overlay.
     private var homeSearchBar: some View {
         Button {
-            withAnimation(.easeOut(duration: 0.18)) { showSearch = true }
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.85)) { showSearch = true }
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 Text("Search places, events, picks")
                     .foregroundStyle(.secondary)
-                Spacer()
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(Color(.systemGray4), lineWidth: 1)
-                    )
-            )
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .glassSearchField()
         }
         .buttonStyle(.plain)
     }

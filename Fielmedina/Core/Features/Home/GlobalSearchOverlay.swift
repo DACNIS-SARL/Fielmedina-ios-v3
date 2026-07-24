@@ -93,6 +93,8 @@ final class GlobalSearchModel: ObservableObject {
 
 struct GlobalSearchOverlay: View {
     @Binding var isPresented: Bool
+    var namespace: Namespace.ID
+    var fieldID: String
     var onSelect: (GlobalSearchResult) -> Void
 
     @StateObject private var model = GlobalSearchModel()
@@ -103,6 +105,7 @@ struct GlobalSearchOverlay: View {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture { dismiss() }
+                .transition(.opacity)
 
             VStack(spacing: 0) {
                 header
@@ -111,6 +114,7 @@ struct GlobalSearchOverlay: View {
                     resultsCard
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
+                        .transition(.opacity)
                 }
 
                 Spacer(minLength: 0)
@@ -122,8 +126,9 @@ struct GlobalSearchOverlay: View {
         }
     }
 
-    /// Solid top bar so the search field sits cleanly above the dimmed content
-    /// (and covers the nav-bar gear behind it).
+    /// The glassy search field floats over the dimmed content (no solid bar).
+    /// The pill shares a matched-geometry id with Home's in-place field, so
+    /// opening the overlay looks like that field lifting up to the top.
     private var header: some View {
         HStack(spacing: 12) {
             HStack(spacing: 8) {
@@ -144,22 +149,22 @@ struct GlobalSearchOverlay: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Capsule().fill(Color(.secondarySystemBackground)))
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .glassSearchField()
+            .matchedGeometryEffect(id: fieldID, in: namespace)
 
             Button {
                 dismiss()
             } label: {
                 Text("Cancel")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
             }
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(.regularMaterial, ignoresSafeAreaEdges: .top)
     }
 
     private var resultsCard: some View {
@@ -178,6 +183,7 @@ struct GlobalSearchOverlay: View {
                     LazyVStack(spacing: 0) {
                         ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
                             Button {
+                                focused = false
                                 onSelect(result)
                                 isPresented = false
                             } label: {
@@ -233,6 +239,23 @@ struct GlobalSearchOverlay: View {
 
     private func dismiss() {
         focused = false
-        withAnimation(.easeOut(duration: 0.15)) { isPresented = false }
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.85)) { isPresented = false }
+    }
+}
+
+extension View {
+    /// Rounded, glassy search-field background. Uses the iOS 26 Liquid Glass
+    /// effect where available and falls back to an ultra-thin material capsule.
+    @ViewBuilder
+    func glassSearchField() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular.interactive(), in: .capsule)
+        } else {
+            self
+                .background(.ultraThinMaterial, in: Capsule())
+                .overlay(
+                    Capsule().strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
+                )
+        }
     }
 }

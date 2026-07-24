@@ -41,7 +41,7 @@ struct AllLocationListView: View {
     }
 
     private var cityOptions: [FilterMenuOption] {
-        [FilterMenuOption(id: nil, label: String(localized: "All Cities"))]
+        [FilterMenuOption(id: nil, label: String(localized: "All Regions"))]
             + availableCities.map { FilterMenuOption(id: $0.id, label: $0.displayName) }
     }
 
@@ -105,7 +105,7 @@ struct AllLocationListView: View {
                     HStack(spacing: 8) {
                         InlineFilterChip(
                             icon: "mappin.and.ellipse",
-                            title: "Cities",
+                            title: "Regions",
                             options: cityOptions,
                             selectedId: selectedCityId
                         ) { selectedCityId = $0 }
