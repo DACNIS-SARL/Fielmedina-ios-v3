@@ -14,6 +14,7 @@ struct Location: Codable, Identifiable, Hashable {
     let latitude: Double
     let longitude: Double
     let category: LocationCategory?
+    let city: LocationCity?
     let images: [ImageContainer]?
     let openFrom: String?
     let openTo: String?
@@ -107,4 +108,18 @@ struct Location: Codable, Identifiable, Hashable {
 
 struct ClosedDay: Codable, Hashable {
     let day: String
+}
+
+struct LocationCity: Codable, Identifiable, Hashable {
+    let id: String
+    let nameEn: String?
+    let nameFr: String?
+
+    var displayName: String {
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        if isFrench, let nameFr, !nameFr.isEmpty {
+            return nameFr
+        }
+        return nameEn ?? ""
+    }
 }

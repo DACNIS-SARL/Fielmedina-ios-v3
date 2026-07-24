@@ -34,6 +34,9 @@ class LocationService {
                     nameFr: cat.nameFr
                 )
             },
+            city: gLocation.city.map { city in
+                LocationCity(id: city.id, nameEn: city.nameEn, nameFr: city.nameFr)
+            },
             images: gLocation.images.map { img in
                 ImageContainer(
                     image: ImageField(url: img.image.url),
@@ -105,6 +108,9 @@ class LocationService {
                         nameEn: cat.nameEn,
                         nameFr: cat.nameFr
                     )
+                },
+                city: gLocation.city.map { city in
+                    LocationCity(id: city.id, nameEn: city.nameEn, nameFr: city.nameFr)
                 },
                 images: gLocation.images.map { img in
                     ImageContainer(

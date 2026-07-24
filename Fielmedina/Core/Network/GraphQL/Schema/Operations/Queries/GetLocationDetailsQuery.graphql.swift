@@ -10,7 +10,7 @@ extension FielmedinaAPI {
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
         #"query GetLocationDetails($id: ID!) { location(id: $id) { __typename ...LocationSummary storyEn storyFr admissionFee openFrom openTo closedDays { __typename day } } }"#,
-        fragments: [ImageFields.self, LocationSummary.self]
+        fragments: [CityFields.self, ImageFields.self, LocationSummary.self]
       ))
 
     public var id: ID
@@ -70,6 +70,7 @@ extension FielmedinaAPI {
         var latitude: FielmedinaAPI.Decimal { __data["latitude"] }
         var longitude: FielmedinaAPI.Decimal { __data["longitude"] }
         var category: Category? { __data["category"] }
+        var city: City? { __data["city"] }
         var images: [Image] { __data["images"] }
         var voiceoverEn: String? { __data["voiceoverEn"] }
         var voiceoverFr: String? { __data["voiceoverFr"] }
@@ -101,6 +102,8 @@ extension FielmedinaAPI {
         }
 
         typealias Category = LocationSummary.Category
+
+        typealias City = LocationSummary.City
 
         typealias Image = LocationSummary.Image
       }

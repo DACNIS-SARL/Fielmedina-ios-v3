@@ -28,6 +28,7 @@ fragment LocationSummary on LocationType {
     nameEn
     nameFr
   }
+  city { ...CityFields }
   images {
     image { ...ImageFields }
     imageMobile { ...ImageFields }

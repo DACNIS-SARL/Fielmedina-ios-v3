@@ -151,6 +151,7 @@ private struct InfoChip: View {
                 nameEn: "Historical Site",
                 nameFr: "Site Historique"
             ),
+            city: nil,
             images: nil,
             openFrom: "09:00",
             openTo: "16:00",

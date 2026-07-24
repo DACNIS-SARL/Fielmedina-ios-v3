@@ -22,6 +22,7 @@ struct AllLocationListView: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var searchText: String = ""
+    @State private var selectedCityId: String? = nil
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
@@ -29,6 +30,20 @@ struct AllLocationListView: View {
 
     private var isSearching: Bool {
         !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    /// Distinct cities present in the loaded locations, so the filter only offers
+    /// cities that actually have content. Client-side, so it works offline.
+    private var availableCities: [LocationCity] {
+        var seen = Set<String>()
+        var result: [LocationCity] = []
+        for location in locations {
+            if let city = location.city, !seen.contains(city.id) {
+                seen.insert(city.id)
+                result.append(city)
+            }
+        }
+        return result.sorted { $0.displayName < $1.displayName }
     }
 
     private var emptyStateTitle: String {
@@ -50,6 +65,9 @@ struct AllLocationListView: View {
 
     var filteredLocations: [Location] {
         var result = locations
+        if let cityId = selectedCityId {
+            result = result.filter { $0.city?.id == cityId }
+        }
         if selectedCategory != String(localized: "All Locations") {
             result = result.filter { $0.category?.displayName == selectedCategory }
         }
@@ -207,6 +225,8 @@ struct AllLocationListView: View {
             LocationCategoryFilterView(
                 availableCategories: $categories,
                 currentSelection: $selectedCategory,
+                availableCities: availableCities,
+                selectedCityId: $selectedCityId,
                 isPresented: $showFilterSheet
             )
         }
@@ -330,40 +350,38 @@ struct AllLocationListView: View {
 struct LocationCategoryFilterView: View {
     @Binding var availableCategories: [String]
     @Binding var currentSelection: String
+    var availableCities: [LocationCity] = []
+    @Binding var selectedCityId: String?
     @Binding var isPresented: Bool
-    
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(availableCategories, id: \.self) { category in
-                    Button {
-                        currentSelection = category
-                        isPresented = false
-                        
-                        FirebaseUtils.trackButtonTap(
-                            buttonName: "filter_\(category)",
-                            screenName: "AllLocations"
-                        )
-                    } label: {
-                        HStack {
-                            Text(category)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            if currentSelection == category {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.primary)
-                                    .font(.system(size: 16, weight: .semibold))
+                if !availableCities.isEmpty {
+                    Section(String(localized: "City")) {
+                        FilterRow(label: String(localized: "All Cities"), isSelected: selectedCityId == nil) {
+                            selectedCityId = nil
+                            FirebaseUtils.trackButtonTap(buttonName: "filter_city_all", screenName: "AllLocations")
+                        }
+                        ForEach(availableCities) { city in
+                            FilterRow(label: city.displayName, isSelected: selectedCityId == city.id) {
+                                selectedCityId = city.id
+                                FirebaseUtils.trackButtonTap(buttonName: "filter_city_\(city.id)", screenName: "AllLocations")
                             }
                         }
-                        .padding(.vertical, 4)
                     }
-                    .buttonStyle(.plain)
+                }
+
+                Section(String(localized: "Category")) {
+                    ForEach(availableCategories, id: \.self) { category in
+                        FilterRow(label: category, isSelected: currentSelection == category) {
+                            currentSelection = category
+                            FirebaseUtils.trackButtonTap(buttonName: "filter_\(category)", screenName: "AllLocations")
+                        }
+                    }
                 }
             }
-            .navigationTitle("Filter by Category")
+            .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

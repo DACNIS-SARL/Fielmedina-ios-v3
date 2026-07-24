@@ -240,6 +240,7 @@ extension Location {
                 nameEn: "Historical Site",
                 nameFr: "Site Historique"
             ),
+            city: nil,
             images: nil,
             openFrom: "09:00",
             openTo: "16:00",
@@ -261,6 +262,7 @@ extension Location {
                 nameEn: "Religious Site",
                 nameFr: "Site Religieux"
             ),
+            city: nil,
             images: nil,
             openFrom: "08:00",
             openTo: "17:30",

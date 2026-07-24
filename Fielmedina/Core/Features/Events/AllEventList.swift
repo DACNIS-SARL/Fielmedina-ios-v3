@@ -20,13 +20,31 @@ struct AllEventsListView: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var searchText: String = ""
+    @State private var selectedCityId: String? = nil
 
     private var isSearching: Bool {
         !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
+    /// Distinct cities present in the loaded events, so the filter only offers
+    /// cities that actually have content. Client-side, so it works offline.
+    private var availableCities: [EventCity] {
+        var seen = Set<String>()
+        var result: [EventCity] = []
+        for event in events {
+            if let city = event.city, !seen.contains(city.id) {
+                seen.insert(city.id)
+                result.append(city)
+            }
+        }
+        return result.sorted { $0.displayName < $1.displayName }
+    }
+
     var filteredEvents: [Event] {
         var result = events
+        if let cityId = selectedCityId {
+            result = result.filter { $0.city?.id == cityId }
+        }
         if selectedCategory != String(localized: "All Events") {
             result = result.filter { $0.category?.displayName == selectedCategory }
         }
@@ -175,6 +193,8 @@ struct AllEventsListView: View {
             CategoryFilterView(
                 availableCategories: $categories,
                 currentSelection: $selectedCategory,
+                availableCities: availableCities,
+                selectedCityId: $selectedCityId,
                 isPresented: $showFilterSheet
             )
         }
@@ -275,40 +295,38 @@ struct AllEventsListView: View {
 struct CategoryFilterView: View {
     @Binding var availableCategories: [String]
     @Binding var currentSelection: String
+    var availableCities: [EventCity] = []
+    @Binding var selectedCityId: String?
     @Binding var isPresented: Bool
-    
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(availableCategories, id: \.self) { (category: String) in
-                    Button {
-                        currentSelection = category
-                        isPresented = false
-                        
-                        FirebaseUtils.trackButtonTap(
-                            buttonName: "filter_\(category)",
-                            screenName: "AllEvents"
-                        )
-                    } label: {
-                        HStack {
-                            Text(category)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            if currentSelection == category {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.primary)
-                                    .font(.system(size: 16, weight: .semibold))
+                if !availableCities.isEmpty {
+                    Section(String(localized: "City")) {
+                        FilterRow(label: String(localized: "All Cities"), isSelected: selectedCityId == nil) {
+                            selectedCityId = nil
+                            FirebaseUtils.trackButtonTap(buttonName: "filter_city_all", screenName: "AllEvents")
+                        }
+                        ForEach(availableCities) { city in
+                            FilterRow(label: city.displayName, isSelected: selectedCityId == city.id) {
+                                selectedCityId = city.id
+                                FirebaseUtils.trackButtonTap(buttonName: "filter_city_\(city.id)", screenName: "AllEvents")
                             }
                         }
-                        .padding(.vertical, 4)
                     }
-                    .buttonStyle(.plain)
+                }
+
+                Section(String(localized: "Category")) {
+                    ForEach(availableCategories, id: \.self) { (category: String) in
+                        FilterRow(label: category, isSelected: currentSelection == category) {
+                            currentSelection = category
+                            FirebaseUtils.trackButtonTap(buttonName: "filter_\(category)", screenName: "AllEvents")
+                        }
+                    }
                 }
             }
-            .navigationTitle("Filter by Category")
+            .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -319,6 +337,34 @@ struct CategoryFilterView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+/// Shared selectable row used by the filter sheets (city + category sections).
+struct FilterRow: View {
+    let label: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.primary)
+                        .font(.system(size: 16, weight: .semibold))
+                }
+            }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
