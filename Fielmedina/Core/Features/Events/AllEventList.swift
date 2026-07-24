@@ -10,7 +10,6 @@ import SwiftUI
 struct AllEventsListView: View {
     @State private var events: [Event] = []
     @State private var selectedCategory: String = String(localized: "All Events")
-    @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Events")]
     @State private var isLoadingEvents = true
     @State private var isRefreshing = false
@@ -19,12 +18,7 @@ struct AllEventsListView: View {
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
-    @State private var searchText: String = ""
     @State private var selectedCityId: String? = nil
-
-    private var isSearching: Bool {
-        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
-    }
 
     /// Distinct cities present in the loaded events, so the filter only offers
     /// cities that actually have content. Client-side, so it works offline.
@@ -40,6 +34,17 @@ struct AllEventsListView: View {
         return result.sorted { $0.displayName < $1.displayName }
     }
 
+    private var cityOptions: [FilterMenuOption] {
+        [FilterMenuOption(id: nil, label: String(localized: "All Cities"))]
+            + availableCities.map { FilterMenuOption(id: $0.id, label: $0.displayName) }
+    }
+
+    private var categoryOptions: [FilterMenuOption] {
+        categories.map { name in
+            FilterMenuOption(id: name == String(localized: "All Events") ? nil : name, label: name)
+        }
+    }
+
     var filteredEvents: [Event] {
         var result = events
         if let cityId = selectedCityId {
@@ -47,11 +52,6 @@ struct AllEventsListView: View {
         }
         if selectedCategory != String(localized: "All Events") {
             result = result.filter { $0.category?.displayName == selectedCategory }
-        }
-
-        let query = searchText.trimmingCharacters(in: .whitespaces)
-        if !query.isEmpty {
-            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(query) }
         }
         return result
     }
@@ -73,31 +73,26 @@ struct AllEventsListView: View {
                     
                     AdsCarousel()
 
-                    ListSearchField(text: $searchText, prompt: "Search events by name")
-                        .padding(.horizontal, 16)
+                    HStack(spacing: 8) {
+                        InlineFilterChip(
+                            icon: "mappin.and.ellipse",
+                            options: cityOptions,
+                            selectedId: selectedCityId
+                        ) { selectedCityId = $0 }
 
-                    HStack {
-                        Text("ALL EVENTS")
+                        Spacer(minLength: 4)
+
+                        Text("EVENTS")
                             .font(.caption).bold()
                             .foregroundStyle(.secondary)
 
-                        Spacer()
-                        
-                        Button {
-                            showFilterSheet = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Filter")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 12)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
+                        Spacer(minLength: 4)
+
+                        InlineFilterChip(
+                            icon: "line.3.horizontal.decrease",
+                            options: categoryOptions,
+                            selectedId: selectedCategory == String(localized: "All Events") ? nil : selectedCategory
+                        ) { selectedCategory = $0 ?? String(localized: "All Events") }
                     }
                     .padding(.horizontal, 16)
 
@@ -159,7 +154,7 @@ struct AllEventsListView: View {
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
                                     // Skip while searching — search filters the already-loaded set.
-                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData && !isSearching {
+                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
@@ -188,15 +183,6 @@ struct AllEventsListView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 SettingsButton()
             }
-        }
-        .sheet(isPresented: $showFilterSheet) {
-            CategoryFilterView(
-                availableCategories: $categories,
-                currentSelection: $selectedCategory,
-                availableCities: availableCities,
-                selectedCityId: $selectedCityId,
-                isPresented: $showFilterSheet
-            )
         }
         .task {
             await loadData()
@@ -291,82 +277,6 @@ struct AllEventsListView: View {
     }
 }
 
-
-struct CategoryFilterView: View {
-    @Binding var availableCategories: [String]
-    @Binding var currentSelection: String
-    var availableCities: [EventCity] = []
-    @Binding var selectedCityId: String?
-    @Binding var isPresented: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                if !availableCities.isEmpty {
-                    Section(String(localized: "City")) {
-                        FilterRow(label: String(localized: "All Cities"), isSelected: selectedCityId == nil) {
-                            selectedCityId = nil
-                            FirebaseUtils.trackButtonTap(buttonName: "filter_city_all", screenName: "AllEvents")
-                        }
-                        ForEach(availableCities) { city in
-                            FilterRow(label: city.displayName, isSelected: selectedCityId == city.id) {
-                                selectedCityId = city.id
-                                FirebaseUtils.trackButtonTap(buttonName: "filter_city_\(city.id)", screenName: "AllEvents")
-                            }
-                        }
-                    }
-                }
-
-                Section(String(localized: "Category")) {
-                    ForEach(availableCategories, id: \.self) { (category: String) in
-                        FilterRow(label: category, isSelected: currentSelection == category) {
-                            currentSelection = category
-                            FirebaseUtils.trackButtonTap(buttonName: "filter_\(category)", screenName: "AllEvents")
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Filter")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        isPresented = false
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-    }
-}
-
-/// Shared selectable row used by the filter sheets (city + category sections).
-struct FilterRow: View {
-    let label: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(label)
-                    .font(.system(size: 16))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.primary)
-                        .font(.system(size: 16, weight: .semibold))
-                }
-            }
-            .padding(.vertical, 4)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-}
 
 #Preview {
     AllEventsListView()

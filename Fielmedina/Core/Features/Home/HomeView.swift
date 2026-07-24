@@ -17,6 +17,7 @@ enum HomeNavigationDestination: Hashable {
     case allTopPicks
     case eventDetail(Event)
     case locationDetail(Location)
+    case merchantDetail(Merchant)
 }
 
 struct HomeView: View {
@@ -27,6 +28,7 @@ struct HomeView: View {
     @State private var refreshTrigger = 0
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @State private var showOnboarding = false
+    @State private var showSearch = false
 
     
     private let buttonStickyThreshold: CGFloat = 180
@@ -50,12 +52,15 @@ struct HomeView: View {
                     
                     // Main Content
                     VStack(spacing: 32) {
+                        homeSearchBar
+                            .padding(.horizontal, 16)
+                            .padding(.top, 20)
+
                         CarouselListLocations(
                             title: "Top Attractions",
                             subtitle: "Top places for you",
                             refreshTrigger: $refreshTrigger
                         )
-                        .padding(.top, 24)
                         
                         AdsCarousel(refreshTrigger: $refreshTrigger)
                         
@@ -129,9 +134,19 @@ struct HomeView: View {
                     EventDetailView(event: event)
                 case .locationDetail(let location):
                     LocationDetailView(location: location)
+                case .merchantDetail(let merchant):
+                    MerchantDetailView(merchant: merchant)
                 }
             }
 
+        }
+        .overlay {
+            if showSearch {
+                GlobalSearchOverlay(isPresented: $showSearch) { result in
+                    handleSearchSelection(result)
+                }
+                .transition(.opacity)
+            }
         }
         .overlay {
             if showOnboarding {
@@ -143,6 +158,7 @@ struct HomeView: View {
                 )
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: showSearch)
         .onAppear {
             if !hasSeenOnboarding {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -154,6 +170,43 @@ struct HomeView: View {
     
     private var areButtonsSticky: Bool {
         scrollOffset > buttonStickyThreshold
+    }
+
+    /// Tappable (non-editable) bar that opens the global search overlay.
+    private var homeSearchBar: some View {
+        Button {
+            showSearch = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                Text("Search places, events, picks")
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(.secondarySystemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Color(.systemGray4), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func handleSearchSelection(_ result: GlobalSearchResult) {
+        switch result {
+        case .location(let location):
+            navigationPath.append(HomeNavigationDestination.locationDetail(location))
+        case .event(let event):
+            navigationPath.append(HomeNavigationDestination.eventDetail(event))
+        case .merchant(let merchant):
+            navigationPath.append(HomeNavigationDestination.merchantDetail(merchant))
+        }
     }
     
     private var actionButtons: some View {

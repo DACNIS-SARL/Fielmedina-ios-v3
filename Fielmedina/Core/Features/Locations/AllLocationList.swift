@@ -12,7 +12,6 @@ struct AllLocationListView: View {
     @State private var locations: [Location] = []
     @State private var locationManager = LocationManager()
     @State private var selectedCategory: String = String(localized: "All Locations")
-    @State private var showFilterSheet = false
     @State private var categories: [String] = [String(localized: "All Locations")]
     @State private var isLoading = true
     @State private var isRefreshing = false
@@ -21,15 +20,10 @@ struct AllLocationListView: View {
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
-    @State private var searchText: String = ""
     @State private var selectedCityId: String? = nil
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
-    }
-
-    private var isSearching: Bool {
-        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     /// Distinct cities present in the loaded locations, so the filter only offers
@@ -46,19 +40,27 @@ struct AllLocationListView: View {
         return result.sorted { $0.displayName < $1.displayName }
     }
 
+    private var cityOptions: [FilterMenuOption] {
+        [FilterMenuOption(id: nil, label: String(localized: "All Cities"))]
+            + availableCities.map { FilterMenuOption(id: $0.id, label: $0.displayName) }
+    }
+
+    private var categoryOptions: [FilterMenuOption] {
+        categories.map { name in
+            FilterMenuOption(id: name == String(localized: "All Locations") ? nil : name, label: name)
+        }
+    }
+
     private var emptyStateTitle: String {
-        if isSearching || isFilteringCategory {
+        if isFilteringCategory || selectedCityId != nil {
             return String(localized: "No Locations Found")
         }
         return String(localized: "No Locations Yet")
     }
 
     private var emptyStateMessage: String {
-        if isSearching {
-            return String(localized: "No locations match your search.")
-        }
-        if isFilteringCategory {
-            return String(localized: "There are no locations in this category yet.\nCheck back soon!")
+        if isFilteringCategory || selectedCityId != nil {
+            return String(localized: "There are no locations for this filter yet.\nCheck back soon!")
         }
         return String(localized: "There are no locations in this city yet.\nCheck back soon!")
     }
@@ -70,11 +72,6 @@ struct AllLocationListView: View {
         }
         if selectedCategory != String(localized: "All Locations") {
             result = result.filter { $0.category?.displayName == selectedCategory }
-        }
-
-        let query = searchText.trimmingCharacters(in: .whitespaces)
-        if !query.isEmpty {
-            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(query) }
         }
 
         if let userCoordinate = locationManager.userLocation {
@@ -105,31 +102,26 @@ struct AllLocationListView: View {
                     
                     AdsCarousel()
 
-                    ListSearchField(text: $searchText, prompt: "Search locations by name")
-                        .padding(.horizontal, 16)
+                    HStack(spacing: 8) {
+                        InlineFilterChip(
+                            icon: "mappin.and.ellipse",
+                            options: cityOptions,
+                            selectedId: selectedCityId
+                        ) { selectedCityId = $0 }
 
-                    HStack {
-                        Text("ALL LOCATIONS")
+                        Spacer(minLength: 4)
+
+                        Text("LOCATIONS")
                             .font(.caption).bold()
                             .foregroundStyle(.secondary)
-                        
-                        Spacer()
-                        
-                        Button {
-                            showFilterSheet = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Filter")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 12)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
+
+                        Spacer(minLength: 4)
+
+                        InlineFilterChip(
+                            icon: "line.3.horizontal.decrease",
+                            options: categoryOptions,
+                            selectedId: selectedCategory == String(localized: "All Locations") ? nil : selectedCategory
+                        ) { selectedCategory = $0 ?? String(localized: "All Locations") }
                     }
                     .padding(.horizontal, 16)
                     
@@ -190,8 +182,7 @@ struct AllLocationListView: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
-                                    // Skip while searching — search filters the already-loaded set.
-                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData && !isSearching {
+                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
@@ -220,15 +211,6 @@ struct AllLocationListView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 SettingsButton()
             }
-        }
-        .sheet(isPresented: $showFilterSheet) {
-            LocationCategoryFilterView(
-                availableCategories: $categories,
-                currentSelection: $selectedCategory,
-                availableCities: availableCities,
-                selectedCityId: $selectedCityId,
-                isPresented: $showFilterSheet
-            )
         }
         .task {
             locationManager.requestPermission()
@@ -344,54 +326,6 @@ struct AllLocationListView: View {
         isRefreshing = true
         defer { isRefreshing = false }
         await loadData(forceRefresh: true)
-    }
-}
-
-struct LocationCategoryFilterView: View {
-    @Binding var availableCategories: [String]
-    @Binding var currentSelection: String
-    var availableCities: [LocationCity] = []
-    @Binding var selectedCityId: String?
-    @Binding var isPresented: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                if !availableCities.isEmpty {
-                    Section(String(localized: "City")) {
-                        FilterRow(label: String(localized: "All Cities"), isSelected: selectedCityId == nil) {
-                            selectedCityId = nil
-                            FirebaseUtils.trackButtonTap(buttonName: "filter_city_all", screenName: "AllLocations")
-                        }
-                        ForEach(availableCities) { city in
-                            FilterRow(label: city.displayName, isSelected: selectedCityId == city.id) {
-                                selectedCityId = city.id
-                                FirebaseUtils.trackButtonTap(buttonName: "filter_city_\(city.id)", screenName: "AllLocations")
-                            }
-                        }
-                    }
-                }
-
-                Section(String(localized: "Category")) {
-                    ForEach(availableCategories, id: \.self) { category in
-                        FilterRow(label: category, isSelected: currentSelection == category) {
-                            currentSelection = category
-                            FirebaseUtils.trackButtonTap(buttonName: "filter_\(category)", screenName: "AllLocations")
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Filter")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        isPresented = false
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
     }
 }
 

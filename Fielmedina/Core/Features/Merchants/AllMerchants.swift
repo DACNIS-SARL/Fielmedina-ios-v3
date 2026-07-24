@@ -21,27 +21,19 @@ struct AllMerchants: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var carouselRefreshTrigger: Int = 0
-    @State private var searchText: String = ""
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Picks")
     }
 
-    private var isSearching: Bool {
-        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-
     private var emptyStateTitle: String {
-        if isSearching || isFilteringCategory {
+        if isFilteringCategory {
             return String(localized: "No Picks Found")
         }
         return String(localized: "No Picks Yet")
     }
 
     private var emptyStateMessage: String {
-        if isSearching {
-            return String(localized: "No picks match your search.")
-        }
         if isFilteringCategory {
             return String(localized: "There are no picks in this category yet.\nCheck back soon!")
         }
@@ -52,11 +44,6 @@ struct AllMerchants: View {
         var result = merchants
         if selectedCategory != String(localized: "All Picks") {
             result = result.filter { $0.category?.displayName == selectedCategory }
-        }
-
-        let query = searchText.trimmingCharacters(in: .whitespaces)
-        if !query.isEmpty {
-            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(query) }
         }
 
         if let userCoordinate = locationManager.userLocation {
@@ -90,9 +77,6 @@ struct AllMerchants: View {
                         isFeaturedOnly: true,
                         refreshTrigger: $carouselRefreshTrigger
                     )
-
-                    ListSearchField(text: $searchText, prompt: "Search picks by name")
-                        .padding(.horizontal, 16)
 
                     HStack {
                         Text(String(localized: "ALL PICKS"))
@@ -178,7 +162,7 @@ struct AllMerchants: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Skip pagination while searching — search filters the loaded set.
-                                    if merchant.id == filteredMerchants.last?.id && !isLoading && !isRefreshing && hasMoreData && !isSearching {
+                                    if merchant.id == filteredMerchants.last?.id && !isLoading && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
