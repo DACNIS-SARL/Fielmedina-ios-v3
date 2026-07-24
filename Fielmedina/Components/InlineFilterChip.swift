@@ -2,9 +2,9 @@
 //  InlineFilterChip.swift
 //  Fielmedina
 //
-//  Compact inline filter control (a capsule chip that opens a dropdown menu of
-//  options with a checkmark on the active one). Used for the split City / Category
-//  filters shown on the list headers.
+//  Capsule filter button (fixed label + icon) that opens a dropdown menu of
+//  options with a checkmark on the active one. Styled like the original Filter
+//  button; tints to the accent colour while a filter is applied.
 //
 
 import SwiftUI
@@ -19,15 +19,12 @@ struct FilterMenuOption: Hashable {
 
 struct InlineFilterChip: View {
     let icon: String
+    let title: LocalizedStringKey
     let options: [FilterMenuOption]
     let selectedId: String?
     let onSelect: (String?) -> Void
 
-    private var selectedLabel: String {
-        options.first(where: { $0.id == selectedId })?.label
-            ?? options.first?.label
-            ?? ""
-    }
+    private var isActive: Bool { selectedId != nil }
 
     var body: some View {
         Menu {
@@ -43,18 +40,15 @@ struct InlineFilterChip: View {
                 }
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.system(size: 13, weight: .medium))
-                Text(selectedLabel)
-                    .font(.system(size: 14, weight: .semibold))
-                    .lineLimit(1)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 16, weight: .medium))
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
             }
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .foregroundStyle(isActive ? Color.accentColor : Color.primary)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
             .background(.ultraThinMaterial)
             .clipShape(Capsule())
         }

@@ -76,20 +76,16 @@ struct AllEventsListView: View {
                     HStack(spacing: 8) {
                         InlineFilterChip(
                             icon: "mappin.and.ellipse",
+                            title: "Cities",
                             options: cityOptions,
                             selectedId: selectedCityId
                         ) { selectedCityId = $0 }
 
-                        Spacer(minLength: 4)
-
-                        Text("EVENTS")
-                            .font(.caption).bold()
-                            .foregroundStyle(.secondary)
-
-                        Spacer(minLength: 4)
+                        Spacer()
 
                         InlineFilterChip(
-                            icon: "line.3.horizontal.decrease",
+                            icon: "slider.horizontal.3",
+                            title: "Filter",
                             options: categoryOptions,
                             selectedId: selectedCategory == String(localized: "All Events") ? nil : selectedCategory
                         ) { selectedCategory = $0 ?? String(localized: "All Events") }

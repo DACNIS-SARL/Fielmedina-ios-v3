@@ -3,8 +3,8 @@
 //  Fielmedina
 //
 //  A single search across locations, events and merchants, shown as a dimmed
-//  overlay over Home. Results are a flat list tagged with a type badge; tapping
-//  one opens its detail screen.
+//  overlay over Home. Results are a flat list tagged with a type badge and a
+//  thumbnail; tapping one opens its detail screen.
 //
 
 import SwiftUI
@@ -31,6 +31,14 @@ enum GlobalSearchResult: Identifiable, Hashable {
         }
     }
 
+    var imageURL: String? {
+        switch self {
+        case .location(let l): return l.imageURL
+        case .event(let e): return e.imageURL
+        case .merchant(let m): return m.imageURL
+        }
+    }
+
     var typeLabel: LocalizedStringKey {
         switch self {
         case .location: return "Location"
@@ -39,7 +47,7 @@ enum GlobalSearchResult: Identifiable, Hashable {
         }
     }
 
-    var iconName: String {
+    var fallbackIcon: String {
         switch self {
         case .location: return "mappin.circle.fill"
         case .event: return "calendar"
@@ -58,8 +66,6 @@ final class GlobalSearchModel: ObservableObject {
     private var merchants: [Merchant] = []
     private var loaded = false
 
-    /// Loads all three datasets once. These hit the Apollo cache the prefetcher
-    /// warmed, so it's fast and works offline.
     func loadIfNeeded() async {
         guard !loaded else { return }
         isLoading = true
@@ -94,21 +100,21 @@ struct GlobalSearchOverlay: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(0.35)
+            Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture { dismiss() }
 
-            VStack(spacing: 12) {
-                searchBar
+            VStack(spacing: 0) {
+                header
 
                 if !model.query.trimmingCharacters(in: .whitespaces).isEmpty {
                     resultsCard
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
                 }
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
         }
         .task {
             await model.loadIfNeeded()
@@ -116,8 +122,10 @@ struct GlobalSearchOverlay: View {
         }
     }
 
-    private var searchBar: some View {
-        HStack(spacing: 10) {
+    /// Solid top bar so the search field sits cleanly above the dimmed content
+    /// (and covers the nav-bar gear behind it).
+    private var header: some View {
+        HStack(spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
@@ -136,15 +144,22 @@ struct GlobalSearchOverlay: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(
-                RoundedCornerShapeCompat()
-            )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Capsule().fill(Color(.secondarySystemBackground)))
 
-            Button("Cancel") { dismiss() }
-                .font(.system(size: 16, weight: .semibold))
+            Button {
+                dismiss()
+            } label: {
+                Text("Cancel")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .background(.regularMaterial, ignoresSafeAreaEdges: .top)
     }
 
     private var resultsCard: some View {
@@ -152,7 +167,7 @@ struct GlobalSearchOverlay: View {
         return VStack(spacing: 0) {
             if results.isEmpty {
                 HStack {
-                    Text(model.isLoading ? "Loading…" : "No results")
+                    Text(model.isLoading ? "Loading…" : "No results found")
                         .foregroundStyle(.secondary)
                         .font(.subheadline)
                     Spacer()
@@ -171,12 +186,12 @@ struct GlobalSearchOverlay: View {
                             .buttonStyle(.plain)
 
                             if index < results.count - 1 {
-                                Divider().padding(.leading, 52)
+                                Divider().padding(.leading, 68)
                             }
                         }
                     }
                 }
-                .frame(maxHeight: 420)
+                .frame(maxHeight: 440)
             }
         }
         .background(
@@ -189,10 +204,13 @@ struct GlobalSearchOverlay: View {
 
     private func resultRow(_ result: GlobalSearchResult) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: result.iconName)
-                .font(.system(size: 18))
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 28)
+            FielmedinaImage(url: result.imageURL, contentMode: .fill)
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color(.systemGray5), lineWidth: 1)
+                )
 
             Text(result.name)
                 .font(.system(size: 16))
@@ -206,29 +224,15 @@ struct GlobalSearchOverlay: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(
-                    Capsule().fill(Color(.secondarySystemBackground))
-                )
+                .background(Capsule().fill(Color(.secondarySystemBackground)))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .contentShape(Rectangle())
     }
 
     private func dismiss() {
         focused = false
-        isPresented = false
-    }
-}
-
-/// Small helper so the search field background matches the app's list search field.
-private struct RoundedCornerShapeCompat: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color(.secondarySystemBackground))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color(.systemGray4), lineWidth: 1)
-            )
+        withAnimation(.easeOut(duration: 0.15)) { isPresented = false }
     }
 }

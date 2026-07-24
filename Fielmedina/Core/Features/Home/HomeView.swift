@@ -158,7 +158,6 @@ struct HomeView: View {
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: showSearch)
         .onAppear {
             if !hasSeenOnboarding {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -175,7 +174,7 @@ struct HomeView: View {
     /// Tappable (non-editable) bar that opens the global search overlay.
     private var homeSearchBar: some View {
         Button {
-            showSearch = true
+            withAnimation(.easeOut(duration: 0.18)) { showSearch = true }
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
