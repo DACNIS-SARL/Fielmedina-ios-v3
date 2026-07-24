@@ -19,13 +19,23 @@ struct AllEventsListView: View {
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
-    
+    @State private var searchText: String = ""
+
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
     var filteredEvents: [Event] {
-        if selectedCategory == String(localized: "All Events") {
-            return events
-        } else {
-            return events.filter { $0.category?.displayName == selectedCategory }
+        var result = events
+        if selectedCategory != String(localized: "All Events") {
+            result = result.filter { $0.category?.displayName == selectedCategory }
         }
+
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        if !query.isEmpty {
+            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(query) }
+        }
+        return result
     }
     
     var body: some View {
@@ -44,6 +54,9 @@ struct AllEventsListView: View {
                     )
                     
                     AdsCarousel()
+
+                    ListSearchField(text: $searchText, prompt: "Search events by name")
+                        .padding(.horizontal, 16)
 
                     HStack {
                         Text("ALL EVENTS")
@@ -126,8 +139,9 @@ struct AllEventsListView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .onAppear {
-                                    // Detect when user hits the bottom of the vertical list
-                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
+                                    // Detect when user hits the bottom of the vertical list.
+                                    // Skip while searching — search filters the already-loaded set.
+                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData && !isSearching {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }

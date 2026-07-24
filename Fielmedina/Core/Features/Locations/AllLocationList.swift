@@ -21,29 +21,42 @@ struct AllLocationListView: View {
     @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
+    @State private var searchText: String = ""
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
     }
 
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
     private var emptyStateTitle: String {
-        if isFilteringCategory {
+        if isSearching || isFilteringCategory {
             return String(localized: "No Locations Found")
         }
         return String(localized: "No Locations Yet")
     }
 
     private var emptyStateMessage: String {
+        if isSearching {
+            return String(localized: "No locations match your search.")
+        }
         if isFilteringCategory {
             return String(localized: "There are no locations in this category yet.\nCheck back soon!")
         }
         return String(localized: "There are no locations in this city yet.\nCheck back soon!")
     }
-    
+
     var filteredLocations: [Location] {
         var result = locations
         if selectedCategory != String(localized: "All Locations") {
             result = result.filter { $0.category?.displayName == selectedCategory }
+        }
+
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        if !query.isEmpty {
+            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(query) }
         }
 
         if let userCoordinate = locationManager.userLocation {
@@ -73,6 +86,9 @@ struct AllLocationListView: View {
                     )
                     
                     AdsCarousel()
+
+                    ListSearchField(text: $searchText, prompt: "Search locations by name")
+                        .padding(.horizontal, 16)
 
                     HStack {
                         Text("ALL LOCATIONS")
@@ -155,8 +171,9 @@ struct AllLocationListView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .onAppear {
-                                    // Detect when user hits the bottom of the vertical list
-                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
+                                    // Detect when user hits the bottom of the vertical list.
+                                    // Skip while searching — search filters the already-loaded set.
+                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData && !isSearching {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
