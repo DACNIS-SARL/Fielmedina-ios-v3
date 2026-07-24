@@ -38,5 +38,11 @@ struct ListSearchField: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
         )
+        // Adaptive border so the field is clearly visible in light mode, where its
+        // near-white fill would otherwise blend into the grouped background.
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color(.systemGray4), lineWidth: 1)
+        )
     }
 }
