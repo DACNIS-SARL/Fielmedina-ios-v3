@@ -30,7 +30,17 @@ final class OfflineMapsManager {
     }
     
     // Track active downloads: RegionId -> Progress (0.0...1.0)
+    // Only user-initiated (non-silent) downloads are recorded here.
     private(set) var activeDownloads: [String: Double] = [:]
+
+    /// True while a user-initiated region download is in progress. The background
+    /// content prefetch reads this to throttle itself so it doesn't steal bandwidth
+    /// from the download the user is actively watching. Mutated only on the main
+    /// queue (like `activeDownloads`), so reads are pinned to the main actor.
+    @MainActor
+    static var isUserRegionDownloadActive: Bool {
+        !OfflineMapsManager.shared.activeDownloads.isEmpty
+    }
 
     private static let lastRegionRefreshKey = "offline_maps_last_region_refresh"
     private static let regionRefreshInterval: TimeInterval = 7 * 24 * 60 * 60

@@ -430,46 +430,61 @@ final class OfflineContentPrefetcher {
             
             // 3) Prefetch individual merchant details (populates Apollo cache with products/ratings)
             //    This ensures MerchantDetailView works fully offline.
+            //    Bounded concurrency: fetching every merchant's detail at once floods the
+            //    network (competing with image + Mapbox tile downloads) and spikes RAM with
+            //    hundreds of in-flight responses. A sliding window of 4 keeps both in check.
             var productImageUrls = Set<String>()
             let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            let maxConcurrentDetails = 4
             await withTaskGroup(of: Set<String>.self) { group in
-                for merchant in merchants {
-                    group.addTask {
-                        do {
-                            let detail = try await MerchantService.shared.fetchMerchant(id: merchant.id)
-                            // Collect product image URLs
-                            var pUrls = Set<String>()
-                            if let products = detail.products {
-                                for product in products {
-                                    if let imageUrl = product.image, !imageUrl.isEmpty {
-                                        pUrls.insert(imageUrl)
-                                    }
-                                }
-                            }
-                            // Collect detail-level carousel images
-                            pUrls.formUnion(
-                                Set((detail.images ?? []).compactMap { container in
-                                    if isPad {
-                                        return container.image?.url ?? container.imageMobile?.url
-                                    } else {
-                                        return container.imageMobile?.url ?? container.image?.url
-                                    }
-                                })
-                            )
-                            return pUrls
-                        } catch {
-                            return []
-                        }
-                    }
+                var index = 0
+                while index < min(merchants.count, maxConcurrentDetails) {
+                    let id = merchants[index].id
+                    group.addTask { await Self.merchantDetailImageUrls(id: id, isPad: isPad) }
+                    index += 1
                 }
                 for await result in group {
                     productImageUrls.formUnion(result)
+                    if index < merchants.count {
+                        let id = merchants[index].id
+                        group.addTask { await Self.merchantDetailImageUrls(id: id, isPad: isPad) }
+                        index += 1
+                    }
                 }
             }
-            
+
             urls.formUnion(productImageUrls)
             return urls
         } catch { return [] }
+    }
+
+    /// Fetches one merchant's detail (warming the Apollo cache for offline use) and
+    /// returns its product + carousel image URLs. `nonisolated` so the concurrent
+    /// prefetch runs off the main actor.
+    nonisolated private static func merchantDetailImageUrls(id: String, isPad: Bool) async -> Set<String> {
+        do {
+            let detail = try await MerchantService.shared.fetchMerchant(id: id)
+            var pUrls = Set<String>()
+            if let products = detail.products {
+                for product in products {
+                    if let imageUrl = product.image, !imageUrl.isEmpty {
+                        pUrls.insert(imageUrl)
+                    }
+                }
+            }
+            pUrls.formUnion(
+                Set((detail.images ?? []).compactMap { container in
+                    if isPad {
+                        return container.image?.url ?? container.imageMobile?.url
+                    } else {
+                        return container.imageMobile?.url ?? container.image?.url
+                    }
+                })
+            )
+            return pUrls
+        } catch {
+            return []
+        }
     }
 
     private func prefetchEventCategories() async {
@@ -504,37 +519,49 @@ actor ImagePrefetcher {
         let total: Int
         var fraction: Double { Double(completed) / Double(max(total, 1)) }
     }
-    
+
     private let maxConcurrentDownloads = 6
-    
+    // While the user is downloading an offline map region, drop to a trickle so the
+    // map download (which the user is watching) keeps the bandwidth.
+    private let throttledConcurrentDownloads = 1
+
+    /// Concurrency to use right now — throttled while a user map download is active.
+    private func currentConcurrencyLimit() async -> Int {
+        let mapDownloadActive = await MainActor.run { OfflineMapsManager.isUserRegionDownloadActive }
+        return mapDownloadActive ? throttledConcurrentDownloads : maxConcurrentDownloads
+    }
+
     func prefetch(urls: [String]) -> AsyncStream<Progress> {
         let uniqueUrls = Array(Set(urls))
         let total = uniqueUrls.count
-        
+
         return AsyncStream { continuation in
             Task {
                 var completed = 0
-                
+                var nextIndex = 0
+                var inFlight = 0
+
                 await withTaskGroup(of: Void.self) { group in
-                    var currentIndex = 0
-                    
-                    // Fill initial queue
-                    while currentIndex < min(total, maxConcurrentDownloads) {
-                        let url = uniqueUrls[currentIndex]
-                        group.addTask { await self.download(url: url) }
-                        currentIndex += 1
+                    // Launch as many downloads as the current limit allows. When the
+                    // limit drops mid-run (a map download started), the in-flight count
+                    // simply drains down to the new limit before more are added.
+                    func fillWindow() async {
+                        let limit = await self.currentConcurrencyLimit()
+                        while inFlight < limit && nextIndex < total {
+                            let url = uniqueUrls[nextIndex]
+                            nextIndex += 1
+                            inFlight += 1
+                            group.addTask { await self.download(url: url) }
+                        }
                     }
-                    
-                    // As one finish, add another
+
+                    await fillWindow()
+
                     for await _ in group {
                         completed += 1
+                        inFlight -= 1
                         continuation.yield(Progress(completed: completed, total: total))
-                        
-                        if currentIndex < total {
-                            let url = uniqueUrls[currentIndex]
-                            group.addTask { await self.download(url: url) }
-                            currentIndex += 1
-                        }
+                        await fillWindow()
                     }
                 }
                 continuation.finish()
