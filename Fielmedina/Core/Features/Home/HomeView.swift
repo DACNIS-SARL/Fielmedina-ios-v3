@@ -164,7 +164,9 @@ struct HomeView: View {
             }
         }
         .overlay {
-            if showOnboarding {
+            // Paused while searching so it never sits on top of the search overlay
+            // or points at the hidden settings button.
+            if showOnboarding && !showSearch {
                 OnboardingOverlay(
                     onDismiss: {
                         hasSeenOnboarding = true
