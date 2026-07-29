@@ -290,7 +290,7 @@ struct HikingNavigator: View {
                 startCoordinate = CLLocationCoordinate2D(latitude: firstWp.latitude, longitude: firstWp.longitude)
             } else {
                 await MainActor.run {
-                    errorMessage = "Could not determine your location. Please ensure GPS is enabled and you are outside."
+                    errorMessage = String(localized: "Could not determine your location. Please ensure GPS is enabled and you are outside.")
                     isCalculatingRoute = false
                 }
                 return
@@ -326,7 +326,7 @@ struct HikingNavigator: View {
             let sanitizedWaypoints = RouteWaypointSanitizer.sanitize(waypoints)
             guard sanitizedWaypoints.count >= 2 else {
                 await MainActor.run {
-                    errorMessage = "This trail doesn't have a valid route yet."
+                    errorMessage = String(localized: "This trail doesn't have a valid route yet.")
                     isCalculatingRoute = false
                 }
                 return
@@ -345,6 +345,10 @@ struct HikingNavigator: View {
                     self.showNavigation = true
                     self.isCalculatingRoute = false
                 }
+            } catch is CancellationError {
+                // The task was cancelled (user left the screen) — that's not a failure,
+                // so clear the spinner without surfacing a navigation error.
+                await MainActor.run { isCalculatingRoute = false }
             } catch {
                 LogUtils.e("HikingNavigator", "Error calculating route", error)
                 await MainActor.run {
