@@ -321,12 +321,23 @@ struct HikingNavigator: View {
                 })
             }
             
-            let options = NavigationRouteOptions(waypoints: waypoints)
+            // Guard the fragile offline router against malformed input (invalid/(0,0)
+            // coordinates, duplicates, or >25 waypoints), which can crash it natively.
+            let sanitizedWaypoints = RouteWaypointSanitizer.sanitize(waypoints)
+            guard sanitizedWaypoints.count >= 2 else {
+                await MainActor.run {
+                    errorMessage = "This trail doesn't have a valid route yet."
+                    isCalculatingRoute = false
+                }
+                return
+            }
+
+            let options = NavigationRouteOptions(waypoints: sanitizedWaypoints)
             options.profileIdentifier = .walking
-            
+
             // Mapbox V11+: If we are offline, it should use the OfflineRouter automatically if offline regions are matches
             // but we can also check environment or tiles.
-            
+
             do {
                 let response = try await routingProvider.calculateRoutes(options: options).value
                 await MainActor.run {

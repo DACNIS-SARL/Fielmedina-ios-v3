@@ -191,7 +191,9 @@ struct HikingView: View {
         let trailWaypoints = hiking.waypoints.map {
             Waypoint(coordinate: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude))
         }
-        let waypoints = [Waypoint(coordinate: userCoordinate)] + trailWaypoints
+        // Sanitize before the router sees it (drops invalid/(0,0)/duplicate points and
+        // caps at Mapbox's 25-waypoint limit) so a bad trail can't crash the offline router.
+        let waypoints = RouteWaypointSanitizer.sanitize([Waypoint(coordinate: userCoordinate)] + trailWaypoints)
         guard waypoints.count >= 2 else { return nil }
 
         let options = NavigationRouteOptions(waypoints: waypoints)
