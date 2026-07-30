@@ -56,9 +56,17 @@ class EventService {
     ///   - cityId: The ID of the city (optional).
     ///   - limit: Number of events to fetch.
     /// - Returns: An array of domain `Event` models.
-    func fetchEvents(cityId: Int32? = nil, limit: Int32 = 10, boost: Bool? = nil, forceRefresh: Bool = false) async throws -> [Event] {
+    func fetchEvents(
+        cityId: Int32? = nil,
+        limit: Int32 = 10,
+        offset: Int32 = 0,
+        boost: Bool? = nil,
+        forceRefresh: Bool = false
+    ) async throws -> [Event] {
         var allEvents: [Event] = []
-        var currentOffset: Int32 = 0
+        // Starting point for paging. Defaults to 0, so existing callers (including the
+        // offline prefetcher's cache-warming variants) behave exactly as before.
+        var currentOffset: Int32 = offset
         let batchSize: Int32 = 50
         
         while allEvents.count < limit {

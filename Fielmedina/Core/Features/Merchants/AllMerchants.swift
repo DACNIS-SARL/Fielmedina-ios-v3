@@ -18,8 +18,15 @@ struct AllMerchants: View {
     @State private var isRefreshing = false
     @State private var errorMessage: String?
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
+    @State private var isLoadingNextPage = false
+
+    /// Rows fetched per page while online. No overall ceiling — paging continues
+    /// until the server returns a short page.
+    private let pageSize: Int32 = 50
+    /// Offline, only the prefetcher's warmed query variant exists in the cache, so
+    /// load that whole snapshot at once instead of paginating.
+    private let offlineSnapshotLimit: Int32 = 200
     @State private var carouselRefreshTrigger: Int = 0
     /// Memoized result of filtering + distance sorting. See recomputeDisplayedMerchants().
     @State private var displayedMerchants: [Merchant] = []
@@ -177,9 +184,8 @@ struct AllMerchants: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Skip pagination while searching — search filters the loaded set.
-                                    if merchant.id == displayedMerchants.last?.id && !isLoading && !isRefreshing && hasMoreData {
-                                        currentLimit += 50
-                                        Task { await refreshFromNetwork() }
+                                    if merchant.id == displayedMerchants.last?.id {
+                                        Task { await loadNextPage() }
                                     }
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
@@ -260,35 +266,51 @@ struct AllMerchants: View {
         recomputeDisplayedMerchants()
     }
     
+    /// Loads the first page (or, offline, the whole prefetched snapshot).
     private func loadMerchants(forceRefresh: Bool = false) async {
         errorMessage = nil
 
         do {
-            let effectiveLimit: Int32 = merchants.isEmpty ? 500 : (isConnected ? currentLimit : 500)
-            
-            if forceRefresh && merchants.isEmpty {
-                 currentLimit = 50
-                 hasMoreData = true
-            }
-            
+            let limit = isConnected ? pageSize : offlineSnapshotLimit
+
             let fetchedMerchants = try await MerchantService.shared.fetchMerchants(
                 cityId: nil,
                 categoryId: nil,
-                limit: effectiveLimit,
+                limit: limit,
+                offset: 0,
                 forceRefresh: forceRefresh
             )
-            
-            if fetchedMerchants.count < effectiveLimit {
-                hasMoreData = false
-            } else {
-                hasMoreData = isConnected
-            }
+
             self.merchants = fetchedMerchants
-            
+            hasMoreData = isConnected && fetchedMerchants.count >= Int(limit)
         } catch {
             if merchants.isEmpty {
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    /// Appends the next page when the user reaches the bottom of the list.
+    private func loadNextPage() async {
+        guard isConnected, hasMoreData, !isLoadingNextPage, !isLoading, !isRefreshing else { return }
+        isLoadingNextPage = true
+        defer { isLoadingNextPage = false }
+
+        do {
+            let fetched = try await MerchantService.shared.fetchMerchants(
+                cityId: nil,
+                categoryId: nil,
+                limit: pageSize,
+                offset: Int32(merchants.count)
+            )
+            var seen = Set(merchants.map(\.id))
+            let newItems = fetched.filter { seen.insert($0.id).inserted }
+            merchants.append(contentsOf: newItems)
+
+            hasMoreData = fetched.count >= Int(pageSize)
+            recomputeDisplayedMerchants()
+        } catch {
+            // Keep what we have; scrolling to the bottom again retries.
         }
     }
 

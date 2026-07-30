@@ -24,9 +24,17 @@ class MerchantService {
         return mapMerchantDetail(gMerchant)
     }
     
-    func fetchMerchants(cityId: Int32? = nil, categoryId: Int32? = nil, limit: Int32 = 10, forceRefresh: Bool = false) async throws -> [Merchant] {
+    func fetchMerchants(
+        cityId: Int32? = nil,
+        categoryId: Int32? = nil,
+        limit: Int32 = 10,
+        offset: Int32 = 0,
+        forceRefresh: Bool = false
+    ) async throws -> [Merchant] {
         var allMerchants: [Merchant] = []
-        var currentOffset: Int32 = 0
+        // Starting point for paging. Defaults to 0, so existing callers (including the
+        // offline prefetcher's cache-warming variants) behave exactly as before.
+        var currentOffset: Int32 = offset
         let batchSize: Int32 = 50
         
         while allMerchants.count < limit {

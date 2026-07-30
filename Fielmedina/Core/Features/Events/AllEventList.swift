@@ -16,8 +16,15 @@ struct AllEventsListView: View {
     @State private var isLoadingCategories = false
     @State private var errorMessage: String?
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
+    @State private var isLoadingNextPage = false
+
+    /// Rows fetched per page while online. No overall ceiling — paging continues
+    /// until the server returns a short page.
+    private let pageSize: Int32 = 50
+    /// Offline, only the prefetcher's warmed query variant exists in the cache, so
+    /// load that whole snapshot at once instead of paginating.
+    private let offlineSnapshotLimit: Int32 = 200
     @State private var selectedCityId: String? = nil
     /// Memoized result of filtering. See recomputeDisplayedEvents().
     @State private var displayedEvents: [Event] = []
@@ -156,9 +163,8 @@ struct AllEventsListView: View {
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
                                     // Skip while searching — search filters the already-loaded set.
-                                    if event.id == displayedEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
-                                        currentLimit += 50
-                                        Task { await refreshFromNetwork() }
+                                    if event.id == displayedEvents.last?.id {
+                                        Task { await loadNextPage() }
                                     }
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
@@ -241,23 +247,43 @@ struct AllEventsListView: View {
         recomputeDisplayedEvents()
     }
     
+    /// Loads the first page (or, offline, the whole prefetched snapshot).
     private func loadEvents(forceRefresh: Bool = false) async {
         do {
-            if forceRefresh && events.isEmpty {
-                 currentLimit = 50
-                 hasMoreData = true
-            }
-            let fetched = try await EventService.shared.fetchEvents(limit: currentLimit, forceRefresh: forceRefresh)
-            if fetched.count < currentLimit {
-                hasMoreData = false
-            } else {
-                hasMoreData = true
-            }
+            let limit = isConnected ? pageSize : offlineSnapshotLimit
+            let fetched = try await EventService.shared.fetchEvents(
+                limit: limit,
+                offset: 0,
+                forceRefresh: forceRefresh
+            )
             self.events = fetched
+            hasMoreData = isConnected && fetched.count >= Int(limit)
         } catch {
             if events.isEmpty {
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    /// Appends the next page when the user reaches the bottom of the list.
+    private func loadNextPage() async {
+        guard isConnected, hasMoreData, !isLoadingNextPage, !isLoadingEvents, !isRefreshing else { return }
+        isLoadingNextPage = true
+        defer { isLoadingNextPage = false }
+
+        do {
+            let fetched = try await EventService.shared.fetchEvents(
+                limit: pageSize,
+                offset: Int32(events.count)
+            )
+            var seen = Set(events.map(\.id))
+            let newItems = fetched.filter { seen.insert($0.id).inserted }
+            events.append(contentsOf: newItems)
+
+            hasMoreData = fetched.count >= Int(pageSize)
+            recomputeDisplayedEvents()
+        } catch {
+            // Keep what we have; scrolling to the bottom again retries.
         }
     }
     

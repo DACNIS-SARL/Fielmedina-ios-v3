@@ -18,8 +18,15 @@ struct AllLocationListView: View {
     @State private var errorMessage: String?
     @State private var isLoadingCategories = false
     @State private var isConnected = NetworkMonitor.shared.isConnected
-    @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
+    @State private var isLoadingNextPage = false
+
+    /// Rows fetched per page while online. There is no overall ceiling — the list
+    /// keeps paging until the server returns a short page.
+    private let pageSize: Int32 = 50
+    /// Offline, only the query variant the prefetcher warmed exists in the Apollo
+    /// cache, so we load that whole snapshot at once instead of paginating.
+    private let offlineSnapshotLimit: Int32 = 500
     @State private var selectedCityId: String? = nil
     /// Memoized result of filtering + distance sorting. See recomputeDisplayedLocations().
     @State private var displayedLocations: [Location] = []
@@ -199,9 +206,8 @@ struct AllLocationListView: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
-                                    if location.id == displayedLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
-                                        currentLimit += 50
-                                        Task { await refreshFromNetwork() }
+                                    if location.id == displayedLocations.last?.id {
+                                        Task { await loadNextPage() }
                                     }
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
@@ -309,42 +315,56 @@ struct AllLocationListView: View {
         }
     }
     
+    /// Loads the first page (or, offline, the whole prefetched snapshot).
     private func loadLocations(forceRefresh: Bool = false) async {
         errorMessage = nil
 
         do {
-            // We always use 500 for the initial load to ensure we hit the same cache key
-            // that the OfflineContentPrefetcher uses. 
-            let effectiveLimit: Int32 = locations.isEmpty ? 500 : (isConnected ? currentLimit : 500)
-            
-            if forceRefresh && locations.isEmpty {
-                 currentLimit = 50
-                 hasMoreData = true
-            }
-            
+            let limit = isConnected ? pageSize : offlineSnapshotLimit
+
             let fetchedLocations = try await LocationService.shared.fetchLocations(
                 cityId: nil,
-                limit: effectiveLimit,
+                limit: limit,
+                offset: 0,
                 forceRefresh: forceRefresh
             )
-            
-            if fetchedLocations.count < effectiveLimit {
-                hasMoreData = false
-            } else {
-                hasMoreData = isConnected // Only allow pagination when online
-            }
+
             self.locations = fetchedLocations
-            
-            // Extract unique categories
-            // Removed categories assignment here as per instructions
-            
+            // A full page means there may be more; a short page means we reached the end.
+            // Offline there is nothing more to page through.
+            hasMoreData = isConnected && fetchedLocations.count >= Int(limit)
         } catch {
             if locations.isEmpty {
                 errorMessage = error.localizedDescription
             }
         }
-        
+
         isLoading = false
+    }
+
+    /// Appends the next page when the user reaches the bottom of the list.
+    private func loadNextPage() async {
+        guard isConnected, hasMoreData, !isLoadingNextPage, !isLoading, !isRefreshing else { return }
+        isLoadingNextPage = true
+        defer { isLoadingNextPage = false }
+
+        do {
+            let fetched = try await LocationService.shared.fetchLocations(
+                cityId: nil,
+                limit: pageSize,
+                offset: Int32(locations.count)
+            )
+
+            // Guard against duplicates in case rows shifted between page requests.
+            var seen = Set(locations.map(\.id))
+            let newItems = fetched.filter { seen.insert($0.id).inserted }
+            locations.append(contentsOf: newItems)
+
+            hasMoreData = fetched.count >= Int(pageSize)
+            recomputeDisplayedLocations()
+        } catch {
+            // Keep what we have; scrolling to the bottom again retries.
+        }
     }
 
     private func refreshFromNetwork() async {
