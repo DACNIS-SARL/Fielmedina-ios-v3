@@ -22,6 +22,8 @@ struct AllEventsListView: View {
     /// Rows fetched per page while online. No overall ceiling — paging continues
     /// until the server returns a short page.
     private let pageSize: Int32 = 50
+    /// Start loading the next page this many rows before the end (smoother scrolling).
+    private let paginationPrefetchAhead = 3
     /// Offline, only the prefetcher's warmed query variant exists in the cache, so
     /// load that whole snapshot at once instead of paginating.
     private let offlineSnapshotLimit: Int32 = 200
@@ -165,7 +167,8 @@ struct AllEventsListView: View {
                                     // loaded count, not the filtered list: a page may add no rows
                                     // matching the active filter, and keying on the filtered list
                                     // would leave the trigger stuck while more pages still exist.
-                                    if event.id == displayedEvents.last?.id {
+                                    if let index = displayedEvents.firstIndex(where: { $0.id == event.id }),
+                                       index >= displayedEvents.count - paginationPrefetchAhead {
                                         await loadNextPage()
                                     }
                                 }
