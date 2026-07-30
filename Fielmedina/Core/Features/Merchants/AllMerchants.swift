@@ -182,10 +182,13 @@ struct AllMerchants: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
                                 .buttonStyle(.plain)
-                                .onAppear {
-                                    // Skip pagination while searching — search filters the loaded set.
+                                .task(id: merchants.count) {
+                                    // Bottom of the list — pull the next page. Keyed on the RAW
+                                    // loaded count, not the filtered list: a page may add no rows
+                                    // matching the active filter, and keying on the filtered list
+                                    // would leave the trigger stuck while more pages still exist.
                                     if merchant.id == displayedMerchants.last?.id {
-                                        Task { await loadNextPage() }
+                                        await loadNextPage()
                                     }
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
