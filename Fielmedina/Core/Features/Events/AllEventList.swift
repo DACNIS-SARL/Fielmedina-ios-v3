@@ -19,6 +19,8 @@ struct AllEventsListView: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var selectedCityId: String? = nil
+    /// Memoized result of filtering. See recomputeDisplayedEvents().
+    @State private var displayedEvents: [Event] = []
 
     /// Distinct cities present in the loaded events, so the filter only offers
     /// cities that actually have content. Client-side, so it works offline.
@@ -45,15 +47,19 @@ struct AllEventsListView: View {
         }
     }
 
-    var filteredEvents: [Event] {
+    /// Filters once per input change, into `displayedEvents`. Previously a computed
+    /// property, so SwiftUI re-ran it on every body pass and inside each row's
+    /// `onAppear` — hundreds of times while scrolling a long list.
+    private func recomputeDisplayedEvents() {
         var result = events
         if let cityId = selectedCityId {
             result = result.filter { $0.city?.id == cityId }
         }
-        if selectedCategory != String(localized: "All Events") {
+        let allEventsLabel = String(localized: "All Events")
+        if selectedCategory != allEventsLabel {
             result = result.filter { $0.category?.displayName == selectedCategory }
         }
-        return result
+        displayedEvents = result
     }
     
     var body: some View {
@@ -115,7 +121,7 @@ struct AllEventsListView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                         .padding(.horizontal)
-                    } else if filteredEvents.isEmpty {
+                    } else if displayedEvents.isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "calendar.badge.exclamationmark")
                                 .font(.system(size: 60))
@@ -135,7 +141,7 @@ struct AllEventsListView: View {
                         .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 12) {
-                            ForEach(filteredEvents) { event in
+                            ForEach(displayedEvents) { event in
                                 NavigationLink {
                                     EventDetailView(event: event)
                                 } label: {
@@ -150,7 +156,7 @@ struct AllEventsListView: View {
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
                                     // Skip while searching — search filters the already-loaded set.
-                                    if event.id == filteredEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
+                                    if event.id == displayedEvents.last?.id && !isLoadingEvents && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
@@ -191,8 +197,11 @@ struct AllEventsListView: View {
             guard newValue else { return }
             Task { await refreshFromNetwork() }
         }
+        // Recompute only when an input actually changes, not on every body pass.
+        .onChange(of: selectedCityId) { _, _ in recomputeDisplayedEvents() }
+        .onChange(of: selectedCategory) { _, _ in recomputeDisplayedEvents() }
     }
-    
+
     private func loadData(forceRefresh: Bool = false) async {
         if events.isEmpty {
             isLoadingEvents = true
@@ -227,6 +236,9 @@ struct AllEventsListView: View {
         
         isLoadingEvents = false
         isLoadingCategories = false
+
+        // Single funnel point after events + categories settle.
+        recomputeDisplayedEvents()
     }
     
     private func loadEvents(forceRefresh: Bool = false) async {

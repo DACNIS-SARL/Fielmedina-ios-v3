@@ -38,7 +38,8 @@ struct MerchantItem: View {
             .padding(.leading, 20)
             .padding(.vertical, 16)
             
-            FielmedinaImage(url: merchant.imageURL, contentMode: .fill)
+            // 100pt thumbnail: decode at @3x, not full resolution.
+            FielmedinaImage(url: merchant.imageURL, contentMode: .fill, maxPixelSize: 300)
                 .frame(width: 100, height: 100)
                 .clipped()
                 .clipShape(

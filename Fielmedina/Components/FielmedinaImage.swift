@@ -11,15 +11,20 @@ import UIKit
 struct FielmedinaImage: View {
     let urlString: String?
     let contentMode: ContentMode
+    /// Largest pixel dimension to decode to. Pass a small value for thumbnails so a
+    /// 44pt avatar doesn't decode a full-resolution photo into memory. Defaults to a
+    /// full-screen-sized cap.
+    let maxPixelSize: CGFloat
 
     @State private var uiImage: UIImage?
     @State private var isLoading = false
-    
-    init(url: String?, contentMode: ContentMode = .fill) {
+
+    init(url: String?, contentMode: ContentMode = .fill, maxPixelSize: CGFloat? = nil) {
         self.urlString = url
         self.contentMode = contentMode
+        self.maxPixelSize = maxPixelSize ?? ImagePipeline.defaultMaxPixelSize
     }
-    
+
     var body: some View {
         Group {
             if let urlString = urlString, !urlString.isEmpty {
@@ -46,7 +51,7 @@ struct FielmedinaImage: View {
             await loadImageIfNeeded()
         }
     }
-    
+
     private var fallbackImage: some View {
         ZStack {
             Color.gray.opacity(0.3)
@@ -55,7 +60,6 @@ struct FielmedinaImage: View {
         }
     }
 
-    @MainActor
     private func loadImageIfNeeded() async {
         guard let urlString = urlString,
               urlString.lowercased().hasPrefix("http"),
@@ -65,44 +69,25 @@ struct FielmedinaImage: View {
             return
         }
 
+        // Already decoded and in memory: show it immediately. Keeps scrolling back
+        // through a list instant and avoids a placeholder flash.
+        if let cached = ImagePipeline.cachedImage(for: url, maxPixelSize: maxPixelSize) {
+            uiImage = cached
+            isLoading = false
+            return
+        }
+
         uiImage = nil
         isLoading = true
 
-        let request = URLRequest(
-            url: url,
-            cachePolicy: .returnCacheDataElseLoad,
-            timeoutInterval: 30
-        )
+        // Disk I/O, network and decoding all happen off the main thread inside the
+        // pipeline; only this assignment lands back here.
+        let loaded = await ImagePipeline.image(for: url, maxPixelSize: maxPixelSize)
 
-        if let cachedResponse = URLCache.shared.cachedResponse(for: request),
-           let cachedImage = UIImage(data: cachedResponse.data) {
-            uiImage = cachedImage
-            isLoading = false
-            return
-        }
+        // The view may have been recycled onto a different URL while we loaded.
+        guard urlString == self.urlString else { return }
 
-        // Durable fallback: survives iOS purging the Caches directory.
-        if let diskData = MediaDiskCache.cachedData(forRemote: url),
-           let diskImage = UIImage(data: diskData) {
-            uiImage = diskImage
-            isLoading = false
-            return
-        }
-
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let image = UIImage(data: data) {
-                let cachedResponse = CachedURLResponse(response: response, data: data)
-                URLCache.shared.storeCachedResponse(cachedResponse, for: request)
-                MediaDiskCache.store(data, forRemote: url)
-                uiImage = image
-            } else {
-                uiImage = nil
-            }
-        } catch {
-            uiImage = nil
-        }
-
+        uiImage = loaded
         isLoading = false
     }
 }

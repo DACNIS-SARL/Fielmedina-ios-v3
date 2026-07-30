@@ -21,6 +21,8 @@ struct AllLocationListView: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var selectedCityId: String? = nil
+    /// Memoized result of filtering + distance sorting. See recomputeDisplayedLocations().
+    @State private var displayedLocations: [Location] = []
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Locations")
@@ -65,26 +67,45 @@ struct AllLocationListView: View {
         return String(localized: "There are no locations in this city yet.\nCheck back soon!")
     }
 
-    var filteredLocations: [Location] {
+    /// Buckets the user location to ~100 m. Used as the recompute trigger so the list
+    /// re-orders when the user actually moves, not on every GPS jitter tick.
+    private var userLocationBucket: String? {
+        guard let coordinate = locationManager.userLocation else { return nil }
+        return "\(Int(coordinate.latitude * 1000)),\(Int(coordinate.longitude * 1000))"
+    }
+
+    /// Filters and distance-sorts once per input change, into `displayedLocations`.
+    ///
+    /// This used to be a computed property, which SwiftUI re-evaluated on every body
+    /// pass *and* inside each row's `onAppear` — so scrolling a 500-item list ran the
+    /// filter+sort hundreds of times. The sort also allocated two `CLLocation`s per
+    /// comparison (~9k allocations per pass); distances are now computed once per item.
+    private func recomputeDisplayedLocations() {
         var result = locations
+
         if let cityId = selectedCityId {
             result = result.filter { $0.city?.id == cityId }
         }
-        if selectedCategory != String(localized: "All Locations") {
+
+        let allLocationsLabel = String(localized: "All Locations")
+        if selectedCategory != allLocationsLabel {
             result = result.filter { $0.category?.displayName == selectedCategory }
         }
 
         if let userCoordinate = locationManager.userLocation {
             let userLoc = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-            result.sort {
-                let leftLoc = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
-                let rightLoc = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
-                return leftLoc.distance(from: userLoc) < rightLoc.distance(from: userLoc)
-            }
+            result = result
+                .map { location -> (location: Location, distance: CLLocationDistance) in
+                    let candidate = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                    return (location, candidate.distance(from: userLoc))
+                }
+                .sorted { $0.distance < $1.distance }
+                .map(\.location)
         }
-        return result
+
+        displayedLocations = result
     }
-    
+
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
@@ -144,7 +165,7 @@ struct AllLocationListView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                         .padding(.horizontal)
-                    } else if filteredLocations.isEmpty {
+                    } else if displayedLocations.isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "mappin.slash")
                                 .font(.system(size: 60))
@@ -164,7 +185,7 @@ struct AllLocationListView: View {
                         .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 12) {
-                            ForEach(filteredLocations) { location in
+                            ForEach(displayedLocations) { location in
                                 NavigationLink {
                                     LocationDetailView(location: location)
                                 } label: {
@@ -178,7 +199,7 @@ struct AllLocationListView: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Detect when user hits the bottom of the vertical list.
-                                    if location.id == filteredLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
+                                    if location.id == displayedLocations.last?.id && !isLoading && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
@@ -221,8 +242,13 @@ struct AllLocationListView: View {
             guard newValue else { return }
             Task { await refreshFromNetwork() }
         }
+        // Recompute the filtered/sorted list only when an input actually changes,
+        // instead of on every body pass.
+        .onChange(of: selectedCityId) { _, _ in recomputeDisplayedLocations() }
+        .onChange(of: selectedCategory) { _, _ in recomputeDisplayedLocations() }
+        .onChange(of: userLocationBucket) { _, _ in recomputeDisplayedLocations() }
     }
-    
+
     private func loadData(forceRefresh: Bool = false) async {
         if locations.isEmpty {
             isLoading = true
@@ -257,8 +283,12 @@ struct AllLocationListView: View {
         
         isLoading = false
         isLoadingCategories = false
+
+        // Single funnel point after locations + categories settle (initial load,
+        // refresh, and the offline fallback assignment above).
+        recomputeDisplayedLocations()
     }
-    
+
     private func loadLocationCategories() async {
         // 1) Try cache-only first
         if let cached = await LocationCategoryService.shared.fetchLocationCategoriesFromCache(),

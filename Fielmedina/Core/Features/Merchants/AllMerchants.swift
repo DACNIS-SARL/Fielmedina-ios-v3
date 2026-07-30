@@ -21,6 +21,8 @@ struct AllMerchants: View {
     @State private var currentLimit: Int32 = 50
     @State private var hasMoreData = true
     @State private var carouselRefreshTrigger: Int = 0
+    /// Memoized result of filtering + distance sorting. See recomputeDisplayedMerchants().
+    @State private var displayedMerchants: [Merchant] = []
 
     private var isFilteringCategory: Bool {
         selectedCategory != String(localized: "All Picks")
@@ -40,28 +42,41 @@ struct AllMerchants: View {
         return String(localized: "There are no picks available yet.\nCheck back soon!")
     }
 
-    var filteredMerchants: [Merchant] {
+    /// Buckets the user location to ~100 m so the list only re-orders when the user
+    /// actually moves, not on every GPS jitter tick.
+    private var userLocationBucket: String? {
+        guard let coordinate = locationManager.userLocation else { return nil }
+        return "\(Int(coordinate.latitude * 1000)),\(Int(coordinate.longitude * 1000))"
+    }
+
+    /// Filters and distance-sorts once per input change, into `displayedMerchants`.
+    /// Previously a computed property, so SwiftUI re-ran it on every body pass and
+    /// inside each row's `onAppear`, allocating two `CLLocation`s per comparison.
+    private func recomputeDisplayedMerchants() {
         var result = merchants
-        if selectedCategory != String(localized: "All Picks") {
+
+        let allPicksLabel = String(localized: "All Picks")
+        if selectedCategory != allPicksLabel {
             result = result.filter { $0.category?.displayName == selectedCategory }
         }
 
         if let userCoordinate = locationManager.userLocation {
             let userLoc = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-            result.sort {
-                let leftLat = $0.latitude ?? 0.0
-                let leftLon = $0.longitude ?? 0.0
-                let rightLat = $1.latitude ?? 0.0
-                let rightLon = $1.longitude ?? 0.0
-                
-                let leftLoc = CLLocation(latitude: leftLat, longitude: leftLon)
-                let rightLoc = CLLocation(latitude: rightLat, longitude: rightLon)
-                return leftLoc.distance(from: userLoc) < rightLoc.distance(from: userLoc)
-            }
+            result = result
+                .map { merchant -> (merchant: Merchant, distance: CLLocationDistance) in
+                    let candidate = CLLocation(
+                        latitude: merchant.latitude ?? 0.0,
+                        longitude: merchant.longitude ?? 0.0
+                    )
+                    return (merchant, candidate.distance(from: userLoc))
+                }
+                .sorted { $0.distance < $1.distance }
+                .map(\.merchant)
         }
-        return result
+
+        displayedMerchants = result
     }
-    
+
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
@@ -128,7 +143,7 @@ struct AllMerchants: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                         .padding(.horizontal)
-                    } else if filteredMerchants.isEmpty {
+                    } else if displayedMerchants.isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "storefront")
                                 .font(.system(size: 60))
@@ -148,7 +163,7 @@ struct AllMerchants: View {
                         .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 12) {
-                            ForEach(filteredMerchants) { merchant in
+                            ForEach(displayedMerchants) { merchant in
                                 NavigationLink {
                                     MerchantDetailView(merchant: merchant)
                                 } label: {
@@ -162,7 +177,7 @@ struct AllMerchants: View {
                                 .buttonStyle(.plain)
                                 .onAppear {
                                     // Skip pagination while searching — search filters the loaded set.
-                                    if merchant.id == filteredMerchants.last?.id && !isLoading && !isRefreshing && hasMoreData {
+                                    if merchant.id == displayedMerchants.last?.id && !isLoading && !isRefreshing && hasMoreData {
                                         currentLimit += 50
                                         Task { await refreshFromNetwork() }
                                     }
@@ -212,8 +227,11 @@ struct AllMerchants: View {
             guard newValue else { return }
             Task { await refreshFromNetwork() }
         }
+        // Recompute only when an input actually changes, not on every body pass.
+        .onChange(of: selectedCategory) { _, _ in recomputeDisplayedMerchants() }
+        .onChange(of: userLocationBucket) { _, _ in recomputeDisplayedMerchants() }
     }
-    
+
     private func loadData(forceRefresh: Bool = false) async {
         if merchants.isEmpty {
             isLoading = true
@@ -237,6 +255,9 @@ struct AllMerchants: View {
         }
         
         isLoading = false
+
+        // Single funnel point after merchants + categories settle.
+        recomputeDisplayedMerchants()
     }
     
     private func loadMerchants(forceRefresh: Bool = false) async {

@@ -214,7 +214,8 @@ struct GlobalSearchOverlay: View {
 
     private func resultRow(_ result: GlobalSearchResult) -> some View {
         HStack(spacing: 12) {
-            FielmedinaImage(url: result.imageURL, contentMode: .fill)
+            // 44pt row thumbnail: decode at @3x, not full resolution.
+            FielmedinaImage(url: result.imageURL, contentMode: .fill, maxPixelSize: 132)
                 .frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay(

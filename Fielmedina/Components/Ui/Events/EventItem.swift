@@ -29,7 +29,8 @@ struct EventItem: View {
             .padding(.vertical, 16)
             
             
-            FielmedinaImage(url: event.imageURL, contentMode: .fill)
+            // 100pt thumbnail: decode at @3x, not full resolution.
+            FielmedinaImage(url: event.imageURL, contentMode: .fill, maxPixelSize: 300)
                 .frame(width: 100, height: 100)
                 .clipped()
                 .clipShape(
