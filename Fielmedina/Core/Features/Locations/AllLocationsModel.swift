@@ -116,12 +116,10 @@ final class AllLocationsModel {
 
     var isFilteringCategory: Bool { selectedCategoryId != nil }
 
-    /// Cities offered by the Regions filter.
-    ///
-    /// Deliberately NOT derived from the paginated `locations` array: that only holds
-    /// the first page, so any city whose locations fall beyond it would silently
-    /// vanish from the filter. Built instead from a full snapshot (see
-    /// `loadFilterCities`).
+    /// Cities offered by the Regions filter, derived from the full local catalogue in
+    /// `loadData()`. Because `locations` holds every row (not a page), no region can go
+    /// missing — and it is refreshed in the same pass, so it can never disagree with
+    /// the list it filters.
     private(set) var availableCities: [LocationCity] = []
 
     var cityOptions: [FilterMenuOption] {
@@ -192,7 +190,6 @@ final class AllLocationsModel {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { [weak self] in await self?.loadLocations(forceRefresh: forceRefresh) }
             group.addTask { [weak self] in await self?.loadLocationCategories() }
-            group.addTask { [weak self] in await self?.loadFilterCities() }
         }
 
         // Keep whatever we already had if a refresh came back empty (offline, error).
@@ -212,6 +209,14 @@ final class AllLocationsModel {
                 .filter { seen.insert($0.id).inserted }
                 .sorted { $0.displayName < $1.displayName }
         }
+
+        // Regions come from the catalogue we just loaded — no second fetch, and they
+        // can never disagree with it on a forced refresh.
+        var seenCities = Set<String>()
+        availableCities = locations
+            .compactMap { $0.city }
+            .filter { seenCities.insert($0.id).inserted }
+            .sorted { $0.displayName < $1.displayName }
 
         isLoading = false
 
@@ -265,23 +270,6 @@ final class AllLocationsModel {
     private func applyFilterChange() {
         visibleCount = pageSize
         recomputeDisplayedLocations()
-    }
-
-    /// Builds the Regions filter from the complete location set rather than the
-    /// current page or the current filter. Uses the same query variant the offline
-    /// prefetcher warms, so this is a cache hit online and works offline.
-    private func loadFilterCities() async {
-        guard let all = try? await locationService.fetchLocations(
-            cityId: nil,
-            limit: catalogueLimit,
-            offset: 0
-        ) else { return }
-
-        var seen = Set<String>()
-        availableCities = all
-            .compactMap { $0.city }
-            .filter { seen.insert($0.id).inserted }
-            .sorted { $0.displayName < $1.displayName }
     }
 
     private func loadLocationCategories() async {

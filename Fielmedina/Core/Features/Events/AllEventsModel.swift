@@ -95,11 +95,10 @@ final class AllEventsModel {
 
     // MARK: - Derived values for the View
 
-    /// Cities offered by the Regions filter.
-    ///
-    /// Deliberately NOT derived from the paginated `events` array: that only holds the
-    /// first page, so any city whose events fall beyond it would silently vanish from
-    /// the filter. Built instead from a full snapshot (see `loadFilterCities`).
+    /// Cities offered by the Regions filter, derived from the full local catalogue in
+    /// `loadData()`. Because `events` holds every row (not a page), no region can go
+    /// missing — and it is refreshed in the same pass, so it can never disagree with
+    /// the list it filters.
     private(set) var availableCities: [EventCity] = []
 
     var cityOptions: [FilterMenuOption] {
@@ -144,7 +143,6 @@ final class AllEventsModel {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { [weak self] in await self?.loadEvents(forceRefresh: forceRefresh) }
             group.addTask { [weak self] in await self?.loadCategories() }
-            group.addTask { [weak self] in await self?.loadFilterCities() }
         }
 
         // Keep whatever we already had if a refresh came back empty (offline, error).
@@ -163,6 +161,14 @@ final class AllEventsModel {
                 .filter { seen.insert($0.id).inserted }
                 .sorted { $0.displayName < $1.displayName }
         }
+
+        // Regions come from the catalogue we just loaded — no second fetch, and they
+        // can never disagree with it on a forced refresh.
+        var seenCities = Set<String>()
+        availableCities = events
+            .compactMap { $0.city }
+            .filter { seenCities.insert($0.id).inserted }
+            .sorted { $0.displayName < $1.displayName }
 
         isLoading = false
 
@@ -211,22 +217,6 @@ final class AllEventsModel {
     private func applyFilterChange() {
         visibleCount = pageSize
         recomputeDisplayedEvents()
-    }
-
-    /// Builds the Regions filter from the complete event set rather than the current
-    /// page. Uses the same query variant the offline prefetcher warms, so this is a
-    /// cache hit online and works offline.
-    private func loadFilterCities() async {
-        guard let all = try? await eventService.fetchEvents(
-            limit: catalogueLimit,
-            offset: 0
-        ) else { return }
-
-        var seen = Set<String>()
-        availableCities = all
-            .compactMap { $0.city }
-            .filter { seen.insert($0.id).inserted }
-            .sorted { $0.displayName < $1.displayName }
     }
 
     private func loadCategories() async {
