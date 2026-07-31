@@ -11,6 +11,9 @@ struct HikingLocationSheet: View {
     let waypoint: TrailWaypoint
     
     @State private var showARUnavailableAlert = false
+    /// Same player the location detail screen uses, so behaviour (and the offline
+    /// voiceover cache) is identical here.
+    @State private var voiceoverPlayer = LocationVoiceoverPlayer()
     
     private var storyText: String? {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
@@ -49,7 +52,26 @@ struct HikingLocationSheet: View {
                             .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                    
+
+                    if waypoint.hasVoiceover, let urlString = waypoint.voiceoverURL {
+                        Button {
+                            FirebaseUtils.trackButtonTap(
+                                buttonName: "voiceover_listen_\(waypoint.name)",
+                                screenName: "HikingWaypoint"
+                            )
+                            voiceoverPlayer.toggle(remoteURLString: urlString)
+                        } label: {
+                            Image(systemName: voiceoverPlayer.isPlaying ? "stop.fill" : "speaker.wave.2.fill")
+                                .font(.system(size: 22, weight: .semibold))
+                                .frame(width: 52, height: 52)
+                                .background(Color(red: 0.72, green: 0.41, blue: 0.25))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(String(localized: "Listen to audio guide"))
+                    }
+
                     Spacer(minLength: 0)
                     
                     if let category = waypoint.category?.displayName {
@@ -78,6 +100,7 @@ struct HikingLocationSheet: View {
         }
         .background(Color(.systemBackground))
         .coordinateSpace(name: "scroll")
+        .onDisappear { voiceoverPlayer.stop() }
         .alert(String(localized: "AR not available"), isPresented: $showARUnavailableAlert) {
             Button(String(localized: "OK"), role: .cancel) { }
         } message: {
@@ -95,6 +118,8 @@ struct HikingLocationSheet: View {
         category: Location.sampleLocations[0].category,
         images: Location.sampleLocations[0].images,
         storyEn: Location.sampleLocations[0].storyEn,
-        storyFr: Location.sampleLocations[0].storyFr
+        storyFr: Location.sampleLocations[0].storyFr,
+        voiceoverEn: nil,
+        voiceoverFr: nil
     ))
 }

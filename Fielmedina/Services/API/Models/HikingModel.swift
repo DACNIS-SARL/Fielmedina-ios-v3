@@ -50,7 +50,9 @@ struct Hiking: Codable, Identifiable {
                 category: loc.category,
                 images: loc.images,
                 storyEn: loc.storyEn,
-                storyFr: loc.storyFr
+                storyFr: loc.storyFr,
+                voiceoverEn: loc.voiceoverEn,
+                voiceoverFr: loc.voiceoverFr
             )
         }
     }
@@ -102,6 +104,8 @@ struct TrailLocation: Codable, Identifiable {
     let images: [ImageContainer]?
     let storyEn: String?
     let storyFr: String?
+    let voiceoverEn: String?
+    let voiceoverFr: String?
     
     var displayName: String {
         nameFr.isEmpty ? nameEn : nameFr
@@ -128,4 +132,19 @@ struct TrailWaypoint: Identifiable {
     let images: [ImageContainer]?
     let storyEn: String?
     let storyFr: String?
+    let voiceoverEn: String?
+    let voiceoverFr: String?
+
+    /// Voiceover for the current language, falling back to the other one.
+    /// Mirrors `Location.voiceoverURL` so the hiking sheet behaves like the
+    /// location detail screen.
+    var voiceoverURL: String? {
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        let en = voiceoverEn.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        let fr = voiceoverFr.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+        return isFrench ? (fr ?? en) : (en ?? fr)
+    }
+
+    /// True when at least one non-empty voiceover asset exists (any language).
+    var hasVoiceover: Bool { voiceoverURL != nil }
 }

@@ -214,6 +214,8 @@ query GetHikingTrails($cityId: Int, $limit: Int, $offset: Int) {
         }
         storyEn
         storyFr
+        voiceoverEn
+        voiceoverFr
         images {
           image { ...ImageFields }
           imageMobile { ...ImageFields }

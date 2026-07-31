@@ -81,7 +81,9 @@ class HikingService {
                                     )
                                 },
                                 storyEn: loc.storyEn,
-                                storyFr: loc.storyFr
+                                storyFr: loc.storyFr,
+                                voiceoverEn: loc.voiceoverEn,
+                                voiceoverFr: loc.voiceoverFr
                             )
                         }()
                     )
