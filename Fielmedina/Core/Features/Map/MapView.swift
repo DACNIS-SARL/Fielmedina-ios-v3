@@ -27,14 +27,14 @@ struct MapView: View {
         pitch: 40
     )
     @State private var showLocationAlert = false
-    @State private var locations: [Location] = []
+    /// Held with @State so it is created once and survives body re-evaluation,
+    /// the SwiftUI equivalent of an Android ViewModel. Camera/viewport state stays
+    /// in the View — that's renderer state, not app data.
+    @State private var model = MapContentModel()
     @State private var selectedLocation: Location?
     @State private var showLocationDetail = false
     @State private var showFilterSheet = false
-    @State private var selectedCategoryIds: Set<String> = []
-    @State private var locationCategories: [LocationCategory] = []
     @State private var didCenterOnMedina = false
-    @State private var isConnected = NetworkMonitor.shared.isConnected
     @State private var shouldShowCityDownloadPrompt = false
 
     private var standardLightPreset: StandardLightPreset {
@@ -53,7 +53,7 @@ struct MapView: View {
                 Map(viewport: $viewport) {
                     Puck2D(bearing: .heading)
 
-                    PointAnnotationGroup(filteredLocations, id: \.id) { location in
+                    PointAnnotationGroup(model.displayedLocations, id: \.id) { location in
                         var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(
                             latitude: location.latitude,
                             longitude: location.longitude
@@ -116,30 +116,16 @@ struct MapView: View {
                 locationManager.startUpdatingLocation()
             }
             .task {
-                await withTaskGroup(of: Void.self) { group in
-                    group.addTask { await loadLocations() }
-                    group.addTask { await loadLocationCategories() }
-                }
-                if selectedCategoryIds.isEmpty && !locationCategories.isEmpty {
-                    selectedCategoryIds = Set(locationCategories.map { $0.id })
-                }
+                await model.loadData()
                 centerMapOnNearestMedinaIfNeeded()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
-                guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
-                self.isConnected = isConnected
             }
             .onReceive(NotificationCenter.default.publisher(for: .offlineCityDataMissing)) { _ in
                 shouldShowCityDownloadPrompt = true
             }
-            .onChange(of: isConnected) { _, newValue in
-                guard newValue else { return }
-                Task { await refreshFromNetwork() }
-            }
             .sheet(isPresented: $showFilterSheet) {
                 MapFilterSheet(
-                    categories: locationCategories,
-                    selectedCategoryIds: $selectedCategoryIds
+                    categories: model.locationCategories,
+                    selectedCategoryIds: $model.selectedCategoryIds
                 )
                 .presentationDetents([.medium, .large])
             }
@@ -164,51 +150,6 @@ struct MapView: View {
             }
         }
     }
-
-    private func loadLocations() async {
-        do {
-            locations = try await LocationService.shared.fetchLocations(
-                cityId: nil,
-                limit: 500
-            )
-            if selectedCategoryIds.isEmpty && !locationCategories.isEmpty {
-                selectedCategoryIds = Set(locationCategories.map { $0.id })
-            }
-        } catch {
-            locations = []
-        }
-    }
-
-    private func loadLocationCategories() async {
-        // 1) Try cache-only first to support offline
-        if let cached = await LocationCategoryService.shared.fetchLocationCategoriesFromCache(),
-           !cached.isEmpty {
-            locationCategories = cached.sorted { $0.displayName < $1.displayName }
-            return
-        }
-
-        // 2) Fall back to network (cacheFirst), then derive from locations
-        do {
-            let fetched = try await LocationCategoryService.shared.fetchLocationCategories()
-            locationCategories = fetched.sorted { $0.displayName < $1.displayName }
-        } catch {
-            var seen = Set<String>()
-            let derived = locations.compactMap { $0.category }.filter { category in
-                if seen.contains(category.id) { return false }
-                seen.insert(category.id)
-                return true
-            }.sorted { $0.displayName < $1.displayName }
-            locationCategories = derived
-        }
-    }
-
-    private func refreshFromNetwork() async {
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await loadLocations() }
-            group.addTask { await loadLocationCategories() }
-        }
-    }
-
 
     private func centerMapOnNearestMedinaIfNeeded() {
         guard !didCenterOnMedina,
@@ -236,14 +177,6 @@ struct MapView: View {
         }
     }
 
-    private var filteredLocations: [Location] {
-        guard !selectedCategoryIds.isEmpty else { return locations }
-        return locations.filter { location in
-            guard let categoryId = location.category?.id else { return false }
-            return selectedCategoryIds.contains(categoryId)
-        }
-    }
-    
     @ViewBuilder
     private var locationButton: some View {
         if locationManager.authorizationStatus == .authorizedWhenInUse ||

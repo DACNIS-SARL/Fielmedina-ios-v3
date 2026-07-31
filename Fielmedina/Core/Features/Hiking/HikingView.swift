@@ -11,13 +11,12 @@ import MapboxDirections
 import MapboxNavigationCore
 
 struct HikingView: View {
-    @State private var trails: [Hiking] = []
-    @State private var metrics: [String: HikingMetrics] = [:]
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    /// Held with @State so it is created once and survives body re-evaluation,
+    /// the SwiftUI equivalent of an Android ViewModel. Route metrics live in here,
+    /// so returning to this screen no longer recomputes every trail's route.
+    @State private var model = HikingListModel()
     @State private var locationManager = LocationManager()
     @State private var selectedHiking: Hiking?
-    @State private var isConnected = NetworkMonitor.shared.isConnected
 
     var body: some View {
         NavigationStack {
@@ -25,9 +24,9 @@ struct HikingView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
 
-                    if isLoading {
+                    if model.isLoading {
                         HikingSkeletonList()
-                    } else if let errorMessage {
+                    } else if let errorMessage = model.errorMessage {
                         VStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 40))
@@ -37,13 +36,13 @@ struct HikingView: View {
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                             Button("Retry") {
-                                Task { await loadTrails() }
+                                Task { await model.loadTrails() }
                             }
                             .buttonStyle(.bordered)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
-                    } else if trails.isEmpty {
+                    } else if model.trails.isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "figure.hiking")
                                 .font(.system(size: 48))
@@ -63,17 +62,17 @@ struct HikingView: View {
                         .padding(.vertical, 40)
                     } else {
                         LazyVStack(spacing: 20) {
-                            ForEach(trails.indices, id: \.self) { index in
-                                let trail = trails[index]
+                            ForEach(model.trails.indices, id: \.self) { index in
+                                let trail = model.trails[index]
                                 HikingCardView(
                                     hiking: trail,
-                                    metrics: metrics[trail.id],
+                                    metrics: model.metrics[trail.id],
                                     onStart: {
                                         selectedHiking = trail
                                     }
                                 )
 
-                                if index < trails.count - 1 {
+                                if index < model.trails.count - 1 {
                                     AdsCarousel(startIndex: index + 1)
                                         .padding(.top, 4)
                                 }
@@ -95,19 +94,16 @@ struct HikingView: View {
             .task {
                 locationManager.requestPermission()
                 locationManager.startUpdatingLocation()
-                await loadTrails()
+                await model.loadTrails()
             }
-            .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
-                guard let isConnected = notification.userInfo?["isConnected"] as? Bool else { return }
-                self.isConnected = isConnected
+            // The View owns CoreLocation permission/lifecycle and feeds the coordinate
+            // in; the model buckets it so trails are only re-sorted and re-routed when
+            // the user has actually moved, not on every GPS tick.
+            .onChange(of: locationManager.userLocation?.latitude) { _, _ in
+                model.updateUserLocation(locationManager.userLocation)
             }
-            .onChange(of: isConnected) { _, newValue in
-                guard newValue else { return }
-                Task { await refreshFromNetwork() }
-            }
-            .onChange(of: locationManager.userLocation) { _, _ in
-                sortTrailsByDistanceIfPossible()
-                Task { await updateMetrics() }
+            .onChange(of: locationManager.userLocation?.longitude) { _, _ in
+                model.updateUserLocation(locationManager.userLocation)
             }
             .fullScreenCover(item: $selectedHiking) { hiking in
                 HikingNavigator(
@@ -130,102 +126,6 @@ struct HikingView: View {
         }
     }
 
-    private func loadTrails() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            // Use limit 200 to match the prefetcher cache query exactly.
-            let limit: Int32 = 200
-            trails = try await HikingService.shared.fetchHikings(cityId: nil, limit: limit)
-            LogUtils.d("HikingView", "Loaded \(trails.count) trails (limit: \(limit))")
-            sortTrailsByDistanceIfPossible()
-            await updateMetrics()
-        } catch {
-            LogUtils.e("HikingView", "Failed to load trails: \(error.localizedDescription)")
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-    private func refreshFromNetwork() async {
-        await loadTrails()
-    }
-
-    private func updateMetrics() async {
-        guard let userCoordinate = locationManager.userLocation else { return }
-        let trailsSnapshot = trails
-
-        let updatedMetrics = await withTaskGroup(of: (String, HikingMetrics?).self) { group in
-            for trail in trailsSnapshot {
-                group.addTask {
-                    let metrics = await calculateMetrics(for: trail, userCoordinate: userCoordinate)
-                    return (trail.id, metrics)
-                }
-            }
-
-            var results: [String: HikingMetrics] = [:]
-            for await (id, metrics) in group {
-                if let metrics {
-                    results[id] = metrics
-                }
-            }
-            return results
-        }
-
-        await MainActor.run {
-            metrics = updatedMetrics
-        }
-    }
-
-    private func sortTrailsByDistanceIfPossible() {
-        guard let userCoordinate = locationManager.userLocation else { return }
-        let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-        trails.sort {
-            let leftLocation = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
-            let rightLocation = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
-            return leftLocation.distance(from: userLocation) < rightLocation.distance(from: userLocation)
-        }
-    }
-
-    private func calculateMetrics(for hiking: Hiking, userCoordinate: CLLocationCoordinate2D) async -> HikingMetrics? {
-        let trailWaypoints = hiking.waypoints.map {
-            Waypoint(coordinate: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude))
-        }
-        // Sanitize before the router sees it (drops invalid/(0,0)/duplicate points and
-        // caps at Mapbox's 25-waypoint limit) so a bad trail can't crash the offline router.
-        let waypoints = RouteWaypointSanitizer.sanitize([Waypoint(coordinate: userCoordinate)] + trailWaypoints)
-        guard waypoints.count >= 2 else { return nil }
-
-        let options = NavigationRouteOptions(waypoints: waypoints)
-        options.profileIdentifier = .walking
-        
-        
-        let realisticHikingSpeed: Double = 0.83
-
-        do {
-            let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
-            let response = try await routingProvider.calculateRoutes(options: options).value
-            
-            let route = response.mainRoute.route
-            return HikingMetrics(
-                distance: route.distance,
-                duration: route.expectedTravelTime
-            )
-        } catch {
-            LogUtils.w("HikingView", "Online/Offline routing failed, using manual fallback: \(error.localizedDescription)")
-        }
-        
-        
-        if let totalDistance = hiking.totalDistance {
-            let distanceInMeters = totalDistance * 1000
-            return HikingMetrics(
-                distance: distanceInMeters,
-                duration: distanceInMeters / realisticHikingSpeed
-            )
-        }
-        
-        return nil
-    }
 }
 
 struct HikingSkeletonList: View {

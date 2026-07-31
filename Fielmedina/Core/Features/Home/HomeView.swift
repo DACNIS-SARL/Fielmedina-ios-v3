@@ -21,13 +21,12 @@ enum HomeNavigationDestination: Hashable {
 }
 
 struct HomeView: View {
-    @State private var showTaxiButton = false
-    @State private var showTopPicksButton = true
+    /// Feature flags + onboarding gating. Navigation/scroll/search state below stays
+    /// in the View — that's SwiftUI rendering state, not app data.
+    @State private var model = HomeModel()
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
     @State private var refreshTrigger = 0
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-    @State private var showOnboarding = false
     @State private var showSearch = false
     @Namespace private var searchNamespace
 
@@ -110,11 +109,11 @@ struct HomeView: View {
                         if areButtonsSticky {
                             publicTransportIcon
                                 .transition(.move(edge: .trailing).combined(with: .opacity))
-                            if showTaxiButton {
+                            if model.showTaxiButton {
                                 taxiBookingIcon
                                     .transition(.move(edge: .trailing).combined(with: .opacity))
                             }
-                            if showTopPicksButton {
+                            if model.showTopPicksButton {
                                 topPicksIcon
                                     .transition(.move(edge: .trailing).combined(with: .opacity))
                             }
@@ -166,21 +165,14 @@ struct HomeView: View {
         .overlay {
             // Paused while searching so it never sits on top of the search overlay
             // or points at the hidden settings button.
-            if showOnboarding && !showSearch {
+            if model.showOnboarding && !showSearch {
                 OnboardingOverlay(
-                    onDismiss: {
-                        hasSeenOnboarding = true
-                        showOnboarding = false
-                    }
+                    onDismiss: { model.completeOnboarding() }
                 )
             }
         }
         .onAppear {
-            if !hasSeenOnboarding {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    showOnboarding = true
-                }
-            }
+            model.scheduleOnboardingIfNeeded()
         }
     }
     
@@ -224,30 +216,30 @@ struct HomeView: View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 12) {
                 publicTransportButton
-                if showTaxiButton {
+                if model.showTaxiButton {
                     taxiBookingButton
                 }
-                if showTopPicksButton {
+                if model.showTopPicksButton {
                     topPicksButton
                 }
             }
             
             HStack(spacing: 8) {
                 publicTransportButton.scaleEffect(CGFloat(0.9), anchor: .center)
-                if showTaxiButton {
+                if model.showTaxiButton {
                     taxiBookingButton.scaleEffect(CGFloat(0.9), anchor: .center)
                 }
-                if showTopPicksButton {
+                if model.showTopPicksButton {
                     topPicksButton.scaleEffect(CGFloat(0.9), anchor: .center)
                 }
             }
             
             VStack(spacing: 8) {
                 publicTransportButton
-                if showTaxiButton {
+                if model.showTaxiButton {
                     taxiBookingButton
                 }
-                if showTopPicksButton {
+                if model.showTopPicksButton {
                     topPicksButton
                 }
             }

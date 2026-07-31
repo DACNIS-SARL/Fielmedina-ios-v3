@@ -58,6 +58,7 @@ class EventService {
     /// - Returns: An array of domain `Event` models.
     func fetchEvents(
         cityId: Int32? = nil,
+        categoryId: Int32? = nil,
         limit: Int32 = 10,
         offset: Int32 = 0,
         boost: Bool? = nil,
@@ -75,6 +76,7 @@ class EventService {
             
             let page = try await fetchEventsPage(
                 cityId: cityId,
+                categoryId: categoryId,
                 limit: currentLimit,
                 offset: currentOffset,
                 boost: boost,
@@ -93,6 +95,7 @@ class EventService {
 
     private func fetchEventsPage(
         cityId: Int32?,
+        categoryId: Int32?,
         limit: Int32,
         offset: Int32,
         boost: Bool?,
@@ -100,7 +103,7 @@ class EventService {
     ) async throws -> [Event] {
         let query = FielmedinaAPI.GetEventsByCityQuery(
             cityId: cityId != nil ? .init(integerLiteral: cityId!) : .none,
-            categoryId: .none,
+            categoryId: categoryId != nil ? .init(integerLiteral: categoryId!) : .none,
             limit: .init(integerLiteral: limit),
             offset: .some(offset),
             boost: boost != nil ? .some(boost!) : .none

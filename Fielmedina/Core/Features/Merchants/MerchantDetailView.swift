@@ -19,15 +19,9 @@ struct MerchantDetailView: View {
     
     @State private var selectedImageIndex: Int? = 0
     @State private var locationManager = LocationManager()
+    /// Shared turn-by-turn navigation logic (also used by LocationDetailView).
+    @State private var navigation = PlaceNavigationModel()
     private let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
-    @State private var navigationRoutes: NavigationRoutes?
-    @State private var isNavigationPresented = false
-    @State private var isNavigationLoading = false
-    @State private var showLocationAlert = false
-    @State private var showNavigationErrorAlert = false
-    @State private var navigationErrorMessage = ""
-    @State private var showDownloadRequiredAlert = false
-    @State private var missingCityName = ""
     
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         locationManager.userLocation
@@ -69,21 +63,17 @@ struct MerchantDetailView: View {
         .onDisappear {
             locationManager.stopUpdatingLocation()
         }
-        .fullScreenCover(isPresented: $isNavigationPresented) {
+        .fullScreenCover(isPresented: $navigation.isPresented) {
             NavigationCoverView(
-                routes: $navigationRoutes,
+                routes: $navigation.routes,
                 provider: mapboxNavigationProvider,
                 locationName: merchant.displayName,
                 userLocation: currentUserCoordinate,
-                isLoading: $isNavigationLoading,
-                onDismiss: {
-                    navigationRoutes = nil
-                    isNavigationPresented = false
-                    isNavigationLoading = false
-                }
+                isLoading: $navigation.isLoading,
+                onDismiss: { navigation.reset() }
             )
         }
-        .alert("Location Access Required", isPresented: $showLocationAlert) {
+        .alert("Location Access Required", isPresented: $navigation.showLocationPermissionAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Open Settings") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -93,15 +83,15 @@ struct MerchantDetailView: View {
         } message: {
             Text("To start navigation, please enable location access in Settings. Tap 'Location' and select 'While Using the App'.")
         }
-        .alert("Navigation Error", isPresented: $showNavigationErrorAlert) {
+        .alert("Navigation Error", isPresented: $navigation.showErrorAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(navigationErrorMessage)
+            Text(navigation.errorMessage)
         }
-        .alert(String(localized: "Offline Map Required"), isPresented: $showDownloadRequiredAlert) {
+        .alert(String(localized: "Offline Map Required"), isPresented: $navigation.showDownloadRequiredAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(String(format: String(localized: "You need to download the offline map for %@ Medina under Settings before starting navigation."), missingCityName))
+            Text(String(format: String(localized: "You need to download the offline map for %@ Medina under Settings before starting navigation."), navigation.missingCityName))
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "merchant_detail_\(merchant.displayName)", screenClass: "MerchantDetailView")
@@ -317,52 +307,16 @@ struct MerchantDetailView: View {
     }
 
     private func startNavigation() {
-        guard let userCoordinate = locationManager.userLocation else {
-            showLocationAlert = true
-            return
-        }
-        
-        guard let latitude = merchant.latitude, let longitude = merchant.longitude else {
-            navigationErrorMessage = String(localized: "This merchant does not have a location set.")
-            showNavigationErrorAlert = true
-            return
-        }
+        let destination: CLLocationCoordinate2D? = {
+            guard let latitude = merchant.latitude, let longitude = merchant.longitude else { return nil }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }()
 
-        let destination = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-        let cityId = OfflineCityDataStore.shared.getCityId(for: destination)
-        if !NetworkMonitor.shared.isConnected {
-            if !OfflineCityDataStore.shared.hasCityData(cityId: cityId) {
-                missingCityName = OfflineCityDataStore.shared.getCityName(for: cityId)
-                showDownloadRequiredAlert = true
-                return
-            }
-        }
-
-        isNavigationLoading = true
-        isNavigationPresented = true
-
-        let origin = CLLocationCoordinate2D(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-        let options = NavigationRouteOptions(coordinates: [origin, destination])
-        options.profileIdentifier = .walking
-
-        Task {
-            do {
-                let routingProvider = await MainActor.run { MapboxNavigationProviderStore.routingProvider() }
-                let response = try await routingProvider.calculateRoutes(options: options).value
-                
-                await MainActor.run {
-                    navigationRoutes = response
-                    // isNavigationLoading will be set to false by NavigationCoverView when Mapbox is ready
-                }
-            } catch {
-                await MainActor.run {
-                    navigationErrorMessage = OfflineNavigationDiagnostics.failureMessage(for: error)
-                    showNavigationErrorAlert = true
-                    isNavigationLoading = false
-                    isNavigationPresented = false // Dismiss loader on error
-                }
-            }
-        }
+        navigation.start(
+            to: destination,
+            from: locationManager.userLocation,
+            missingDestinationMessage: String(localized: "This merchant does not have a location set.")
+        )
     }
 }
 
