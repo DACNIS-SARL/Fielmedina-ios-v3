@@ -28,6 +28,9 @@ struct HomeView: View {
     @State private var navigationPath = NavigationPath()
     @State private var refreshTrigger = 0
     @State private var showSearch = false
+    /// Real on-screen frame of the settings button, so the onboarding coachmark can
+    /// highlight it exactly instead of guessing (it moves between device sizes).
+    @State private var settingsButtonFrame: CGRect = .zero
     @Namespace private var searchNamespace
 
     private static let searchFieldID = "homeSearchField"
@@ -167,9 +170,13 @@ struct HomeView: View {
             // or points at the hidden settings button.
             if model.showOnboarding && !showSearch {
                 OnboardingOverlay(
+                    anchorFrame: settingsButtonFrame,
                     onDismiss: { model.completeOnboarding() }
                 )
             }
+        }
+        .onPreferenceChange(SettingsButtonFrameKey.self) { frame in
+            settingsButtonFrame = frame
         }
         .onAppear {
             model.scheduleOnboardingIfNeeded()

@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct OnboardingOverlay: View {
+    /// Measured frame of the settings button, in global coordinates. `.zero` means the
+    /// measurement hasn't arrived yet, in which case we fall back to nav-bar metrics.
+    var anchorFrame: CGRect = .zero
     let onDismiss: () -> Void
     
     @State private var isVisible = false
@@ -17,26 +20,50 @@ struct OnboardingOverlay: View {
     @State private var bubbleOffset: CGFloat = 20
     @State private var glowOpacity: Double = 0
     
-    private let ringRadius: CGFloat = 22
-    
+    /// Padding added around the measured icon so the ring encircles the whole tappable
+    /// button rather than just the glyph.
+    private let ringPadding: CGFloat = 13
+    private let minimumRingRadius: CGFloat = 22
+
+    /// Safe-area top, read from the *key* window. The previous version took
+    /// `connectedScenes.first` / `windows.first`, which are arbitrary and could return a
+    /// different window than the one on screen — one reason the highlight drifted.
     private func getSafeTop() -> CGFloat {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            return window.safeAreaInsets.top > 0 ? window.safeAreaInsets.top : 47
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: { $0.isKeyWindow })
+
+        let inset = keyWindow?.safeAreaInsets.top ?? 0
+        return inset > 0 ? inset : 47
+    }
+
+    /// Where to draw the spotlight, and how big.
+    ///
+    /// Prefers the button's real measured frame, so the ring fits the control exactly on
+    /// every device (notch, Dynamic Island, iPad, larger Dynamic Type). Falls back to
+    /// nav-bar metrics only if the measurement hasn't landed yet.
+    private func spotlight(in geo: GeometryProxy) -> (center: CGPoint, radius: CGFloat) {
+        if anchorFrame != .zero {
+            // Convert the global frame into this view's coordinate space.
+            let origin = geo.frame(in: .global).origin
+            let local = anchorFrame.offsetBy(dx: -origin.x, dy: -origin.y)
+            let radius = max(local.width, local.height) / 2 + ringPadding
+            return (CGPoint(x: local.midX, y: local.midY), max(radius, minimumRingRadius))
         }
-        return 47
+
+        return (
+            CGPoint(x: geo.size.width - 38, y: getSafeTop() + 22),
+            minimumRingRadius
+        )
     }
     
     var body: some View {
         GeometryReader { geo in
             let screenSize = geo.size
-            let safeTop = getSafeTop()
-            
-            // Adjusted X coordinate with more right margin to perfectly align with the gear
-            let gearCenter = CGPoint(
-                x: screenSize.width - 38,
-                y: safeTop + 22
-            )
+            let resolved = spotlight(in: geo)
+            let gearCenter = resolved.center
+            let ringRadius = resolved.radius
             
             // Shifted the bubble higher up and offset to the left for a natural flow
             let bubbleCenter = CGPoint(
@@ -67,7 +94,7 @@ struct OnboardingOverlay: View {
                     .position(gearCenter)
                 
                 // MARK: - Curved arrow from gear → bubble
-                curvedArrow(from: gearCenter, to: bubbleCenter)
+                curvedArrow(from: gearCenter, to: bubbleCenter, ringRadius: ringRadius)
                     .trim(from: 0, to: arrowProgress)
                     .stroke(
                         Color.white,
@@ -108,7 +135,7 @@ struct OnboardingOverlay: View {
     
     // MARK: - Arrow path from gear to bubble
     
-    private func curvedArrow(from start: CGPoint, to end: CGPoint) -> Path {
+    private func curvedArrow(from start: CGPoint, to end: CGPoint, ringRadius: CGFloat) -> Path {
         let exitPoint = CGPoint(x: start.x - 8, y: start.y + ringRadius + 4)
         // Entry point is at the top edge of the new bubble (roughly)
         let entryPoint = CGPoint(x: end.x + 30, y: end.y - 30)
