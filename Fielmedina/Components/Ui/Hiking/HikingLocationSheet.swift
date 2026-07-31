@@ -40,7 +40,7 @@ struct HikingLocationSheet: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                 
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     Button {
                         FirebaseUtils.trackButtonTap(buttonName: "open_ar", screenName: "HikingWaypoint")
                         showARUnavailableAlert = true
@@ -62,14 +62,18 @@ struct HikingLocationSheet: View {
                             voiceoverPlayer.toggle(remoteURLString: urlString)
                         } label: {
                             Image(systemName: voiceoverPlayer.isPlaying ? "stop.fill" : "speaker.wave.2.fill")
-                                .font(.system(size: 22, weight: .semibold))
-                                .frame(width: 52, height: 52)
+                                .font(.system(size: 18, weight: .bold))
+                                .frame(width: 44, height: 44)
                                 .background(Color(red: 0.72, green: 0.41, blue: 0.25))
                                 .foregroundStyle(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 50, style: .continuous))
+                                .clipShape(Circle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(String(localized: "Listen to audio guide"))
+                        .accessibilityLabel(
+                            voiceoverPlayer.isPlaying
+                                ? String(localized: "Stop audio guide")
+                                : String(localized: "Listen to audio guide")
+                        )
                     }
 
                     Spacer(minLength: 0)

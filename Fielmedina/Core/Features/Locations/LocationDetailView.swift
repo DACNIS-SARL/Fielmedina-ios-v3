@@ -167,7 +167,11 @@ struct LocationDetailView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(String(localized: "Listen to audio guide"))
+                    .accessibilityLabel(
+                        voiceoverPlayer.isPlaying
+                            ? String(localized: "Stop audio guide")
+                            : String(localized: "Listen to audio guide")
+                    )
                 }
             }
             if let story = location.displayStory {
