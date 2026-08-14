@@ -95,6 +95,11 @@ struct MerchantDetailView: View {
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "merchant_detail_\(merchant.displayName)", screenClass: "MerchantDetailView")
+            MetaEvents.logContentView(
+                contentType: "merchant",
+                contentId: merchant.id,
+                contentName: merchant.displayName
+            )
         }
     }
     
@@ -315,7 +320,9 @@ struct MerchantDetailView: View {
         navigation.start(
             to: destination,
             from: locationManager.userLocation,
-            missingDestinationMessage: String(localized: "This merchant does not have a location set.")
+            missingDestinationMessage: String(localized: "This merchant does not have a location set."),
+            placeId: merchant.id,
+            placeType: "merchant"
         )
     }
 }

@@ -46,10 +46,15 @@ final class PlaceNavigationModel {
     ///   - userCoordinate: nil when location permission hasn't been granted.
     ///   - missingDestinationMessage: shown when `destination` is nil, so each screen
     ///     can phrase it for its own content type.
+    ///   - placeId / placeType: identify the destination for the Meta conversion
+    ///     event. Required rather than defaulted so a new caller cannot silently
+    ///     ship without attribution data.
     func start(
         to destination: CLLocationCoordinate2D?,
         from userCoordinate: CLLocationCoordinate2D?,
-        missingDestinationMessage: String
+        missingDestinationMessage: String,
+        placeId: String,
+        placeType: String
     ) {
         guard let userCoordinate else {
             showLocationPermissionAlert = true
@@ -72,6 +77,10 @@ final class PlaceNavigationModel {
                 return
             }
         }
+
+        // Logged after every guard has passed, so it counts intent that actually
+        // resulted in navigation rather than a blocked tap.
+        MetaEvents.logNavigationStarted(placeId: placeId, placeType: placeType)
 
         isLoading = true
         isPresented = true

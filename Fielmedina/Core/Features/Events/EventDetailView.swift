@@ -42,6 +42,11 @@ struct EventDetailView: View {
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "event_detail_\(event.displayName)", screenClass: "EventDetailView")
+            MetaEvents.logContentView(
+                contentType: "event",
+                contentId: event.id,
+                contentName: event.displayName
+            )
         }
     }
 

@@ -56,6 +56,32 @@ current refactor, list/detail screens follow an MVVM-like pattern:
   color `#B66239`, 44×44 `Circle()`, accessibility label must switch between "Listen"
   and "Stop" based on `isPlaying`).
 
+## Meta ads measurement (`Services/Analytics/MetaEvents.swift`)
+
+Ad attribution, separate from Firebase Analytics (product analytics). Both are needed;
+neither replaces the other. Three things must all be true or iOS measurement is dead:
+
+1. **SDK initialised** — `MetaEvents.initializeSDK(...)` in `AppDelegate`. The SDK was
+   once linked via SPM and configured in Info.plist but never initialised in code, so
+   it sent *nothing* — not even install/activate — and every campaign optimised against
+   an empty signal. A linked FBSDK is not an active FBSDK.
+2. **`SKAdNetworkItems` in Info.plist** — Meta's two IDs (`v9wttpbfk9.skadnetwork`
+   Facebook, `n38lu8286q.skadnetwork` Instagram). Without them Apple never sends an
+   install postback to Meta, independent of anything the SDK does.
+3. **ATT authorisation requested** — the prompt fires after onboarding, not at cold
+   start (where it stacks on the notification and location prompts and gets denied).
+   Asking is all the app must do: `Settings.isAdvertiserTrackingEnabled` is deprecated
+   and ignored on iOS 17+, and our deployment target is 18.6, so FBSDK v18 reads
+   `ATTrackingManager.trackingAuthorizationStatus` itself. Don't re-add that setter —
+   it compiles with a deprecation warning and does nothing.
+
+**Event names must stay byte-identical to Android** (`core/analytics/MetaEvents.kt`).
+Ads Manager optimises per event *name*; a mismatch means one campaign cannot optimise
+across both platforms, and it fails silently — no error, just wasted budget.
+
+Verify with `Settings.shared.enableLoggingBehavior(.appEvents)` (already on in DEBUG) →
+look for `Created app event` in the log, and cross-check in Events Manager → Test Events.
+
 ## GraphQL / codegen
 
 - Queries live in `Core/Network/GraphQL/Queries/queries.graphql`.

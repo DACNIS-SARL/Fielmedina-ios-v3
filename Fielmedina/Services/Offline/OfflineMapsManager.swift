@@ -413,6 +413,13 @@ final class OfflineMapsManager {
                 case .success:
                     if !silent {
                         NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
+                        // Activation conversion for Meta. Gated on `!silent` on
+                        // purpose: a background re-pin of an already-downloaded
+                        // region is not a user action and must not inflate the
+                        // event Ads Manager optimises against.
+                        Task { @MainActor in
+                            MetaEvents.logOfflineRegionDownloaded(regionId: id)
+                        }
                     }
                     completion(.success(()))
                 case .failure(let error):

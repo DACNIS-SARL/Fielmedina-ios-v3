@@ -75,5 +75,18 @@ final class HomeModel {
         onboardingTask?.cancel()
         UserDefaults.standard.set(true, forKey: onboardingKey)
         showOnboarding = false
+        MetaEvents.logOnboardingCompleted()
+
+        // Ask for tracking permission here, not only on the next `scenePhase`
+        // change. On a fresh install the app is *already* active when onboarding
+        // ends, so `.active` never fires again this session — waiting for it meant
+        // the ATT prompt did not appear until the user backgrounded the app and
+        // came back, or relaunched. First-install users simply never saw it.
+        Task {
+            // Let the coachmark's dismissal animation finish before a system
+            // alert covers the screen.
+            try? await Task.sleep(for: .milliseconds(600))
+            await MetaEvents.requestTrackingAuthorizationIfNeeded()
+        }
     }
 }

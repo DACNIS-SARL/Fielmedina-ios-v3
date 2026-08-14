@@ -14,9 +14,14 @@ import UserNotifications
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        
+
         OfflineTileStore.configure()
-        
+
+        // Meta App Events. Must run before anything logs an event — the SDK was
+        // linked but never initialised, so Meta received no install or activation
+        // signal at all and every ad campaign optimised against nothing.
+        MetaEvents.initializeSDK(application, didFinishLaunchingWithOptions: launchOptions)
+
         FirebaseApp.configure()
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
@@ -69,6 +74,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         LogUtils.e("AppDelegate", "❌ Failed to register for remote notifications: \(error.localizedDescription)")
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // Meta's app-activation event. Meta counts sessions from this; without it
+        // retention and frequency reporting in Ads Manager stay empty.
+        MetaEvents.activateApp()
     }
 }
 
@@ -152,7 +163,20 @@ struct FielmedinaApp: App {
                 // Keep offline map regions pinned to a routing-tiles version the
                 // navigator can use; otherwise offline navigation breaks over time.
                 OfflineMapsManager.shared.refreshDownloadedRegionsIfNeeded()
+                requestTrackingAuthorizationIfAppropriate()
             }
+        }
+    }
+
+    /// Shows the ATT prompt only once onboarding is behind the user. Asking on the
+    /// very first launch — stacked on the notification and location prompts — is
+    /// the reliable way to get denied, and a denial is permanent unless the user
+    /// digs into Settings. SKAdNetwork attribution works either way; this only
+    /// decides whether events may carry the IDFA.
+    private func requestTrackingAuthorizationIfAppropriate() {
+        guard UserDefaults.standard.bool(forKey: "hasSeenOnboarding") else { return }
+        Task { @MainActor in
+            await MetaEvents.requestTrackingAuthorizationIfNeeded()
         }
     }
 

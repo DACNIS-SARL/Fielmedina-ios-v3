@@ -10,6 +10,26 @@
 	<true/>
 	<key>FacebookClientToken</key>
 	<string>c9563938c06c24589829f8853300e83d</string>
+	<key>FacebookDisplayName</key>
+	<string>Fielmedina</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<!-- Meta's two SKAdNetwork identifiers. Without these, Apple never sends
+		     an install postback to Meta and every iOS install from a Meta ad is
+		     invisible in Ads Manager, no matter what the SDK reports. -->
+		<dict>
+			<!-- Facebook -->
+			<key>SKAdNetworkIdentifier</key>
+			<string>v9wttpbfk9.skadnetwork</string>
+		</dict>
+		<dict>
+			<!-- Instagram -->
+			<key>SKAdNetworkIdentifier</key>
+			<string>n38lu8286q.skadnetwork</string>
+		</dict>
+	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Allow tracking so we can show you Fielmedina recommendations that match your interests and understand which guides travellers find useful.</string>
 	<key>MBXAccessToken</key>
 	<string>pk.eyJ1IjoiZGFjbmlzIiwiYSI6ImNtbTd4YWpqYzB2OGwydHF1MHgyeHkyd2wifQ.XM1yzCIUTqjdTMonhee4Zg</string>
 	<key>NSUserNotificationUsageDescription</key>

@@ -318,6 +318,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		BEB84B3B300F62C400CCA6B7 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -334,7 +335,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+			shellScript = "# Firebase Crashlytics dSYM upload.\n#\n# Debug uses DEBUG_INFORMATION_FORMAT=dwarf (Xcode's default), which produces no\n# dSYM at all, so the uploader warned \"Unable to process Fielmedina.app.dSYM\" on\n# every simulator build. Release is dwarf-with-dsym and still uploads normally —\n# that is the config whose crashes actually need symbolicating.\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  echo \"note: Skipping Crashlytics dSYM upload for Debug (no dSYM is generated).\"\n  exit 0\nfi\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -511,7 +512,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Fielmedina/Fielmedina.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEBUG_INFORMATION_VERSION = "compiler-default";
 				DEVELOPMENT_TEAM = MU83XD25F4;
 				ENABLE_PREVIEWS = YES;
@@ -531,7 +532,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.3;
+				MARKETING_VERSION = 2.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dacnis.Fielmedina;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -557,7 +558,7 @@
 				CODE_SIGN_ENTITLEMENTS = Fielmedina/Fielmedina.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEBUG_INFORMATION_VERSION = "compiler-default";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = MU83XD25F4;
@@ -578,7 +579,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.3;
+				MARKETING_VERSION = 2.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dacnis.Fielmedina;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

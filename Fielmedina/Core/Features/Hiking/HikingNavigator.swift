@@ -210,8 +210,12 @@ struct HikingNavigator: View {
             }
         }
 
+        // Highest-intent conversion in the app — logged once the offline guard has
+        // passed, i.e. the route is actually going to start.
+        MetaEvents.logHikingStarted(routeId: hikingRoute.id, routeName: hikingRoute.displayName)
+
         loadNavigationProgress()
-        
+
         if canResume {
             if completedWaypoints.count == hikingRoute.waypoints.count {
                 startFreshNavigation()

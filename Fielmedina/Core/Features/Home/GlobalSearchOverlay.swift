@@ -124,6 +124,18 @@ struct GlobalSearchOverlay: View {
             await model.loadIfNeeded()
             focused = true
         }
+        .task(id: model.query) {
+            // Debounced Meta `Search` conversion. `results` recomputes on every
+            // keystroke, so logging there would send one event per character —
+            // flooding the SDK's batch queue and making the conversion useless for
+            // optimisation. `.task(id:)` cancels the pending log whenever the query
+            // changes, so only a settled query is reported.
+            let q = model.query.trimmingCharacters(in: .whitespaces)
+            guard q.count >= 3 else { return }
+            try? await Task.sleep(for: .milliseconds(1200))
+            guard !Task.isCancelled else { return }
+            MetaEvents.logSearch(query: q, resultCount: model.results.count)
+        }
     }
 
     /// The glassy search field floats over the dimmed content (no solid bar).

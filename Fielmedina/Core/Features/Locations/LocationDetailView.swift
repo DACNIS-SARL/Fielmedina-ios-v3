@@ -91,6 +91,11 @@ struct LocationDetailView: View {
         }
         .onAppear {
             FirebaseUtils.trackScreenView(screenName: "location_detail_\(location.displayName)", screenClass: "LocationDetailView")
+            MetaEvents.logContentView(
+                contentType: "location",
+                contentId: location.id,
+                contentName: location.displayName
+            )
         }
     }
     
@@ -248,7 +253,9 @@ struct LocationDetailView: View {
         navigation.start(
             to: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
             from: locationManager.userLocation,
-            missingDestinationMessage: String(localized: "This location does not have a position set.")
+            missingDestinationMessage: String(localized: "This location does not have a position set."),
+            placeId: location.id,
+            placeType: "location"
         )
     }
 }
