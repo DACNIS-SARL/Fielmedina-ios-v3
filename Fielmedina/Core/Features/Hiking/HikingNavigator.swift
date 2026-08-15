@@ -26,7 +26,11 @@ struct HikingNavigator: View {
     @State private var isCalculatingRoute = false
     @State private var routeError: String?
     @State private var showNavigation = false
-    
+    /// One `StartHiking` conversion per screen session. Both entry paths
+    /// (`startFreshNavigation` and resume) funnel through `calculateHikingRoute`,
+    /// which can run more than once.
+    @State private var hikingStartLogged = false
+
     // Resume functionality state
     @State private var completedWaypoints: Set<Int> = []
     @State private var currentWaypointIndex: Int = 0
@@ -210,10 +214,6 @@ struct HikingNavigator: View {
             }
         }
 
-        // Highest-intent conversion in the app — logged once the offline guard has
-        // passed, i.e. the route is actually going to start.
-        MetaEvents.logHikingStarted(routeId: hikingRoute.id, routeName: hikingRoute.displayName)
-
         loadNavigationProgress()
 
         if canResume {
@@ -348,6 +348,19 @@ struct HikingNavigator: View {
                     self.navigationRoutes = response
                     self.showNavigation = true
                     self.isCalculatingRoute = false
+
+                    // Highest-intent conversion in the app, logged only once a route
+                    // actually exists. Logging earlier (right after the offline guard)
+                    // counted starts that then failed on GPS, waypoint sanitisation or
+                    // routing. Guarded so resuming or recalculating a route inside one
+                    // session cannot double-count.
+                    if !self.hikingStartLogged {
+                        self.hikingStartLogged = true
+                        MetaEvents.logHikingStarted(
+                            routeId: self.hikingRoute.id,
+                            routeName: self.hikingRoute.displayName
+                        )
+                    }
                 }
             } catch is CancellationError {
                 // The task was cancelled (user left the screen) — that's not a failure,

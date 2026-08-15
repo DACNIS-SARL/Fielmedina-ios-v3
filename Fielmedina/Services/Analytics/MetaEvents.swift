@@ -124,9 +124,18 @@ enum MetaEvents {
     }
 
     /// A global search was performed. Meta's `Search`.
-    static func logSearch(query: String, resultCount: Int) {
+    ///
+    /// The raw query is deliberately **not** sent. A free-text field accepts anything
+    /// the user types — including an email address or phone number — and Meta treats
+    /// App Event parameters as Event Data usable for ad delivery and measurement.
+    /// Forwarding unfiltered input would export personal data we never asked for and
+    /// cannot inspect. Only the outcome is reported, which is all a campaign can
+    /// optimise against anyway: Ads Manager ranks the *event*, not the search term.
+    ///
+    /// Keep in sync with Android `MetaEvents.logSearch(resultCount:)`.
+    static func logSearch(resultCount: Int) {
         AppEvents.shared.logEvent(.searched, parameters: [
-            .searchString: query,
+            .contentType: "global_search",
             .success: resultCount > 0 ? 1 : 0
         ])
     }

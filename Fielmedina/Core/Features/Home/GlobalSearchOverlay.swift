@@ -80,8 +80,14 @@ final class GlobalSearchModel: ObservableObject {
         isLoading = false
     }
 
+    /// Single normalisation point, so filtering and the Meta debounce agree on what
+    /// counts as "the same query".
+    var normalizedQuery: String {
+        query.trimmingCharacters(in: .whitespaces)
+    }
+
     var results: [GlobalSearchResult] {
-        let q = query.trimmingCharacters(in: .whitespaces)
+        let q = normalizedQuery
         guard !q.isEmpty else { return [] }
         var out: [GlobalSearchResult] = []
         out += locations.filter { $0.displayName.localizedCaseInsensitiveContains(q) }.map { .location($0) }
@@ -124,17 +130,21 @@ struct GlobalSearchOverlay: View {
             await model.loadIfNeeded()
             focused = true
         }
-        .task(id: model.query) {
+        .task(id: model.normalizedQuery) {
             // Debounced Meta `Search` conversion. `results` recomputes on every
             // keystroke, so logging there would send one event per character —
             // flooding the SDK's batch queue and making the conversion useless for
             // optimisation. `.task(id:)` cancels the pending log whenever the query
             // changes, so only a settled query is reported.
-            let q = model.query.trimmingCharacters(in: .whitespaces)
-            guard q.count >= 3 else { return }
+            //
+            // Keyed on the *normalised* query so typing a trailing space doesn't
+            // restart the debounce and re-emit an identical event. `model.results`
+            // is read after the sleep, so it reflects catalogues that finished
+            // loading during the wait rather than a stale snapshot.
+            guard model.normalizedQuery.count >= 3 else { return }
             try? await Task.sleep(for: .milliseconds(1200))
             guard !Task.isCancelled else { return }
-            MetaEvents.logSearch(query: q, resultCount: model.results.count)
+            MetaEvents.logSearch(resultCount: model.results.count)
         }
     }
 

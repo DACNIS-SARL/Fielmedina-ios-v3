@@ -79,6 +79,16 @@ neither replaces the other. Three things must all be true or iOS measurement is 
 Ads Manager optimises per event *name*; a mismatch means one campaign cannot optimise
 across both platforms, and it fails silently — no error, just wasted budget.
 
+Two rules that apply to both platforms:
+- **Never send raw user input as an event parameter.** Meta treats App Event parameters
+  as Event Data usable for ad delivery, so free-text (search queries above all) can
+  export a phone number or email a user typed. `logSearch` deliberately takes only a
+  result count — no `.searchString`. IDs and our own display names are fine; anything
+  the user typed is not.
+- **Log a conversion only where the action truly succeeded.** `StartHiking` fires after
+  `calculateRoutes` returns, not after the offline guard passes — otherwise GPS,
+  waypoint-sanitisation and routing failures all count as starts.
+
 Verify with `Settings.shared.enableLoggingBehavior(.appEvents)` (already on in DEBUG) →
 look for `Created app event` in the log, and cross-check in Events Manager → Test Events.
 
