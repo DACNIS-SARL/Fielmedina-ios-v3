@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<!-- Meta's custom-scheme fallback for attribution deep links. The scheme
+			     must be "fb" followed by FacebookAppID, exactly. -->
+			<key>CFBundleURLName</key>
+			<string>com.dacnis.Fielmedina.facebook</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb2061100751388661</string>
+			</array>
+		</dict>
+	</array>
 	<key>FacebookAdvertiserIDCollectionEnabled</key>
 	<true/>
 	<key>FacebookAppID</key>

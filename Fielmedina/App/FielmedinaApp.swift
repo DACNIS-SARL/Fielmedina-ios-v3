@@ -17,9 +17,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         OfflineTileStore.configure()
 
-        // Meta App Events. Must run before anything logs an event — the SDK was
-        // linked but never initialised, so Meta received no install or activation
-        // signal at all and every ad campaign optimised against nothing.
         MetaEvents.initializeSDK(application, didFinishLaunchingWithOptions: launchOptions)
 
         FirebaseApp.configure()
@@ -47,12 +44,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         CacheConfigurator.configureURLCache()
 
-        // Resolve the routing-tiles version BEFORE creating the navigation provider:
-        // the provider pins the version at creation (a Mapbox singleton that cannot
-        // be reconfigured), and without one the on-device router cannot initialize
-        // offline (RoutingTilesConfig NoVersionFound). If no version is available
-        // yet, leave the provider uncreated — it will be built lazily on first
-        // navigation, by which time the region download has stored the version.
+      
         Task { @MainActor in
             await OfflineMapsManager.resolveNavigationTilesVersionIfNeeded()
             if NavigationTilesVersionStore.stored != nil {
@@ -80,6 +72,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Meta's app-activation event. Meta counts sessions from this; without it
         // retention and frequency reporting in Ads Manager stay empty.
         MetaEvents.activateApp()
+    }
+
+
+    func application(_ application: UIApplication,
+                     continue userActivity: NSUserActivity,
+                     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        MetaEvents.handleUserActivity(application, userActivity: userActivity)
+        return true
+    }
+
+    /// Custom-URL-scheme entry point (`fb<APP_ID>`), the fallback for the above.
+    func application(_ application: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        MetaEvents.handleOpenURL(application, url: url, options: options)
     }
 }
 
@@ -168,11 +175,7 @@ struct FielmedinaApp: App {
         }
     }
 
-    /// Shows the ATT prompt only once onboarding is behind the user. Asking on the
-    /// very first launch — stacked on the notification and location prompts — is
-    /// the reliable way to get denied, and a denial is permanent unless the user
-    /// digs into Settings. SKAdNetwork attribution works either way; this only
-    /// decides whether events may carry the IDFA.
+ 
     private func requestTrackingAuthorizationIfAppropriate() {
         guard UserDefaults.standard.bool(forKey: "hasSeenOnboarding") else { return }
         Task { @MainActor in

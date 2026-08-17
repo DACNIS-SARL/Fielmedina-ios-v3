@@ -2,31 +2,7 @@
 //  MetaEvents.swift
 //  Fielmedina
 //
-//  Meta (Facebook/Instagram) App Events — the measurement layer Ads Manager
-//  optimises against.
-//
-//  Why this file exists
-//  --------------------
-//  `FacebookCore` was linked in the Xcode project and `FacebookAppID` /
-//  `FacebookClientToken` were present in Info.plist, but the SDK was never
-//  initialised in code. A linked-but-uninitialised SDK sends **nothing** — not even
-//  the automatic install/activate event — so Meta could not see a single iOS install
-//  or action, and every campaign was optimising against an empty signal.
-//
-//  The three things Meta measurement needs, all of which now live here or in
-//  Info.plist:
-//   1. SDK initialisation        → `initializeSDK(...)` (called from AppDelegate)
-//   2. SKAdNetwork registration  → `SKAdNetworkItems` in Info.plist (Meta's two IDs)
-//   3. ATT authorisation         → `requestTrackingAuthorizationIfNeeded()`
-//
-//  Event names are intentionally identical to the Android implementation
-//  (`core/analytics/MetaEvents.kt`). Ads Manager optimises per event *name*: if the
-//  two platforms emit different names, the same campaign cannot optimise across
-//  both, which is a silent and expensive way to waste budget.
-//
-//  This is additive — it does not replace Firebase Analytics (`FirebaseUtils`).
-//  Firebase is for product analytics; Meta is for ad attribution. Both are needed.
-//
+
 
 import Foundation
 import AppTrackingTransparency
@@ -81,18 +57,24 @@ enum MetaEvents {
         AppEvents.shared.activateApp()
     }
 
-    /// Shows the ATT prompt once, and only once the user has finished onboarding.
-    ///
-    /// Deliberately *not* called at cold start: iOS silently returns
-    /// `.notDetermined` if the prompt is requested while the app is not yet active,
-    /// and asking during onboarding — on top of the notification and location
-    /// prompts — measurably lowers opt-in.
-    ///
-    /// Asking is all this has to do. There is deliberately no
-    /// `Settings.isAdvertiserTrackingEnabled` call: that setter is deprecated and
-    /// ignored on iOS 17+, and our deployment target is 18.6, so FBSDK v18 reads
-    /// `ATTrackingManager.trackingAuthorizationStatus` itself on every device that
-    /// can run this app. Setting it would be dead code that only looks meaningful.
+    @discardableResult
+    static func handleUserActivity(
+        _ application: UIApplication,
+        userActivity: NSUserActivity
+    ) -> Bool {
+        ApplicationDelegate.shared.application(application, continue: userActivity)
+    }
+
+    @discardableResult
+    static func handleOpenURL(
+        _ application: UIApplication,
+        url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any]
+    ) -> Bool {
+        ApplicationDelegate.shared.application(application, open: url, options: options)
+    }
+
+
     static func requestTrackingAuthorizationIfNeeded() async {
         guard !hasRequestedTracking else { return }
         guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
@@ -102,10 +84,6 @@ enum MetaEvents {
 
         let status = await ATTrackingManager.requestTrackingAuthorization()
 
-        // Only burn the one-shot flag if the system actually presented the prompt.
-        // Requesting while the app is not yet fully active returns `.notDetermined`
-        // without showing anything — retrying on the next foreground is the
-        // difference between asking the user and never asking at all.
         if status != .notDetermined {
             hasRequestedTracking = true
         }
@@ -123,15 +101,6 @@ enum MetaEvents {
         ])
     }
 
-    /// A global search was performed. Meta's `Search`.
-    ///
-    /// The raw query is deliberately **not** sent. A free-text field accepts anything
-    /// the user types — including an email address or phone number — and Meta treats
-    /// App Event parameters as Event Data usable for ad delivery and measurement.
-    /// Forwarding unfiltered input would export personal data we never asked for and
-    /// cannot inspect. Only the outcome is reported, which is all a campaign can
-    /// optimise against anyway: Ads Manager ranks the *event*, not the search term.
-    ///
     /// Keep in sync with Android `MetaEvents.logSearch(resultCount:)`.
     static func logSearch(resultCount: Int) {
         AppEvents.shared.logEvent(.searched, parameters: [
@@ -145,10 +114,7 @@ enum MetaEvents {
         AppEvents.shared.logEvent(.completedTutorial, parameters: [.success: 1])
     }
 
-    /// An offline map region finished downloading — the real activation moment for
-    /// this app, since it is what makes the guide usable inside a medina.
-    /// Mapped to Meta's `UnlockedAchievement` so it can be used as a standard
-    /// optimisation event.
+  
     static func logOfflineRegionDownloaded(regionId: String) {
         AppEvents.shared.logEvent(.unlockedAchievement, parameters: [
             .description: "offline_region_downloaded",

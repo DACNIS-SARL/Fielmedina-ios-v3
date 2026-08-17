@@ -4,5 +4,13 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Enables Universal Links, which is how a Meta ad click delivers the campaign
+	     ID into the app for Aggregated Event Measurement. Must be paired with an
+	     apple-app-site-association file served from the domain below. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:fielmedina.com</string>
+		<string>applinks:www.fielmedina.com</string>
+	</array>
 </dict>
 </plist>
