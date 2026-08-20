@@ -9,12 +9,6 @@ import SwiftUI
 import MapboxMaps
 
 struct MapView: View {
-    private struct MedinaLocation: Identifiable {
-        let id = UUID()
-        let name: String
-        let coordinate: CLLocationCoordinate2D
-    }
-
     @Environment(\.colorScheme) private var colorScheme
     @State private var locationManager = LocationManager()
     @State private var viewport: Viewport = .camera(
@@ -41,12 +35,6 @@ struct MapView: View {
         colorScheme == .light ? .day : .night
     }
 
-    private let medinaRegistry: [MedinaLocation] = [
-        MedinaLocation(name: "Sousse", coordinate: CLLocationCoordinate2D(latitude: 35.825892, longitude: 10.637448)),
-        MedinaLocation(name: "Monastir", coordinate: CLLocationCoordinate2D(latitude: 35.7780, longitude: 10.8262)),
-        MedinaLocation(name: "Tunis", coordinate: CLLocationCoordinate2D(latitude: 36.7992, longitude: 10.1706))
-    ]
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -151,25 +139,27 @@ struct MapView: View {
         }
     }
 
+    /// Centres on whichever medina is closest to the user, once, on the first fix.
+    ///
+    /// The candidate list comes from `OfflineCityDataStore` — the same server-driven
+    /// cache the offline downloads and navigation guards use — so a city added in the
+    /// backend is picked up on the next launch without an app update. This used to be
+    /// a hardcoded three-city list local to this view, which meant every new region
+    /// was invisible to the camera.
     private func centerMapOnNearestMedinaIfNeeded() {
         guard !didCenterOnMedina,
-              let userCoordinate = locationManager.userLocation else {
-            return
-        }
-
-        let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
-        guard let nearestMedina = medinaRegistry.min(by: { first, second in
-            let firstDistance = userLocation.distance(from: CLLocation(latitude: first.coordinate.latitude, longitude: first.coordinate.longitude))
-            let secondDistance = userLocation.distance(from: CLLocation(latitude: second.coordinate.latitude, longitude: second.coordinate.longitude))
-            return firstDistance < secondDistance
-        }) else {
+              let userCoordinate = locationManager.userLocation,
+              let nearestMedina = OfflineCityDataStore.shared.nearestCity(to: userCoordinate) else {
             return
         }
 
         didCenterOnMedina = true
         withViewportAnimation(.default(maxDuration: 1.5)) {
             viewport = .camera(
-                center: nearestMedina.coordinate,
+                center: CLLocationCoordinate2D(
+                    latitude: nearestMedina.latitude,
+                    longitude: nearestMedina.longitude
+                ),
                 zoom: 15,
                 bearing: 0,
                 pitch: 40

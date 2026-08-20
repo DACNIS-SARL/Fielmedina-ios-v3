@@ -26,6 +26,25 @@ constrains how data loading and filtering must be written:
 - Offline data lives in **Application Support**, not Caches — iOS purges Caches under
   storage pressure. See `Services/Cache/CacheConfigurator.swift`.
 
+## Cities/medinas are server-driven — never hardcode a list
+
+`OfflineCityDataStore.cachedCities` is the single source of truth for "which medinas
+exist". It is refreshed from the backend on every launch
+(`OfflineMapsManager.refreshCitiesMetadata()`, reached via
+`refreshDownloadedRegionsIfNeeded()`) and again from the Settings screen; the three
+hardcoded cities inside `cachedCities` are only the pre-first-sync fallback.
+
+Any "which medina is the user in / nearest to" question goes through
+`OfflineCityDataStore.nearestCity(to:)` (or `getCityId(for:)`, which wraps it).
+`MapView` used to keep its own hardcoded `medinaRegistry` of three cities for
+centring the camera, so every region added in the backend was invisible to the map
+while the rest of the app already knew about it. Don't reintroduce a local list —
+adding a city must require **zero** app changes. Use real distance
+(`CLLocation.distance(from:)`), never raw degree deltas: a degree of longitude is
+~19% shorter than a degree of latitude at Tunisia's latitude, which mis-ranks
+candidates (measurably — ~6% of the country even with only three cities, worse as
+more are added).
+
 ## Presentation layer: `@Observable` models
 
 Views used to hold all state/logic directly (`@State` in the View struct) — this

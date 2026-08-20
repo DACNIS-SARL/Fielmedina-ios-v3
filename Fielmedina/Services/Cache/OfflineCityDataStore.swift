@@ -45,16 +45,33 @@ final class OfflineCityDataStore {
         self.cachedCities = cities
     }
 
-    func getCityId(for coordinate: CLLocationCoordinate2D) -> Int32 {
-        let cities = cachedCities
-        guard !cities.isEmpty else { return 1 }
+    /// The closest medina we know about, by great-circle distance.
+    ///
+    /// Reads `cachedCities`, which the backend populates (`OfflineMapsManager
+    /// .refreshCitiesMetadata()` at every launch, plus the Settings screen), so adding
+    /// a city server-side makes it a centring candidate with no app release. The
+    /// hardcoded trio in `cachedCities` is only the pre-first-sync fallback.
+    ///
+    /// Every "which medina is the user in / near" decision must go through here —
+    /// duplicating the search elsewhere is how the map ended up pinned to three
+    /// cities while the rest of the app already knew about more.
+    func nearestCity(to coordinate: CLLocationCoordinate2D) -> CachedCity? {
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        let nearest = cities.min(by: { first, second in
-            let dist1 = location.distance(from: CLLocation(latitude: first.latitude, longitude: first.longitude))
-            let dist2 = location.distance(from: CLLocation(latitude: second.latitude, longitude: second.longitude))
-            return dist1 < dist2
-        })
-        return nearest?.cityId ?? 1
+        // Single pass: each candidate's distance is computed once, rather than
+        // re-computing both sides on every comparison as a `min(by:)` would.
+        var best: (city: CachedCity, distance: CLLocationDistance)?
+        for city in cachedCities {
+            let distance = location.distance(
+                from: CLLocation(latitude: city.latitude, longitude: city.longitude)
+            )
+            if let current = best, current.distance <= distance { continue }
+            best = (city, distance)
+        }
+        return best?.city
+    }
+
+    func getCityId(for coordinate: CLLocationCoordinate2D) -> Int32 {
+        nearestCity(to: coordinate)?.cityId ?? 1
     }
 
     func getCityName(for cityId: Int32) -> String {
