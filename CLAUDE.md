@@ -125,8 +125,14 @@ look for `Created app event` in the log, and cross-check in Events Manager → T
 
 ## Mapbox offline navigation (fragile — read before touching)
 
+Currently on **mapbox-navigation-ios 3.28.3** (Maps 11.28.3, Common 24.28.3,
+NavNative 324.28.3). SPM requirement is `upToNextMinorVersion` from 3.28.1, so patch
+releases within 3.28.x are picked up automatically — a minor bump is deliberate.
+
 Nav SDK has had breaking regressions across versions (worked at 3.19, broke at
-3.20+). Key fixes already in place, don't unwind them without understanding why:
+3.20+), so **after any version bump, verify turn-by-turn on device**, not just that it
+compiles. 3.26 → 3.28.3 was verified: map renders, route calculates, turn banner and
+ETA display. Key fixes already in place, don't unwind them without understanding why:
 - `OfflineTileStore.swift` pins one **explicit** TileStore path shared by map
   rendering, region downloads, and the nav engine — the SDK's default resolves a
   *different* location per consumer otherwise, silently splitting downloaded tiles

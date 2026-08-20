@@ -753,7 +753,7 @@
 			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios.git";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 3.26.0;
+				minimumVersion = 3.28.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

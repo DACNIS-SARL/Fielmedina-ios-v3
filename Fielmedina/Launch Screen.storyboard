@@ -49,7 +49,7 @@
         <image name="bgx1" width="390" height="844"/>
         <image name="splashlogo" width="212" height="158"/>
         <namedColor name="AccentColor">
-            <color red="1" green="0.79199999570846558" blue="0.15700000524520874" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.058823529411764705" green="0.2196078431372549" blue="0.74901960784313726" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>
