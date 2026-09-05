@@ -93,6 +93,10 @@ extension FielmedinaAPI {
         var images: [Image] { __data["images"] }
         var voiceoverEn: String? { __data["voiceoverEn"] }
         var voiceoverFr: String? { __data["voiceoverFr"] }
+        var model3d: String? { __data["model3d"] }
+        var modelScale: Double { __data["modelScale"] }
+        var modelRotation: Double { __data["modelRotation"] }
+        var modelAltitude: Double { __data["modelAltitude"] }
 
         struct Fragments: FragmentContainer {
           let __data: DataDict

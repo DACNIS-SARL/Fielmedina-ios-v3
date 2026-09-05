@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apollographql/apollo-ios.git",
       "state" : {
-        "revision" : "a6668545666c48b25ddb67c1329048633f45168b",
-        "version" : "2.3.0"
+        "revision" : "fe14c216aaea3d25274343e80ccb3015fc3fb0b0",
+        "version" : "2.4.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/facebook/facebook-ios-sdk",
       "state" : {
-        "revision" : "3818dd2ccb6547c6d320ff68a1bd599789c3a44f",
-        "version" : "18.1.0"
+        "revision" : "80d0ee82f6370d1bace1431a80cb80575f98ee90",
+        "version" : "18.1.1"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/firebase-ios-sdk",
       "state" : {
-        "revision" : "9ab4a7e6e5d6d3df2a2aa002a11d25e078c8d6e5",
-        "version" : "12.16.0"
+        "revision" : "346daa9f46316aa372b35b317e18224acc2e9063",
+        "version" : "12.18.0"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleAppMeasurement.git",
       "state" : {
-        "revision" : "ce606e3768abddff0510783e1a6d2f270b943b35",
-        "version" : "12.16.0"
+        "revision" : "f04760d460296cc0fa430935a7be212e5bd67fc5",
+        "version" : "12.18.0"
       }
     },
     {
@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-common-ios.git",
       "state" : {
-        "revision" : "a8721e47dbe3d0c31099eadea782aa48b73f7fe1",
-        "version" : "24.28.3"
+        "revision" : "5b40ddce1fb8f04fb7aae50832e11525f3704251",
+        "version" : "24.30.0"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-core-maps-ios.git",
       "state" : {
-        "revision" : "b7d45e14ed146839bc005df8181d1af488f34417",
-        "version" : "11.28.3"
+        "revision" : "c648251c793a4dd5fc483525e710c7dc25727b7f",
+        "version" : "11.30.0"
       }
     },
     {
@@ -141,8 +141,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-maps-ios.git",
       "state" : {
-        "revision" : "fb8a1030a1a64412b98bf2bfdd21d4fb4f96ae5c",
-        "version" : "11.28.3"
+        "revision" : "5034ce4663a482f2246295e1605d35aa2793c42c",
+        "version" : "11.30.0"
+      }
+    },
+    {
+      "identity" : "mapbox-navigation-cpp-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-navigation-cpp-ios.git",
+      "state" : {
+        "revision" : "a7036ef48a187180ab537b90c9efb5344c833461",
+        "version" : "0.30.0"
       }
     },
     {
@@ -150,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-ios.git",
       "state" : {
-        "revision" : "6093dbecbde2b2b9361a5770c9ea37e6986453da",
-        "version" : "3.28.3"
+        "revision" : "5c916f43ef01ec35824c0331d372b2eba9b243c0",
+        "version" : "3.30.0"
       }
     },
     {
@@ -159,8 +168,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-native-ios.git",
       "state" : {
-        "revision" : "c54d1b595f1bae30924d6f1e0f87dc99f0f73234",
-        "version" : "324.28.3"
+        "revision" : "2f8a6372a02dd60f6b358796adaf3639472f77ed",
+        "version" : "324.30.0"
       }
     },
     {

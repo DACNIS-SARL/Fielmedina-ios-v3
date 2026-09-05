@@ -729,7 +729,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.14.0;
+				minimumVersion = 12.18.0;
 			};
 		};
 		BECD93382F0FBC3600462C35 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
@@ -737,7 +737,7 @@
 			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 18.0.3;
+				minimumVersion = 18.1.1;
 			};
 		};
 		BECD933B2F0FC35300462C35 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
@@ -745,7 +745,7 @@
 			repositoryURL = "https://github.com/apollographql/apollo-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.1.2;
+				minimumVersion = 2.4.0;
 			};
 		};
 		BECD93402F0FCE4B00462C35 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
@@ -753,7 +753,7 @@
 			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios.git";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 3.28.1;
+				minimumVersion = 3.30.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

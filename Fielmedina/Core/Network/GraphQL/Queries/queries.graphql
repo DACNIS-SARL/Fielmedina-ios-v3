@@ -35,6 +35,10 @@ fragment LocationSummary on LocationType {
   }
   voiceoverEn
   voiceoverFr
+  model3d
+  modelScale
+  modelRotation
+  modelAltitude
 }
 
 # --- Queries ---

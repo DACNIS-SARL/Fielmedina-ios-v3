@@ -339,6 +339,7 @@ final class OfflineContentPrefetcher {
             let locations = try await LocationService.shared.fetchLocations(cityId: nil, limit: 500)
             var urls = extractUrls(from: locations.flatMap { $0.images ?? [] })
             urls.formUnion(Self.voiceoverRemoteURLs(from: locations))
+            urls.formUnion(Self.modelRemoteURLs(from: locations))
             return urls
         } catch { return [] }
     }
@@ -351,6 +352,19 @@ final class OfflineContentPrefetcher {
             }
             if let f = loc.voiceoverFr?.trimmingCharacters(in: .whitespacesAndNewlines), !f.isEmpty {
                 out.insert(f)
+            }
+        }
+        return out
+    }
+
+    /// `.glb` models for landmarks that have one. Most locations don't, so this is
+    /// usually a handful of URLs — but they are the largest single assets we fetch,
+    /// which is why they ride the same throttled prefetch queue as everything else.
+    private static func modelRemoteURLs(from locations: [Location]) -> Set<String> {
+        var out = Set<String>()
+        for loc in locations {
+            if let url = loc.model3d?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty {
+                out.insert(url)
             }
         }
         return out
@@ -581,6 +595,20 @@ actor ImagePrefetcher {
         if isVoiceoverAsset {
             do {
                 try await VoiceoverDiskCache.downloadIfNeeded(remote: remote)
+            } catch {
+                if attempt < 3 {
+                    try? await Task.sleep(for: .seconds(Double(attempt) * 2))
+                    await download(url: urlString, attempt: attempt + 1)
+                }
+            }
+            return
+        }
+
+        // 3D landmark models need a real `.glb` file on disk — Mapbox's ModelLayer is
+        // given a file:// URI, not bytes, so they can't go through MediaDiskCache.
+        if ModelDiskCache.isModelAsset(remote) {
+            do {
+                try await ModelDiskCache.downloadIfNeeded(remote: remote)
             } catch {
                 if attempt < 3 {
                     try? await Task.sleep(for: .seconds(Double(attempt) * 2))

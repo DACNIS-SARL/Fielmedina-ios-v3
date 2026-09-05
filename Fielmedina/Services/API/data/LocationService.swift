@@ -50,7 +50,11 @@ class LocationService {
             admissionFee: gLocation.admissionFee,
             closedDays: nil,
             voiceoverEn: gLocation.voiceoverEn,
-            voiceoverFr: gLocation.voiceoverFr
+            voiceoverFr: gLocation.voiceoverFr,
+            model3d: gLocation.model3d,
+            modelScale: gLocation.modelScale,
+            modelRotation: gLocation.modelRotation,
+            modelAltitude: gLocation.modelAltitude
         )
     }
     
@@ -125,7 +129,11 @@ class LocationService {
                 admissionFee: gLocation.admissionFee,
                 closedDays: nil,
                 voiceoverEn: gLocation.voiceoverEn,
-                voiceoverFr: gLocation.voiceoverFr
+                voiceoverFr: gLocation.voiceoverFr,
+                model3d: gLocation.model3d,
+                modelScale: gLocation.modelScale,
+                modelRotation: gLocation.modelRotation,
+                modelAltitude: gLocation.modelAltitude
             )
         }
     }

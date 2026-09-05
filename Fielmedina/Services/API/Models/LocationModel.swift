@@ -24,7 +24,72 @@ struct Location: Codable, Identifiable, Hashable {
     let closedDays: [ClosedDay]?
     let voiceoverEn: String?
     let voiceoverFr: String?
-    
+
+    // MARK: - 3D model (map ModelLayer today, AR later)
+
+    /// Remote URL of this landmark's `.glb`, or nil when it has no model yet.
+    let model3d: String?
+    /// Uniform scale multiplier; 1.0 means the model is already in metres.
+    let modelScale: Double?
+    /// Heading in degrees clockwise from north.
+    let modelRotation: Double?
+    /// Vertical offset in metres relative to the ground.
+    let modelAltitude: Double?
+
+    /// True when this landmark has a model worth downloading and rendering.
+    var hasModel3d: Bool {
+        guard let url = model3d?.trimmingCharacters(in: .whitespacesAndNewlines) else { return false }
+        return !url.isEmpty
+    }
+
+    /// Explicit memberwise init so the 3D-model fields can default to nil. Most
+    /// landmarks have no model, and preview/sample fixtures shouldn't have to spell
+    /// out four unused arguments. `Codable` conformance is still synthesised.
+    init(
+        id: String,
+        nameEn: String,
+        nameFr: String,
+        latitude: Double,
+        longitude: Double,
+        category: LocationCategory?,
+        city: LocationCity?,
+        images: [ImageContainer]?,
+        openFrom: String?,
+        openTo: String?,
+        storyEn: String?,
+        storyFr: String?,
+        admissionFee: String?,
+        closedDays: [ClosedDay]?,
+        voiceoverEn: String?,
+        voiceoverFr: String?,
+        model3d: String? = nil,
+        modelScale: Double? = nil,
+        modelRotation: Double? = nil,
+        modelAltitude: Double? = nil
+    ) {
+        self.id = id
+        self.nameEn = nameEn
+        self.nameFr = nameFr
+        self.latitude = latitude
+        self.longitude = longitude
+        self.category = category
+        self.city = city
+        self.images = images
+        self.openFrom = openFrom
+        self.openTo = openTo
+        self.storyEn = storyEn
+        self.storyFr = storyFr
+        self.admissionFee = admissionFee
+        self.closedDays = closedDays
+        self.voiceoverEn = voiceoverEn
+        self.voiceoverFr = voiceoverFr
+        self.model3d = model3d
+        self.modelScale = modelScale
+        self.modelRotation = modelRotation
+        self.modelAltitude = modelAltitude
+    }
+
+
     var displayName: String {
         let isFrench = Locale.current.language.languageCode?.identifier == "fr"
         if isFrench && !nameFr.isEmpty {

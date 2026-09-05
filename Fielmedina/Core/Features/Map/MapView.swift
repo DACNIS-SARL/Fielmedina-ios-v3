@@ -38,6 +38,7 @@ struct MapView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                MapReader { proxy in
                 Map(viewport: $viewport) {
                     Puck2D(bearing: .heading)
 
@@ -59,8 +60,20 @@ struct MapView: View {
                     }
                 }
                 .mapStyle(.standard(lightPreset: standardLightPreset))
+                // Landmark models can only be installed once the style exists. This
+                // stays above `ignoresSafeArea()` because `onStyleLoaded` is a method
+                // on `Map` itself, not on `some View`.
+                .onStyleLoaded { _ in applyLandmarkModels(proxy) }
                 .ignoresSafeArea()
-                
+                // Re-apply whenever the displayed set changes (category filter) or a
+                // prefetch lands a newly downloaded .glb.
+                .onChange(of: model.displayedLocations) { _, _ in applyLandmarkModels(proxy) }
+                .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchCompleted)) { _ in
+                    applyLandmarkModels(proxy)
+                }
+                }
+
+
                 VStack {
                     Spacer()
                     HStack {
@@ -137,6 +150,16 @@ struct MapView: View {
                 centerMapOnNearestMedinaIfNeeded()
             }
         }
+    }
+
+    /// Installs the 3D landmark models for whatever is currently displayed.
+    ///
+    /// Cheap when nothing qualifies: `placements(from:)` filters out every location
+    /// without a downloaded `.glb`, which today is nearly all of them.
+    private func applyLandmarkModels(_ proxy: MapProxy) {
+        guard let mapboxMap = proxy.map else { return }
+        let placements = LandmarkModelLayers.placements(from: model.displayedLocations)
+        LandmarkModelLayers.apply(placements: placements, to: mapboxMap)
     }
 
     /// Centres on whichever medina is closest to the user, once, on the first fix.

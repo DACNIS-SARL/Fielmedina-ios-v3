@@ -7,7 +7,7 @@
 extension FielmedinaAPI {
   struct LocationSummary: FielmedinaAPI.SelectionSet, Fragment {
     static var fragmentDefinition: StaticString {
-      #"fragment LocationSummary on LocationType { __typename id nameEn nameFr latitude longitude category { __typename id nameEn nameFr } city { __typename ...CityFields } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } voiceoverEn voiceoverFr }"#
+      #"fragment LocationSummary on LocationType { __typename id nameEn nameFr latitude longitude category { __typename id nameEn nameFr } city { __typename ...CityFields } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } voiceoverEn voiceoverFr model3d modelScale modelRotation modelAltitude }"#
     }
 
     let __data: DataDict
@@ -26,6 +26,10 @@ extension FielmedinaAPI {
       .field("images", [Image].self),
       .field("voiceoverEn", String?.self),
       .field("voiceoverFr", String?.self),
+      .field("model3d", String?.self),
+      .field("modelScale", Double.self),
+      .field("modelRotation", Double.self),
+      .field("modelAltitude", Double.self),
     ] }
     static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
       LocationSummary.self
@@ -41,6 +45,10 @@ extension FielmedinaAPI {
     var images: [Image] { __data["images"] }
     var voiceoverEn: String? { __data["voiceoverEn"] }
     var voiceoverFr: String? { __data["voiceoverFr"] }
+    var model3d: String? { __data["model3d"] }
+    var modelScale: Double { __data["modelScale"] }
+    var modelRotation: Double { __data["modelRotation"] }
+    var modelAltitude: Double { __data["modelAltitude"] }
 
     /// Category
     ///
