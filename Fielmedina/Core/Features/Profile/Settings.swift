@@ -25,6 +25,7 @@ struct SettingsView: View {
     }
     
     @State private var offlineCities: [OfflineCity] = []
+    @State private var isOnline: Bool = NetworkMonitor.shared.isConnected
     
     @State private var regionStatus: [String: OfflineRegionStatus] = [:]
     @State private var isLoadingRegions = true
@@ -70,6 +71,9 @@ struct SettingsView: View {
             OfflineContentPrefetcher.shared.prefetchIfNeeded()
             offlineStatus = OfflineContentPrefetcher.shared.status
             offlineProgress = OfflineContentPrefetcher.shared.progress
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .networkStatusChanged)) { notification in
+            isOnline = (notification.userInfo?["isConnected"] as? Bool) ?? NetworkMonitor.shared.isConnected
         }
         .onReceive(NotificationCenter.default.publisher(for: .offlinePrefetchCompleted)) { _ in
             isOfflineReady = true
@@ -155,8 +159,30 @@ struct SettingsView: View {
         }
     }
     
+    private var offlineBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "icloud.slash")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(String(localized: "Connect to the internet to download offline medinas"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
     private var offlineSection: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if !isOnline {
+                offlineBanner
+            }
+
             HStack {
                 Text(String(localized: "AVAILABLE MEDINAS").uppercased())
                     .font(.caption)
@@ -175,6 +201,7 @@ struct SettingsView: View {
                         city: city,
                         status: regionStatus[city.id] ?? .notDownloaded,
                         isLoadingRegions: isLoadingRegions,
+                        isOnline: isOnline,
                         onDownload: { download(city) },
                         onRemove: { remove(city) }
                     )
@@ -262,6 +289,7 @@ struct SettingsView: View {
                     cityId: cityId
                 )
             }
+            guard !fetchedCities.isEmpty else { return }
             self.offlineCities = fetchedCities
             let cached = fetchedCities.map {
                 OfflineCityDataStore.CachedCity(
@@ -284,6 +312,7 @@ private struct OfflineRegionCard: View {
     let city: SettingsView.OfflineCity
     let status: SettingsView.OfflineRegionStatus
     let isLoadingRegions: Bool
+    let isOnline: Bool
     let onDownload: () -> Void
     let onRemove: () -> Void
     
@@ -348,11 +377,16 @@ private struct OfflineRegionCard: View {
                 } label: {
                     Image(systemName: "arrow.down")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(isOnline ? .white : .white.opacity(0.6))
                         .frame(width: 32, height: 32)
-                        .background(Color(red: 0.88, green: 0.43, blue: 0.20))
+                        .background(
+                            isOnline
+                                ? Color(red: 0.88, green: 0.43, blue: 0.20)
+                                : Color(.systemGray3)
+                        )
                         .clipShape(Circle())
                 }
+                .disabled(!isOnline)
                 
             case .downloading:
                 Text(String(localized: "Downloading..."))
