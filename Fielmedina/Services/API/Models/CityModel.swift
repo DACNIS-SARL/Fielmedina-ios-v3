@@ -20,14 +20,17 @@ struct City: Codable, Identifiable {
     let countryAr: String
     
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
     
     var displayRegion: String {
-        regionFr.isEmpty ? regionEn : regionFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? regionFr : regionEn
     }
     
     var displayCountry: String {
-        countryFr.isEmpty ? countryEn : countryFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? countryFr : countryEn
     }
 }

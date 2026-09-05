@@ -23,8 +23,9 @@ struct PublicTransport: Codable, Identifiable {
     }
     
     var displayRoute: String {
-        let from = fromRegionFr.isEmpty ? fromRegionEn : fromRegionFr
-        let to = toRegionFr.isEmpty ? toRegionEn : toRegionFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        let from = isFrench ? fromRegionFr : fromRegionEn
+        let to = isFrench ? toRegionFr : toRegionEn
         return "\(from) → \(to)"
     }
 
@@ -42,7 +43,8 @@ struct TransportType: Codable {
     let nameFr: String
     
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
 }
 
@@ -52,7 +54,8 @@ struct TransportCity: Codable, Identifiable {
     let nameFr: String
 
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
 }
 

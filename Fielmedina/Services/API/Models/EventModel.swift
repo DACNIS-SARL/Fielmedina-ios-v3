@@ -179,7 +179,8 @@ struct EventLocation: Codable, Identifiable, Hashable {
     let nameFr: String?
     
     var displayName: String {
-        nameFr ?? nameEn
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? (nameFr ?? nameEn) : nameEn
     }
 }
 

@@ -20,11 +20,13 @@ struct Hiking: Codable, Identifiable {
     let locations: [HikingLocation]?
     
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
     
     var displayDescription: String? {
-        descriptionFr ?? descriptionEn
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? descriptionFr : descriptionEn
     }
 
     var cityName: String? {
@@ -108,7 +110,8 @@ struct TrailLocation: Codable, Identifiable {
     let voiceoverFr: String?
     
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
 }
 
@@ -118,7 +121,8 @@ struct TrailCity: Codable, Identifiable {
     let nameFr: String
 
     var displayName: String {
-        nameFr.isEmpty ? nameEn : nameFr
+        let isFrench = Locale.current.language.languageCode?.identifier == "fr"
+        return isFrench ? nameFr : nameEn
     }
 }
 
