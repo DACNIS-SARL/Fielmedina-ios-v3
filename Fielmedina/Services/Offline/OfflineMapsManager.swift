@@ -21,7 +21,24 @@ extension Notification.Name {
     static let tileRegionFailed = Notification.Name("tile_region_failed")
 }
 
-final class OfflineMapsManager {
+private final class ErrorSlot: @unchecked Sendable {
+    private let lock = NSLock()
+    private var error: Error?
+
+    func store(_ newError: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        error = newError
+    }
+
+    var value: Error? {
+        lock.lock()
+        defer { lock.unlock() }
+        return error
+    }
+}
+
+final class OfflineMapsManager: @unchecked Sendable {
     static let shared = OfflineMapsManager()
     
     private let offlineManager = OfflineManager()
@@ -225,7 +242,7 @@ final class OfflineMapsManager {
             StyleURI(rawValue: "mapbox://styles/mapbox-dash/standard-navigation")
         ].compactMap { $0 }
         let group = DispatchGroup()
-        var lastError: Error?
+        let lastError = ErrorSlot()
 
         for styleURI in navigationStyles {
             group.enter()
@@ -233,22 +250,22 @@ final class OfflineMapsManager {
                 glyphsRasterizationMode: .ideographsRasterizedLocally,
                 metadata: ["name": name, "updatedAt": Date().timeIntervalSince1970]
             ) else {
-                lastError = NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"])
+                lastError.store(NSError(domain: "OfflineManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create StylePackLoadOptions"]))
                 group.leave()
                 continue
             }
 
             _ = offlineManager.loadStylePack(for: styleURI, loadOptions: options) { _ in } completion: { result in
                 if case .failure(let error) = result {
-                    lastError = error
+                    lastError.store(error)
                 }
                 group.leave()
             }
         }
 
         group.notify(queue: .main) {
-            if let lastError {
-                completion(.failure(lastError))
+            if let error = lastError.value {
+                completion(.failure(error))
             } else {
                 completion(.success(()))
             }

@@ -38,20 +38,9 @@ class FirebaseUtils {
     }
     
     static func getFCMToken() {
-        Messaging.messaging().token { token, error in
+        Messaging.messaging().register { error in
             if let error = error {
-                LogUtils.e(TAG, "Error fetching FCM registration token: \(error.localizedDescription)")
-                return
-            }
-            
-            if let token = token {
-                LogUtils.d(TAG, "FCM Token retrieved successfully")
-                saveTokenLocally(token)
-
-                // Sync with backend
-                Task {
-                    await SyncService.shared.registerDevice(token: token)
-                }
+                LogUtils.e(TAG, "Error registering for FCM: \(error.localizedDescription)")
             }
         }
     }

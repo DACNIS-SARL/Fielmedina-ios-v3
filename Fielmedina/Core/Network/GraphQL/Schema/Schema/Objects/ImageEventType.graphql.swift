@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let ImageEventType = ApolloAPI.Object(
+  nonisolated static let ImageEventType = ApolloAPI.Object(
     typename: "ImageEventType",
     implementedInterfaces: [],
     keyFields: nil

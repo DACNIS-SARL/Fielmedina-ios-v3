@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetOfflineCitiesQuery: GraphQLQuery {
+  nonisolated struct GetOfflineCitiesQuery: GraphQLQuery {
     static let operationName: String = "GetOfflineCities"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -20,7 +20,7 @@ extension FielmedinaAPI {
 
     @_spi(Unsafe) public var __variables: Variables? { ["isActive": isActive] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -37,7 +37,7 @@ extension FielmedinaAPI {
       /// OfflineCity
       ///
       /// Parent Type: `OfflineCityType`
-      struct OfflineCity: FielmedinaAPI.SelectionSet {
+      nonisolated struct OfflineCity: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -67,7 +67,7 @@ extension FielmedinaAPI {
         /// OfflineCity.City
         ///
         /// Parent Type: `CityType`
-        struct City: FielmedinaAPI.SelectionSet {
+        nonisolated struct City: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 

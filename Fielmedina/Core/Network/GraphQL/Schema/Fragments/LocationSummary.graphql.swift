@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct LocationSummary: FielmedinaAPI.SelectionSet, Fragment {
+  nonisolated struct LocationSummary: FielmedinaAPI.SelectionSet, Fragment {
     static var fragmentDefinition: StaticString {
       #"fragment LocationSummary on LocationType { __typename id nameEn nameFr latitude longitude category { __typename id nameEn nameFr } city { __typename ...CityFields } images { __typename image { __typename ...ImageFields } imageMobile { __typename ...ImageFields } } voiceoverEn voiceoverFr model3d modelScale modelRotation modelAltitude }"#
     }
@@ -53,7 +53,7 @@ extension FielmedinaAPI {
     /// Category
     ///
     /// Parent Type: `LocationCategoryType`
-    struct Category: FielmedinaAPI.SelectionSet {
+    nonisolated struct Category: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -76,7 +76,7 @@ extension FielmedinaAPI {
     /// City
     ///
     /// Parent Type: `CityType`
-    struct City: FielmedinaAPI.SelectionSet {
+    nonisolated struct City: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -112,7 +112,7 @@ extension FielmedinaAPI {
     /// Image
     ///
     /// Parent Type: `ImageLocationType`
-    struct Image: FielmedinaAPI.SelectionSet {
+    nonisolated struct Image: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -132,7 +132,7 @@ extension FielmedinaAPI {
       /// Image.Image
       ///
       /// Parent Type: `ImageFieldType`
-      struct Image: FielmedinaAPI.SelectionSet {
+      nonisolated struct Image: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -159,7 +159,7 @@ extension FielmedinaAPI {
       /// Image.ImageMobile
       ///
       /// Parent Type: `ImageFieldType`
-      struct ImageMobile: FielmedinaAPI.SelectionSet {
+      nonisolated struct ImageMobile: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 

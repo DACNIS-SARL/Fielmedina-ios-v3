@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let MerchantType = ApolloAPI.Object(
+  nonisolated static let MerchantType = ApolloAPI.Object(
     typename: "MerchantType",
     implementedInterfaces: [],
     keyFields: nil

@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let TipType = ApolloAPI.Object(
+  nonisolated static let TipType = ApolloAPI.Object(
     typename: "TipType",
     implementedInterfaces: [],
     keyFields: nil

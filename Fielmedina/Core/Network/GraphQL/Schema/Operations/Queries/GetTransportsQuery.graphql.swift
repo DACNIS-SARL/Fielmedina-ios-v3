@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetTransportsQuery: GraphQLQuery {
+  nonisolated struct GetTransportsQuery: GraphQLQuery {
     static let operationName: String = "GetTransports"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -32,7 +32,7 @@ extension FielmedinaAPI {
       "offset": offset
     ] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -53,7 +53,7 @@ extension FielmedinaAPI {
       /// PublicTransport
       ///
       /// Parent Type: `PublicTransportNodeType`
-      struct PublicTransport: FielmedinaAPI.SelectionSet {
+      nonisolated struct PublicTransport: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -87,7 +87,7 @@ extension FielmedinaAPI {
         /// PublicTransport.PublicTransportType
         ///
         /// Parent Type: `PublicTransportTypeType`
-        struct PublicTransportType: FielmedinaAPI.SelectionSet {
+        nonisolated struct PublicTransportType: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -108,7 +108,7 @@ extension FielmedinaAPI {
         /// PublicTransport.City
         ///
         /// Parent Type: `CityType`
-        struct City: FielmedinaAPI.SelectionSet {
+        nonisolated struct City: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -131,7 +131,7 @@ extension FielmedinaAPI {
         /// PublicTransport.Time
         ///
         /// Parent Type: `PublicTransportTimeType`
-        struct Time: FielmedinaAPI.SelectionSet {
+        nonisolated struct Time: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 

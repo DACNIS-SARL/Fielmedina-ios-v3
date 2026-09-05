@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetLocationsByCityQuery: GraphQLQuery {
+  nonisolated struct GetLocationsByCityQuery: GraphQLQuery {
     static let operationName: String = "GetLocationsByCity"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -37,7 +37,7 @@ extension FielmedinaAPI {
       "offset": offset
     ] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -59,7 +59,7 @@ extension FielmedinaAPI {
       /// Location
       ///
       /// Parent Type: `LocationType`
-      struct Location: FielmedinaAPI.SelectionSet {
+      nonisolated struct Location: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 

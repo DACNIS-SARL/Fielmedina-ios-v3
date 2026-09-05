@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct CityFields: FielmedinaAPI.SelectionSet, Fragment {
+  nonisolated struct CityFields: FielmedinaAPI.SelectionSet, Fragment {
     static var fragmentDefinition: StaticString {
       #"fragment CityFields on CityType { __typename id nameEn nameFr nameAr regionEn regionFr regionAr countryEn countryFr countryAr }"#
     }

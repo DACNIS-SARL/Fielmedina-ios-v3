@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct RegisterFcmDeviceMutation: GraphQLMutation {
+  nonisolated struct RegisterFcmDeviceMutation: GraphQLMutation {
     static let operationName: String = "RegisterFcmDevice"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -40,7 +40,7 @@ extension FielmedinaAPI {
       "language": language
     ] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -63,7 +63,7 @@ extension FielmedinaAPI {
       /// RegisterFcmDevice
       ///
       /// Parent Type: `RegisterDevicePayload`
-      struct RegisterFcmDevice: FielmedinaAPI.SelectionSet {
+      nonisolated struct RegisterFcmDevice: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 

@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetCityTipsQuery: GraphQLQuery {
+  nonisolated struct GetCityTipsQuery: GraphQLQuery {
     static let operationName: String = "GetCityTips"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -32,7 +32,7 @@ extension FielmedinaAPI {
       "offset": offset
     ] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -57,7 +57,7 @@ extension FielmedinaAPI {
       /// Tip
       ///
       /// Parent Type: `TipType`
-      struct Tip: FielmedinaAPI.SelectionSet {
+      nonisolated struct Tip: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -80,7 +80,7 @@ extension FielmedinaAPI {
       /// LocationCategory
       ///
       /// Parent Type: `LocationCategoryType`
-      struct LocationCategory: FielmedinaAPI.SelectionSet {
+      nonisolated struct LocationCategory: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -103,7 +103,7 @@ extension FielmedinaAPI {
       /// EventCategory
       ///
       /// Parent Type: `EventCategoryType`
-      struct EventCategory: FielmedinaAPI.SelectionSet {
+      nonisolated struct EventCategory: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 

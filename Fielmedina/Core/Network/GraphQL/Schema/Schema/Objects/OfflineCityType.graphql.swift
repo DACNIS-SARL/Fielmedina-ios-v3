@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let OfflineCityType = ApolloAPI.Object(
+  nonisolated static let OfflineCityType = ApolloAPI.Object(
     typename: "OfflineCityType",
     implementedInterfaces: [],
     keyFields: nil

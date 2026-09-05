@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetEventDetailsQuery: GraphQLQuery {
+  nonisolated struct GetEventDetailsQuery: GraphQLQuery {
     static let operationName: String = "GetEventDetails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -21,7 +21,7 @@ extension FielmedinaAPI {
 
     @_spi(Unsafe) public var __variables: Variables? { ["id": id] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -38,7 +38,7 @@ extension FielmedinaAPI {
       /// Event
       ///
       /// Parent Type: `EventType`
-      struct Event: FielmedinaAPI.SelectionSet {
+      nonisolated struct Event: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -84,7 +84,7 @@ extension FielmedinaAPI {
         /// Event.Category
         ///
         /// Parent Type: `EventCategoryType`
-        struct Category: FielmedinaAPI.SelectionSet {
+        nonisolated struct Category: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -107,7 +107,7 @@ extension FielmedinaAPI {
         /// Event.Image
         ///
         /// Parent Type: `ImageEventType`
-        struct Image: FielmedinaAPI.SelectionSet {
+        nonisolated struct Image: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -127,7 +127,7 @@ extension FielmedinaAPI {
           /// Event.Image.Image
           ///
           /// Parent Type: `ImageFieldType`
-          struct Image: FielmedinaAPI.SelectionSet {
+          nonisolated struct Image: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -154,7 +154,7 @@ extension FielmedinaAPI {
           /// Event.Image.ImageMobile
           ///
           /// Parent Type: `ImageFieldType`
-          struct ImageMobile: FielmedinaAPI.SelectionSet {
+          nonisolated struct ImageMobile: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -182,7 +182,7 @@ extension FielmedinaAPI {
         /// Event.Location
         ///
         /// Parent Type: `LocationType`
-        struct Location: FielmedinaAPI.SelectionSet {
+        nonisolated struct Location: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -205,7 +205,7 @@ extension FielmedinaAPI {
         /// Event.City
         ///
         /// Parent Type: `CityType`
-        struct City: FielmedinaAPI.SelectionSet {
+        nonisolated struct City: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 

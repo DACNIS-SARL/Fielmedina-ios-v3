@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetMerchantDetailsQuery: GraphQLQuery {
+  nonisolated struct GetMerchantDetailsQuery: GraphQLQuery {
     static let operationName: String = "GetMerchantDetails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -21,7 +21,7 @@ extension FielmedinaAPI {
 
     @_spi(Unsafe) public var __variables: Variables? { ["id": id] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -38,7 +38,7 @@ extension FielmedinaAPI {
       /// Merchant
       ///
       /// Parent Type: `MerchantType`
-      struct Merchant: FielmedinaAPI.SelectionSet {
+      nonisolated struct Merchant: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -96,7 +96,7 @@ extension FielmedinaAPI {
         /// Merchant.Category
         ///
         /// Parent Type: `MerchantCategoryType`
-        struct Category: FielmedinaAPI.SelectionSet {
+        nonisolated struct Category: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -121,7 +121,7 @@ extension FielmedinaAPI {
         /// Merchant.Image
         ///
         /// Parent Type: `MerchantImageType`
-        struct Image: FielmedinaAPI.SelectionSet {
+        nonisolated struct Image: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -141,7 +141,7 @@ extension FielmedinaAPI {
           /// Merchant.Image.Image
           ///
           /// Parent Type: `ImageFieldType`
-          struct Image: FielmedinaAPI.SelectionSet {
+          nonisolated struct Image: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -168,7 +168,7 @@ extension FielmedinaAPI {
           /// Merchant.Image.ImageMobile
           ///
           /// Parent Type: `ImageFieldType`
-          struct ImageMobile: FielmedinaAPI.SelectionSet {
+          nonisolated struct ImageMobile: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -196,7 +196,7 @@ extension FielmedinaAPI {
         /// Merchant.Product
         ///
         /// Parent Type: `MerchantProductType`
-        struct Product: FielmedinaAPI.SelectionSet {
+        nonisolated struct Product: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -223,7 +223,7 @@ extension FielmedinaAPI {
         /// Merchant.Rating
         ///
         /// Parent Type: `MerchantRatingType`
-        struct Rating: FielmedinaAPI.SelectionSet {
+        nonisolated struct Rating: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -250,7 +250,7 @@ extension FielmedinaAPI {
         /// Merchant.City
         ///
         /// Parent Type: `CityType`
-        struct City: FielmedinaAPI.SelectionSet {
+        nonisolated struct City: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 

@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let EventType = ApolloAPI.Object(
+  nonisolated static let EventType = ApolloAPI.Object(
     typename: "EventType",
     implementedInterfaces: [],
     keyFields: nil

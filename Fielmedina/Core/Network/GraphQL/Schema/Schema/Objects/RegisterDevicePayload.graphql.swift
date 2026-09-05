@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let RegisterDevicePayload = ApolloAPI.Object(
+  nonisolated static let RegisterDevicePayload = ApolloAPI.Object(
     typename: "RegisterDevicePayload",
     implementedInterfaces: [],
     keyFields: nil

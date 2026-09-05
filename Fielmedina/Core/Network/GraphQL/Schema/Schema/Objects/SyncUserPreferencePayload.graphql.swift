@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let SyncUserPreferencePayload = ApolloAPI.Object(
+  nonisolated static let SyncUserPreferencePayload = ApolloAPI.Object(
     typename: "SyncUserPreferencePayload",
     implementedInterfaces: [],
     keyFields: nil

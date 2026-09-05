@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let ImageLocationType = ApolloAPI.Object(
+  nonisolated static let ImageLocationType = ApolloAPI.Object(
     typename: "ImageLocationType",
     implementedInterfaces: [],
     keyFields: nil

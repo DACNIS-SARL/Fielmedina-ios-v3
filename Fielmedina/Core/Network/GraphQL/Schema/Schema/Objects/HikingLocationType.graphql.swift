@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let HikingLocationType = ApolloAPI.Object(
+  nonisolated static let HikingLocationType = ApolloAPI.Object(
     typename: "HikingLocationType",
     implementedInterfaces: [],
     keyFields: nil

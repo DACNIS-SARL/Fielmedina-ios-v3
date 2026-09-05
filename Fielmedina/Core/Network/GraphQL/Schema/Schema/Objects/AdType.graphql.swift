@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let AdType = ApolloAPI.Object(
+  nonisolated static let AdType = ApolloAPI.Object(
     typename: "AdType",
     implementedInterfaces: [],
     keyFields: nil

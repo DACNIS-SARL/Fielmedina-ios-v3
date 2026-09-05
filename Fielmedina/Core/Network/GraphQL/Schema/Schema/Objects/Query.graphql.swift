@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let Query = ApolloAPI.Object(
+  nonisolated static let Query = ApolloAPI.Object(
     typename: "Query",
     implementedInterfaces: [],
     keyFields: nil

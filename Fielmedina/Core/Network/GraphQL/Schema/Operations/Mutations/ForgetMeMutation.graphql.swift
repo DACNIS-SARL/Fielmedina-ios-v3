@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct ForgetMeMutation: GraphQLMutation {
+  nonisolated struct ForgetMeMutation: GraphQLMutation {
     static let operationName: String = "ForgetMe"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -20,7 +20,7 @@ extension FielmedinaAPI {
 
     @_spi(Unsafe) public var __variables: Variables? { ["userUid": userUid] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -37,7 +37,7 @@ extension FielmedinaAPI {
       /// ForgetMe
       ///
       /// Parent Type: `SyncUserPreferencePayload`
-      struct ForgetMe: FielmedinaAPI.SelectionSet {
+      nonisolated struct ForgetMe: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 

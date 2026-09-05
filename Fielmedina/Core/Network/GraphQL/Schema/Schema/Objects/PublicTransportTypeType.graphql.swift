@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let PublicTransportTypeType = ApolloAPI.Object(
+  nonisolated static let PublicTransportTypeType = ApolloAPI.Object(
     typename: "PublicTransportTypeType",
     implementedInterfaces: [],
     keyFields: nil

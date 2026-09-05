@@ -4,7 +4,7 @@
 import ApolloAPI
 
 extension FielmedinaAPI.Objects {
-  static let CountryType = ApolloAPI.Object(
+  nonisolated static let CountryType = ApolloAPI.Object(
     typename: "CountryType",
     implementedInterfaces: [],
     keyFields: nil

@@ -5,7 +5,7 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension FielmedinaAPI {
-  struct GetHikingTrailsQuery: GraphQLQuery {
+  nonisolated struct GetHikingTrailsQuery: GraphQLQuery {
     static let operationName: String = "GetHikingTrails"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -33,7 +33,7 @@ extension FielmedinaAPI {
       "offset": offset
     ] }
 
-    struct Data: FielmedinaAPI.SelectionSet {
+    nonisolated struct Data: FielmedinaAPI.SelectionSet {
       let __data: DataDict
       init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -54,7 +54,7 @@ extension FielmedinaAPI {
       /// Hiking
       ///
       /// Parent Type: `HikingType`
-      struct Hiking: FielmedinaAPI.SelectionSet {
+      nonisolated struct Hiking: FielmedinaAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -90,7 +90,7 @@ extension FielmedinaAPI {
         /// Hiking.City
         ///
         /// Parent Type: `CityType`
-        struct City: FielmedinaAPI.SelectionSet {
+        nonisolated struct City: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -113,7 +113,7 @@ extension FielmedinaAPI {
         /// Hiking.Image
         ///
         /// Parent Type: `ImageHikingType`
-        struct Image: FielmedinaAPI.SelectionSet {
+        nonisolated struct Image: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -133,7 +133,7 @@ extension FielmedinaAPI {
           /// Hiking.Image.Image
           ///
           /// Parent Type: `ImageFieldType`
-          struct Image: FielmedinaAPI.SelectionSet {
+          nonisolated struct Image: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -160,7 +160,7 @@ extension FielmedinaAPI {
           /// Hiking.Image.ImageMobile
           ///
           /// Parent Type: `ImageFieldType`
-          struct ImageMobile: FielmedinaAPI.SelectionSet {
+          nonisolated struct ImageMobile: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -188,7 +188,7 @@ extension FielmedinaAPI {
         /// Hiking.Location
         ///
         /// Parent Type: `HikingLocationType`
-        struct Location: FielmedinaAPI.SelectionSet {
+        nonisolated struct Location: FielmedinaAPI.SelectionSet {
           let __data: DataDict
           init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -208,7 +208,7 @@ extension FielmedinaAPI {
           /// Hiking.Location.Location
           ///
           /// Parent Type: `LocationType`
-          struct Location: FielmedinaAPI.SelectionSet {
+          nonisolated struct Location: FielmedinaAPI.SelectionSet {
             let __data: DataDict
             init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -246,7 +246,7 @@ extension FielmedinaAPI {
             /// Hiking.Location.Location.Category
             ///
             /// Parent Type: `LocationCategoryType`
-            struct Category: FielmedinaAPI.SelectionSet {
+            nonisolated struct Category: FielmedinaAPI.SelectionSet {
               let __data: DataDict
               init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -269,7 +269,7 @@ extension FielmedinaAPI {
             /// Hiking.Location.Location.Image
             ///
             /// Parent Type: `ImageLocationType`
-            struct Image: FielmedinaAPI.SelectionSet {
+            nonisolated struct Image: FielmedinaAPI.SelectionSet {
               let __data: DataDict
               init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -289,7 +289,7 @@ extension FielmedinaAPI {
               /// Hiking.Location.Location.Image.Image
               ///
               /// Parent Type: `ImageFieldType`
-              struct Image: FielmedinaAPI.SelectionSet {
+              nonisolated struct Image: FielmedinaAPI.SelectionSet {
                 let __data: DataDict
                 init(_dataDict: DataDict) { __data = _dataDict }
 
@@ -316,7 +316,7 @@ extension FielmedinaAPI {
               /// Hiking.Location.Location.Image.ImageMobile
               ///
               /// Parent Type: `ImageFieldType`
-              struct ImageMobile: FielmedinaAPI.SelectionSet {
+              nonisolated struct ImageMobile: FielmedinaAPI.SelectionSet {
                 let __data: DataDict
                 init(_dataDict: DataDict) { __data = _dataDict }
 
