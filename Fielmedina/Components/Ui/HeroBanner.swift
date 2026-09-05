@@ -64,6 +64,15 @@ struct HeroBanner: View {
                 
                 if showText {
                     VStack(alignment: .leading, spacing: -4) {
+                        if let secondary = secondaryText {
+                            Text(secondary)
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 1)
+                                .minimumScaleFactor(0.5)
+                                .lineLimit(1)
+                        }
+                        
                         if let primary = primaryText {
                             Text(primary)
                                 .font(.system(size: 72, weight: .black))
@@ -76,16 +85,6 @@ struct HeroBanner: View {
                                 )
                                 .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 2)
                                 .minimumScaleFactor(0.3)
-                                .lineLimit(1)
-                        }
-                        
-                        if let secondary = secondaryText {
-                            Text(secondary)
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.9))
-                                .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 1)
-                                .padding(.leading, 4)
-                                .minimumScaleFactor(0.5)
                                 .lineLimit(1)
                         }
                     }
@@ -193,8 +192,8 @@ struct HeroBanner: View {
             HeroBanner(
                 imageName: "hero-bg",
                 showText: true,
-                primaryText: "Tunisia",
-                secondaryText: "welcome"
+                primaryText: "hero_tunisia_title",
+                secondaryText: "hero_welcome_subtitle"
             )
             
             VStack(spacing: 20) {
