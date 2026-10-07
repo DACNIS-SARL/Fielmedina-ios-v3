@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-common-ios.git",
       "state" : {
-        "revision" : "5b40ddce1fb8f04fb7aae50832e11525f3704251",
-        "version" : "24.30.0"
+        "revision" : "901e49b4d7b311af1d81223f8e4a4b96d878a880",
+        "version" : "24.32.0"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-core-maps-ios.git",
       "state" : {
-        "revision" : "c648251c793a4dd5fc483525e710c7dc25727b7f",
-        "version" : "11.30.0"
+        "revision" : "afc55d03f030af1f25bc0bbe51ae884c5ea73d19",
+        "version" : "11.32.0"
       }
     },
     {
@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-maps-ios.git",
       "state" : {
-        "revision" : "5034ce4663a482f2246295e1605d35aa2793c42c",
-        "version" : "11.30.0"
+        "revision" : "357e1447df5b1fedefbf595bf7812f437cdaec6e",
+        "version" : "11.32.0"
       }
     },
     {
@@ -150,8 +150,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-cpp-ios.git",
       "state" : {
-        "revision" : "a7036ef48a187180ab537b90c9efb5344c833461",
-        "version" : "0.30.0"
+        "revision" : "575462e243ac7b95c9a943dcb4b651873ac6fd22",
+        "version" : "0.32.0"
       }
     },
     {
@@ -159,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-ios.git",
       "state" : {
-        "revision" : "5c916f43ef01ec35824c0331d372b2eba9b243c0",
-        "version" : "3.30.0"
+        "revision" : "204507a8e74dfe7f76c2b51961a2ba239395d08f",
+        "version" : "3.32.0"
       }
     },
     {
@@ -168,8 +168,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-navigation-native-ios.git",
       "state" : {
-        "revision" : "2f8a6372a02dd60f6b358796adaf3639472f77ed",
-        "version" : "324.30.0"
+        "revision" : "44c84748e90e07fae6cb4410ed830825fc7884c8",
+        "version" : "324.32.0"
       }
     },
     {

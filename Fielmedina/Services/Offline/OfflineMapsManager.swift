@@ -1,10 +1,3 @@
-//
-//  OfflineMapsManager.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/25/26.
-//
-
 import Foundation
 import CoreLocation
 import MapKit
@@ -46,14 +39,8 @@ final class OfflineMapsManager: @unchecked Sendable {
         OfflineTileStore.shared
     }
     
-    // Track active downloads: RegionId -> Progress (0.0...1.0)
-    // Only user-initiated (non-silent) downloads are recorded here.
     private(set) var activeDownloads: [String: Double] = [:]
 
-    /// True while a user-initiated region download is in progress. The background
-    /// content prefetch reads this to throttle itself so it doesn't steal bandwidth
-    /// from the download the user is actively watching. Mutated only on the main
-    /// queue (like `activeDownloads`), so reads are pinned to the main actor.
     @MainActor
     static var isUserRegionDownloadActive: Bool {
         !OfflineMapsManager.shared.activeDownloads.isEmpty
@@ -63,8 +50,6 @@ final class OfflineMapsManager: @unchecked Sendable {
     private static let regionRefreshInterval: TimeInterval = 7 * 24 * 60 * 60
     private static let regionGeometryKey = "offline_maps_region_geometry"
 
-    /// Remembers the geometry a region was downloaded with, so coordinate fixes in the
-    /// backend (e.g. a wrong longitude) trigger an automatic re-download.
     static func recordRegionGeometry(regionId: String, latitude: Double, longitude: Double, radius: Double) {
         var map = UserDefaults.standard.dictionary(forKey: regionGeometryKey) as? [String: String] ?? [:]
         map[regionId] = "\(latitude),\(longitude),\(radius)"
@@ -81,8 +66,6 @@ final class OfflineMapsManager: @unchecked Sendable {
         return stored.distance(from: current) > 50 || abs(parts[2] - city.radius) > 1
     }
 
-    /// Network-first re-fetch of the offline cities so backend coordinate/radius fixes
-    /// reach devices without requiring a visit to the Settings screen.
     private static func refreshCitiesMetadata() async {
         do {
             let query = FielmedinaAPI.GetOfflineCitiesQuery(isActive: .some(true))
@@ -134,18 +117,10 @@ final class OfflineMapsManager: @unchecked Sendable {
         }
     }
 
-    /// Keeps downloaded regions healthy. Runs on every app foreground (online only):
-    /// - Regions whose city geometry changed since download (e.g. a backend coordinate
-    ///   fix like Sidi Bou Said's wrong longitude) are re-downloaded immediately.
-    /// - All regions get an incremental refresh weekly, so the offline navigation tiles
-    ///   stay pinned to a routing-tiles version the navigator can still use — without
-    ///   this, offline routing eventually fails until a manual delete + re-download.
-    /// The offline-cities metadata is re-fetched network-first before deciding, so
-    /// backend fixes propagate without requiring a visit to the Settings screen.
     func refreshDownloadedRegionsIfNeeded() {
         guard NetworkMonitor.shared.isConnected else { return }
 
-        Task {
+        Task { [weak self] in
             await Self.refreshCitiesMetadata()
 
             let defaults = UserDefaults.standard
@@ -156,7 +131,7 @@ final class OfflineMapsManager: @unchecked Sendable {
                 weeklyRefreshDue = true
             }
 
-            self.fetchDownloadedRegionIds { [weak self] regionIds in
+            self?.fetchDownloadedRegionIds { [weak self] regionIds in
                 guard let self else { return }
                 if weeklyRefreshDue {
                     defaults.set(Date(), forKey: Self.lastRegionRefreshKey)
@@ -168,8 +143,6 @@ final class OfflineMapsManager: @unchecked Sendable {
                 for regionId in regionIds {
                     guard self.activeDownloads[regionId] == nil else { continue }
                     let mappedCityId = store.cityId(for: regionId)
-                    // Regions downloaded by older app versions may miss the regionId→cityId
-                    // mapping; fall back to matching the region id against the city id.
                     guard let city = cities.first(where: { $0.cityId == mappedCityId })
                             ?? cities.first(where: { $0.id == regionId }) else { continue }
 
@@ -272,13 +245,8 @@ final class OfflineMapsManager: @unchecked Sendable {
         }
     }
     
-    /// The routing dataset must match `RoutingConfig.datasetProfileIdentifier` (walking).
     private static let navigationTilesDataset = ProfileIdentifier.walking.rawValue
 
-    /// Resolves the latest routing-tiles version from Mapbox. Nav SDK 3.20+ broke
-    /// `getLatestNavigationTilesetDescriptor()`: it stamps an EMPTY version into the
-    /// downloaded region, which the router can never match offline ("not available in
-    /// cache"), so the exact version must be resolved and pinned explicitly.
     private static func fetchLatestNavigationTilesVersion() async -> String? {
         let token = MapboxOptions.accessToken
         guard !token.isEmpty,
@@ -290,7 +258,6 @@ final class OfflineMapsManager: @unchecked Sendable {
             let request = URLRequest(url: url, timeoutInterval: 10)
             let (data, _) = try await URLSession.shared.data(for: request)
             let response = try JSONDecoder().decode(VersionsResponse.self, from: data)
-            // Versions are "YYYY_MM_DD-HH_MM_SS", so lexicographic order is chronological.
             let latest = response.availableVersions.sorted().last
             if let latest {
                 NavigationTilesVersionStore.stored = latest
@@ -301,13 +268,8 @@ final class OfflineMapsManager: @unchecked Sendable {
         }
     }
 
-    /// Called at app start (before the navigation provider is created) so the very
-    /// first session already has a pinned tiles version — otherwise the router of a
-    /// fresh install can't route offline until the second launch.
     static func resolveNavigationTilesVersionIfNeeded() async {
         guard NavigationTilesVersionStore.stored == nil else { return }
-        // NWPathMonitor needs a moment to report connectivity on cold launch —
-        // wait briefly instead of misreading the race as "offline".
         for _ in 0..<10 where !NetworkMonitor.shared.isConnected {
             try? await Task.sleep(for: .milliseconds(300))
         }
@@ -327,16 +289,11 @@ final class OfflineMapsManager: @unchecked Sendable {
             var navigationDescriptors: [TilesetDescriptor] = []
             if let version = await Self.fetchLatestNavigationTilesVersion() {
                 navigationDescriptors.append(Self.buildNavigationDescriptor(version: version))
-                // The running navigator stays pinned to the version it started with
-                // until the next launch — keep that version's tiles in the region too,
-                // so offline routing works both before and after a relaunch.
                 let runtimeVersion = NavigationTilesVersionStore.pinnedAtLaunch
                 if !runtimeVersion.isEmpty && runtimeVersion != version {
                     navigationDescriptors.append(Self.buildNavigationDescriptor(version: runtimeVersion))
                 }
             } else {
-                // Fallback: known to produce an empty-version region on SDK 3.20+,
-                // but better than downloading no navigation tiles at all.
                 navigationDescriptors.append(
                     MapboxNavigationProviderStore.shared.getLatestNavigationTilesetDescriptor()
                 )
@@ -430,10 +387,6 @@ final class OfflineMapsManager: @unchecked Sendable {
                 case .success:
                     if !silent {
                         NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
-                        // Activation conversion for Meta. Gated on `!silent` on
-                        // purpose: a background re-pin of an already-downloaded
-                        // region is not a user action and must not inflate the
-                        // event Ads Manager optimises against.
                         Task { @MainActor in
                             MetaEvents.logOfflineRegionDownloaded(regionId: id)
                         }
@@ -460,10 +413,6 @@ final class OfflineMapsManager: @unchecked Sendable {
         tileStore.allTileRegions { result in
             switch result {
             case .success(let regions):
-                // Filter for regions that are actually complete
-                // In Mapbox common, a region exists in allTileRegions even if it failed or is partial.
-                // We could check each region's status but that's async per region.
-                // For now, let's just return what they have and let fetchRegionStatus refine it if needed.
                 DispatchQueue.main.async {
                     completion(regions.map { $0.id })
                 }
@@ -482,10 +431,6 @@ final class OfflineMapsManager: @unchecked Sendable {
 }
 
 
-/// Indirection that silences the deprecation warning on Mapbox's
-/// `TilesetDescriptorFactory`. The class is deprecated but remains the only API
-/// that can pin an exact routing-tiles version — Mapbox's own SDK still uses it
-/// internally, and version pinning is required for offline routing on SDK 3.20+.
 private protocol NavigationDescriptorBuilding {
     static func buildPinnedNavigationDescriptor(version: String) -> TilesetDescriptor
 }

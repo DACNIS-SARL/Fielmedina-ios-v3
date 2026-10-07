@@ -1,8 +1,3 @@
-//
-//  LocationVoiceoverPlayer.swift
-//  Fielmedina
-//
-
 import AVFoundation
 import Foundation
 
@@ -11,6 +6,7 @@ import Foundation
 final class LocationVoiceoverPlayer {
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
+    @ObservationIgnored nonisolated(unsafe) private var startTask: Task<Void, Never>?
 
     private(set) var isPlaying = false
 
@@ -23,10 +19,27 @@ final class LocationVoiceoverPlayer {
         }
 
         let playURL = VoiceoverDiskCache.playbackURL(forRemote: remote)
-        configureAudioSession()
+        isPlaying = true
+        startTask = Task { [weak self] in
+            await Self.activateAudioSession()
+            guard let self, !Task.isCancelled else { return }
+            self.startPlayback(url: playURL)
+        }
+    }
 
+    func stop() {
+        startTask?.cancel()
+        startTask = nil
         removeEndObserver()
-        let item = AVPlayerItem(url: playURL)
+        player?.pause()
+        player?.replaceCurrentItem(with: nil)
+        player = nil
+        isPlaying = false
+    }
+
+    private func startPlayback(url: URL) {
+        removeEndObserver()
+        let item = AVPlayerItem(url: url)
         let newPlayer = AVPlayer(playerItem: item)
         player = newPlayer
 
@@ -41,15 +54,6 @@ final class LocationVoiceoverPlayer {
         }
 
         newPlayer.play()
-        isPlaying = true
-    }
-
-    func stop() {
-        removeEndObserver()
-        player?.pause()
-        player?.replaceCurrentItem(with: nil)
-        player = nil
-        isPlaying = false
     }
 
     private func removeEndObserver() {
@@ -59,11 +63,16 @@ final class LocationVoiceoverPlayer {
         endObserver = nil
     }
 
-    private func configureAudioSession() {
+    @concurrent
+    nonisolated private static func activateAudioSession() async {
+        let session = AVAudioSession.sharedInstance()
         do {
-            let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            if #available(iOS 27.0, *) {
+                _ = try await session.activate(options: [])
+            } else {
+                try session.setActive(true, options: .notifyOthersOnDeactivation)
+            }
         } catch {
             print("Voiceover audio session error: \(error.localizedDescription)")
         }

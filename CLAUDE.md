@@ -125,9 +125,9 @@ look for `Created app event` in the log, and cross-check in Events Manager → T
 
 ## Mapbox offline navigation (fragile — read before touching)
 
-Currently on **mapbox-navigation-ios 3.28.3** (Maps 11.28.3, Common 24.28.3,
-NavNative 324.28.3). SPM requirement is `upToNextMinorVersion` from 3.28.1, so patch
-releases within 3.28.x are picked up automatically — a minor bump is deliberate.
+Currently on **mapbox-navigation-ios 3.32.0** (Maps 11.32.0, Common 24.32.0,
+NavNative 324.32.0). SPM requirement is `upToNextMinorVersion` from 3.32.0, so patch
+releases within 3.32.x are picked up automatically — a minor bump is deliberate.
 
 Nav SDK has had breaking regressions across versions (worked at 3.19, broke at
 3.20+), so **after any version bump, verify turn-by-turn on device**, not just that it
@@ -139,6 +139,13 @@ ETA display. Key fixes already in place, don't unwind them without understanding
   from what the router can see.
 - `NavigationTilesVersionStore` / `MapboxNavigationProviderStore.swift` pin the
   routing-tiles version explicitly — the SDK's "latest" resolution fails offline.
+- `MapboxNavigationProviderStore.shared` is `@MainActor` and calls
+  `getLatestNavigationTilesetDescriptor()` right after creating the provider. It looks
+  like dead code but forces the SDK's shared `NativeHandlersFactory` (unsynchronised
+  `lazy var`s, `@unchecked Sendable`) to initialise once on the main thread. Without
+  it, `HikingListModel`'s parallel route requests raced on first use and crashed in
+  `MapboxRoutingProvider.routerClient` (unrecognized selector). Still unfixed upstream
+  as of 3.33.0-rc.1.
 - `RouteWaypointSanitizer` (`Services/Navigation/`) cleans waypoints (drops invalid/
   `(0,0)`/duplicate points, caps at Mapbox's 25-coordinate limit) before they reach
   the router — malformed input can crash the onboard router natively (a Swift
