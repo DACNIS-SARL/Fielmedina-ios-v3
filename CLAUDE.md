@@ -168,6 +168,27 @@ ETA display. Key fixes already in place, don't unwind them without understanding
   `HikingListModel.updateMetrics()`. Unbounded "one route request per item" saturates
   the device and made the hiking list feel slow.
 
+## iPhone Duo (foldable) layout
+
+Follows Apple's HIG "Designing for iPhone Duo". On the outer display and the inner
+display in landscape the system puts the tab bar, toolbar and status bar on the side,
+so safe areas are asymmetric.
+
+- Never put `.ignoresSafeArea(edges: .horizontal)` on a scroll view or any container of
+  controls: it pushed every "Show All", the search bar and cards under the side tab bar.
+  Only backgrounds may bleed — `HeroBanner` ignores the horizontal safe area itself, and
+  detail-page panels draw their rounded background with `.ignoresSafeArea(edges:
+  .horizontal)` inside `.background { }` while the content stays inset.
+- Toolbar items are separate items in a `ToolbarItemGroup`, each a `Label` with a title
+  and a symbol (see `SettingsButton`, Home's sticky shortcuts). Never wrap several items in
+  one `HStack`: the system can't lay it out vertically.
+- No fixed screen-width layouts: carousels (`CarouselListMerchants`, `CarouselListEvent`)
+  stretch their cards to fill the row when there are too few to scroll.
+- The system hides the side toolbar while content scrolls down and shows it again on
+  scroll up — expected, not a bug.
+- Test on an "iPhone Duo" simulator (Xcode 27.1). `simctl` cannot fold/unfold; the inner
+  display is 951×669 pt in landscape.
+
 ## App review prompt (`Services/Review/AppReviewPrompter.swift`)
 
 StoreKit's `AppStore.requestReview(in:)` only. App Store guideline 5.6.1 disallows

@@ -1,10 +1,3 @@
-//
-//  PublicTransports.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/21/26.
-//
-
 import SwiftUI
 
 enum TransportMode: String, CaseIterable, Identifiable {
@@ -73,7 +66,6 @@ struct PublicTransports: View {
         }
         .coordinateSpace(name: "scroll")
         .ignoresSafeArea(edges: .top)
-        .ignoresSafeArea(edges: .horizontal)
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Public transport")
         .navigationBarTitleDisplayMode(.inline)

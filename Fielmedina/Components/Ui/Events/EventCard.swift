@@ -1,15 +1,8 @@
-//
-//  EventCard.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/9/26.
-//
-
 import SwiftUI
 
 struct EventCardView: View {
     let event: Event
-    let cardWidth: CGFloat = 320
+    var cardWidth: CGFloat = 320
     let cardHeight: CGFloat = 380
     
     var body: some View {
@@ -55,7 +48,6 @@ struct EventCardView: View {
         .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
     }
 }
-
 
 private struct PriceBadge: View {
     let price: String

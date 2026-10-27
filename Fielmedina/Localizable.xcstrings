@@ -1196,6 +1196,16 @@
         }
       }
     },
+    "Settings" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
+          }
+        }
+      }
+    },
     "Share your experience on the App Store" : {
       "localizations" : {
         "fr" : {

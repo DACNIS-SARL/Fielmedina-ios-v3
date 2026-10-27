@@ -1,10 +1,3 @@
-//
-//  MerchantDetailView.swift
-//  Fielmedina
-//
-//  Created by Aslan on 6/8/26.
-//
-
 import SwiftUI
 import CoreLocation
 import MapboxNavigationCore
@@ -19,7 +12,6 @@ struct MerchantDetailView: View {
     
     @State private var selectedImageIndex: Int? = 0
     @State private var locationManager = LocationManager()
-    /// Shared turn-by-turn navigation logic (also used by LocationDetailView).
     @State private var navigation = PlaceNavigationModel()
     private let mapboxNavigationProvider = MapboxNavigationProviderStore.shared
     
@@ -39,7 +31,6 @@ struct MerchantDetailView: View {
         }
         .coordinateSpace(name: "scroll")
         .ignoresSafeArea(edges: .top)
-        .ignoresSafeArea(edges: .horizontal)
         .navigationTitle(merchant.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
@@ -241,9 +232,11 @@ struct MerchantDetailView: View {
             }
         }
         .padding(20)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .padding(.horizontal, 0)
+        .background {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color(.systemBackground))
+                .ignoresSafeArea(edges: .horizontal)
+        }
         .padding(.top, -24)
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }

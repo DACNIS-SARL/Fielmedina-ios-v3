@@ -1,10 +1,3 @@
-//
-//  TaxiBooking.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/21/26.
-//
-
 import SwiftUI
 
 struct TaxiBooking: View {
@@ -41,7 +34,6 @@ struct TaxiBooking: View {
         }
         .coordinateSpace(name: "scroll")
         .ignoresSafeArea(edges: .top)
-        .ignoresSafeArea(edges: .horizontal)
         .navigationTitle("Book a Taxi")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -1,10 +1,3 @@
-//
-//  EventDetailView.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/23/26.
-//
-
 import SwiftUI
 
 struct EventDetailView: View {
@@ -26,7 +19,6 @@ struct EventDetailView: View {
         }
         .coordinateSpace(name: "scroll")
         .ignoresSafeArea(edges: .top)
-        .ignoresSafeArea(edges: .horizontal)
         .navigationTitle(event.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
@@ -85,9 +77,11 @@ struct EventDetailView: View {
 
         }
         .padding(20)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .padding(.horizontal, 0)
+        .background {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color(.systemBackground))
+                .ignoresSafeArea(edges: .horizontal)
+        }
         .padding(.top, -24)
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
@@ -144,6 +138,3 @@ struct EventDetailView: View {
     }
 }
 
-//#Preview {
-//    EventDetailView(event: Event.sampleEvents[0])
-//}

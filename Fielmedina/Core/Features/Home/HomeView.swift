@@ -1,11 +1,3 @@
-//
-//  HomeView.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/15/26.
-//
-
-
 import SwiftUI
 
 enum HomeNavigationDestination: Hashable {
@@ -21,15 +13,11 @@ enum HomeNavigationDestination: Hashable {
 }
 
 struct HomeView: View {
-    /// Feature flags + onboarding gating. Navigation/scroll/search state below stays
-    /// in the View — that's SwiftUI rendering state, not app data.
     @State private var model = HomeModel()
     @State private var scrollOffset: CGFloat = 0
     @State private var navigationPath = NavigationPath()
     @State private var refreshTrigger = 0
     @State private var showSearch = false
-    /// Real on-screen frame of the settings button, so the onboarding coachmark can
-    /// highlight it exactly instead of guessing (it moves between device sizes).
     @State private var settingsButtonFrame: CGRect = .zero
     @Namespace private var searchNamespace
 
@@ -55,11 +43,7 @@ struct HomeView: View {
                     }
                     .frame(height: 56)
                     
-                    // Main Content
                     VStack(spacing: 32) {
-                        // While the overlay is open the field is "lifted" to the top:
-                        // we remove the in-place bar entirely (its slot collapses) and
-                        // let the matched-geometry transition move it up.
                         if !showSearch {
                             homeSearchBar
                                 .matchedGeometryEffect(id: Self.searchFieldID, in: searchNamespace)
@@ -92,7 +76,6 @@ struct HomeView: View {
             }
             .refreshable {
                 refreshTrigger += 1
-                // We add a small delay to allow child views to start their tasks
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             .coordinateSpace(name: "scroll")
@@ -104,31 +87,22 @@ struct HomeView: View {
             .background(Color(.systemBackground))
             .ignoresSafeArea(.keyboard)
             .ignoresSafeArea(edges: .top)
-            .ignoresSafeArea(edges: .horizontal)
             .animation(.smooth(duration: 0.3), value: areButtonsSticky)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    HStack(spacing: 8) {
-                        if areButtonsSticky {
-                            publicTransportIcon
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
-                            if model.showTaxiButton {
-                                taxiBookingIcon
-                                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                            }
-                            if model.showTopPicksButton {
-                                topPicksIcon
-                                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                            }
+                    if areButtonsSticky {
+                        publicTransportIcon
+                        if model.showTaxiButton {
+                            taxiBookingIcon
                         }
-                        SettingsButton()
+                        if model.showTopPicksButton {
+                            topPicksIcon
+                        }
                     }
-                    .animation(.smooth(duration: 0.3), value: areButtonsSticky)
+                    SettingsButton()
                 }
             }
             .toolbarBackground(areButtonsSticky ? .visible : .hidden, for: .navigationBar)
-            // Hide the nav-bar (settings gear / sticky buttons) while searching so it
-            // doesn't sit on top of the overlay's Cancel button and steal taps.
             .toolbar(showSearch ? .hidden : .automatic, for: .navigationBar)
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
@@ -166,8 +140,6 @@ struct HomeView: View {
             }
         }
         .overlay {
-            // Paused while searching so it never sits on top of the search overlay
-            // or points at the hidden settings button.
             if model.showOnboarding && !showSearch {
                 OnboardingOverlay(
                     anchorFrame: settingsButtonFrame,
@@ -187,7 +159,6 @@ struct HomeView: View {
         scrollOffset > buttonStickyThreshold
     }
 
-    /// Tappable (non-editable) bar that opens the global search overlay.
     private var homeSearchBar: some View {
         Button {
             withAnimation(.spring(response: 0.42, dampingFraction: 0.85)) { showSearch = true }
@@ -293,24 +264,32 @@ struct HomeView: View {
     
     private var publicTransportIcon: some View {
         NavigationLink(value: HomeNavigationDestination.publicTransports) {
-            Image(systemName: "train.side.rear.car")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Color.blue)
-                .clipShape(Circle())
+            Label {
+                Text("Public transports")
+            } icon: {
+                Image(systemName: "train.side.rear.car")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(Color.blue)
+                    .clipShape(Circle())
+            }
         }
         .buttonStyle(.plain)
     }
     
     private var taxiBookingIcon: some View {
         NavigationLink(value: HomeNavigationDestination.taxiBooking) {
-            Image(systemName: "car.fill")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black)
-                .frame(width: 32, height: 32)
-                .background(Color.yellow)
-                .clipShape(Circle())
+            Label {
+                Text("Book a Taxi")
+            } icon: {
+                Image(systemName: "car.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.black)
+                    .frame(width: 32, height: 32)
+                    .background(Color.yellow)
+                    .clipShape(Circle())
+            }
         }
         .buttonStyle(.plain)
     }
@@ -336,12 +315,16 @@ struct HomeView: View {
     
     private var topPicksIcon: some View {
         NavigationLink(value: HomeNavigationDestination.allTopPicks) {
-            Image(systemName: "rosette")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Color.accent)
-                .clipShape(Circle())
+            Label {
+                Text("Our Pick")
+            } icon: {
+                Image(systemName: "rosette")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(Color.accent)
+                    .clipShape(Circle())
+            }
         }
         .buttonStyle(.plain)
     }

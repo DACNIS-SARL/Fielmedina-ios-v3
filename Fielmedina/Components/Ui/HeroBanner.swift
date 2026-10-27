@@ -1,10 +1,3 @@
-//
-//  HeroBanner.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/15/26.
-//
-
 import SwiftUI
 
 struct HeroBanner: View {
@@ -97,6 +90,7 @@ struct HeroBanner: View {
             .offset(y: -max(0, offset))
         }
         .frame(height: height)
+        .ignoresSafeArea(edges: .horizontal)
     }
 }
 

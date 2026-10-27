@@ -1,10 +1,3 @@
-//
-//  CarouselListEvent.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/15/26.
-//
-
 import SwiftUI
 
 struct CarouselListEvent: View {
@@ -22,6 +15,11 @@ struct CarouselListEvent: View {
     @State private var isHorizontalRefreshing = false
     @State private var errorMessage: String?
     @Binding var refreshTrigger: Int
+    @State private var availableWidth: CGFloat = 0
+
+    private let baseCardWidth: CGFloat = 320
+    private let cardSpacing: CGFloat = 16
+    private let horizontalInset: CGFloat = 16
     
     init(
         title: LocalizedStringKey,
@@ -43,6 +41,12 @@ struct CarouselListEvent: View {
     
     var displayedEvents: [Event] {
         Array(events.prefix(limit))
+    }
+
+    private func cardWidth(for count: Int) -> CGFloat {
+        guard count > 0, availableWidth > 0 else { return baseCardWidth }
+        let usableWidth = availableWidth - horizontalInset * 2 - cardSpacing * CGFloat(count - 1)
+        return max(baseCardWidth, usableWidth / CGFloat(count))
     }
     
     var body: some View {
@@ -116,18 +120,19 @@ struct CarouselListEvent: View {
                 .padding(.vertical, 40)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: cardSpacing) {
                         if isHorizontalRefreshing {
                             ProgressView()
                                 .padding(.leading, 16)
                                 .transition(.scale)
                         }
                         
+                        let width = cardWidth(for: displayedEvents.count)
                         ForEach(displayedEvents) { event in
                             NavigationLink {
                                 EventDetailView(event: event)
                             } label: {
-                                EventCardView(event: event)
+                                EventCardView(event: event, cardWidth: width)
                             }
                             .buttonStyle(.plain)
                             .simultaneousGesture(TapGesture().onEnded {
@@ -138,7 +143,7 @@ struct CarouselListEvent: View {
                             })
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, horizontalInset)
                 }
                 .onScrollGeometryChange(for: CGFloat.self, of: { geo in
                     return geo.contentOffset.x
@@ -158,6 +163,11 @@ struct CarouselListEvent: View {
             }
         }
         .padding(.bottom, bottomPadding)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { width in
+            availableWidth = width
+        }
         .animation(.easeIn(duration: 0.3), value: isLoading)
         .task {
             await loadEvents()
