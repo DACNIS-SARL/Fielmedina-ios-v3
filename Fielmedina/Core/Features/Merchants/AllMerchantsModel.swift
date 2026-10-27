@@ -1,11 +1,3 @@
-//
-//  AllMerchantsModel.swift
-//  Fielmedina
-//
-//  Presentation model for the All Picks (merchants) screen.
-//  Follows the reference pattern documented in `AllLocationsModel`.
-//
-
 import Foundation
 import CoreLocation
 import Observation
@@ -14,12 +6,10 @@ import Observation
 @Observable
 final class AllMerchantsModel {
 
-    // MARK: - Published state
-
     private(set) var merchants: [Merchant] = []
-    /// Memoized filter + distance sort. Recomputed only when an input changes.
     private(set) var displayedMerchants: [Merchant] = []
-    private(set) var categories: [String] = [String(localized: "All Picks")]
+    private(set) var categories: [MerchantCategory] = []
+    private(set) var availableCities: [MerchantCity] = []
     private(set) var isLoading = true
     private(set) var isRefreshing = false
     private(set) var isLoadingNextPage = false
@@ -27,39 +17,29 @@ final class AllMerchantsModel {
     private(set) var hasMoreData = true
     private(set) var isConnected = NetworkMonitor.shared.isConnected
 
-    // MARK: - Filter input
-
-    var selectedCategory: String = String(localized: "All Picks") {
+    var selectedCityId: String? {
         didSet {
-            guard oldValue != selectedCategory else { return }
+            guard oldValue != selectedCityId else { return }
             recomputeDisplayedMerchants()
         }
     }
 
-    // MARK: - Paging configuration
+    var selectedCategoryId: String? {
+        didSet {
+            guard oldValue != selectedCategoryId else { return }
+            recomputeDisplayedMerchants()
+        }
+    }
 
-    /// Rows fetched per page while online. No overall ceiling — paging continues
-    /// until the server returns a short page.
     private let pageSize: Int32 = 50
-    /// Start loading the next page this many rows before the end.
     private let paginationPrefetchAhead = 3
-    /// Offline, only the prefetcher's warmed query variant exists in the cache, so
-    /// load that whole snapshot at once instead of paginating.
     private let offlineSnapshotLimit: Int32 = 200
-
-    // MARK: - Dependencies
 
     private let merchantService: MerchantService
 
-    /// User position, bucketed to ~100 m so the list re-orders when the user actually
-    /// moves rather than on every GPS jitter tick.
     private var userCoordinate: CLLocationCoordinate2D?
     private var userLocationBucket: String?
 
-    /// Internal plumbing, never rendered — `@ObservationIgnored` keeps it a plain
-    /// stored property (no observation overhead), and `nonisolated(unsafe)` lets the
-    /// non-isolated `deinit` remove the observer. Written once in `init`, read once
-    /// in `deinit`, never concurrently.
     @ObservationIgnored nonisolated(unsafe) private var networkObserver: NSObjectProtocol?
 
     init(merchantService: MerchantService = .shared) {
@@ -83,25 +63,32 @@ final class AllMerchantsModel {
         }
     }
 
-    // MARK: - Derived values for the View
+    var isFiltering: Bool {
+        selectedCityId != nil || selectedCategoryId != nil
+    }
 
-    var isFilteringCategory: Bool {
-        selectedCategory != String(localized: "All Picks")
+    var cityOptions: [FilterMenuOption] {
+        [FilterMenuOption(id: nil, label: String(localized: "All Regions"))]
+            + availableCities.map { FilterMenuOption(id: $0.id, label: $0.displayName) }
+    }
+
+    var categoryOptions: [FilterMenuOption] {
+        [FilterMenuOption(id: nil, label: String(localized: "All Picks"))]
+            + categories.map { FilterMenuOption(id: $0.id, label: $0.displayName) }
     }
 
     var emptyStateTitle: String {
-        isFilteringCategory
+        isFiltering
             ? String(localized: "No Picks Found")
             : String(localized: "No Picks Yet")
     }
 
     var emptyStateMessage: String {
-        isFilteringCategory
-            ? String(localized: "There are no picks in this category yet.\nCheck back soon!")
+        isFiltering
+            ? String(localized: "There are no picks for this filter yet.\nCheck back soon!")
             : String(localized: "There are no picks available yet.\nCheck back soon!")
     }
 
-    /// True when this row sits inside the prefetch window at the end of the list.
     func isNearEnd(_ merchant: Merchant) -> Bool {
         guard let index = displayedMerchants.firstIndex(where: { $0.id == merchant.id }) else {
             return false
@@ -109,10 +96,6 @@ final class AllMerchantsModel {
         return index >= displayedMerchants.count - paginationPrefetchAhead
     }
 
-    // MARK: - Inputs from the View
-
-    /// Feeds the user's position in. The View owns CoreLocation permission and
-    /// lifecycle; the model only needs the coordinate, which keeps it testable.
     func updateUserLocation(_ coordinate: CLLocationCoordinate2D?) {
         userCoordinate = coordinate
         let bucket = coordinate.map { "\(Int($0.latitude * 1000)),\(Int($0.longitude * 1000))" }
@@ -129,8 +112,6 @@ final class AllMerchantsModel {
         }
     }
 
-    // MARK: - Loading
-
     func loadData(forceRefresh: Bool = false) async {
         if merchants.isEmpty {
             isLoading = true
@@ -138,25 +119,15 @@ final class AllMerchantsModel {
         errorMessage = nil
 
         let previousMerchants = merchants
-        let previousCategories = categories
 
         await loadMerchants(forceRefresh: forceRefresh)
 
-        // Keep whatever we already had if a refresh came back empty (offline, error).
         if merchants.isEmpty && !previousMerchants.isEmpty {
             merchants = previousMerchants
         }
 
-        let derived = Array(Set(merchants.compactMap { $0.category?.displayName })).sorted()
-        categories = [String(localized: "All Picks")] + derived
-
-        if categories.count == 1 && previousCategories.count > 1 {
-            categories = previousCategories
-        }
-
+        refreshFilterOptions()
         isLoading = false
-
-        // Single funnel point after merchants + categories settle.
         recomputeDisplayedMerchants()
     }
 
@@ -167,7 +138,6 @@ final class AllMerchantsModel {
         await loadData(forceRefresh: true)
     }
 
-    /// Appends the next page when the user approaches the bottom of the list.
     func loadNextPage() async {
         guard isConnected, hasMoreData, !isLoadingNextPage, !isLoading, !isRefreshing else { return }
         isLoadingNextPage = true
@@ -180,19 +150,17 @@ final class AllMerchantsModel {
                 limit: pageSize,
                 offset: Int32(merchants.count)
             )
-            // Guard against duplicates in case rows shifted between page requests.
             var seen = Set(merchants.map(\.id))
             let newItems = fetched.filter { seen.insert($0.id).inserted }
             merchants.append(contentsOf: newItems)
 
             hasMoreData = fetched.count >= Int(pageSize)
+            refreshFilterOptions()
             recomputeDisplayedMerchants()
         } catch {
-            // Keep what we have; scrolling to the bottom again retries.
         }
     }
 
-    /// Loads the first page (or, offline, the whole prefetched snapshot).
     private func loadMerchants(forceRefresh: Bool = false) async {
         errorMessage = nil
 
@@ -216,16 +184,34 @@ final class AllMerchantsModel {
         }
     }
 
-    // MARK: - Filtering + sorting
+    private func refreshFilterOptions() {
+        var seenCategories = Set<String>()
+        let derivedCategories = merchants
+            .compactMap(\.category)
+            .filter { seenCategories.insert($0.id).inserted }
+            .sorted { $0.displayName < $1.displayName }
+        if !derivedCategories.isEmpty {
+            categories = derivedCategories
+        }
 
-    /// Distances are computed once per item (decorate–sort–undecorate) rather than
-    /// allocating two `CLLocation`s per comparison inside the sort predicate.
+        var seenCities = Set<String>()
+        let derivedCities = merchants
+            .compactMap(\.city)
+            .filter { !$0.displayName.isEmpty && seenCities.insert($0.id).inserted }
+            .sorted { $0.displayName < $1.displayName }
+        if !derivedCities.isEmpty {
+            availableCities = derivedCities
+        }
+    }
+
     private func recomputeDisplayedMerchants() {
         var result = merchants
 
-        let allPicksLabel = String(localized: "All Picks")
-        if selectedCategory != allPicksLabel {
-            result = result.filter { $0.category?.displayName == selectedCategory }
+        if let cityId = selectedCityId {
+            result = result.filter { $0.city?.id == cityId }
+        }
+        if let categoryId = selectedCategoryId {
+            result = result.filter { $0.category?.id == categoryId }
         }
 
         if let userCoordinate {

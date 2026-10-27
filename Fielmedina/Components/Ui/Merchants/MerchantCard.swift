@@ -1,15 +1,8 @@
-//
-//  MerchantCard.swift
-//  Fielmedina
-//
-//  Created by Aslan on 6/2/26.
-//
-
 import SwiftUI
 
 struct MerchantCardView: View {
     let merchant: Merchant
-    let cardWidth: CGFloat = 320
+    var cardWidth: CGFloat = 320
     let cardHeight: CGFloat = 380
     
     var body: some View {

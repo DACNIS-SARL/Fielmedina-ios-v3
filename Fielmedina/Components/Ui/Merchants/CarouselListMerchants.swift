@@ -1,10 +1,3 @@
-//
-//  CarouselListMerchants.swift
-//  Fielmedina
-//
-//  Created by Aslan on 6/2/26.
-//
-
 import SwiftUI
 
 struct CarouselListMerchants: View {
@@ -19,6 +12,11 @@ struct CarouselListMerchants: View {
     @State private var isRefreshing = false
     @State private var isHorizontalRefreshing = false
     @State private var errorMessage: String?
+    @State private var availableWidth: CGFloat = 0
+
+    private let baseCardWidth: CGFloat = 320
+    private let cardSpacing: CGFloat = 16
+    private let horizontalInset: CGFloat = 20
     
     init(
         title: LocalizedStringKey = "Top Merchants",
@@ -38,14 +36,18 @@ struct CarouselListMerchants: View {
         let filtered = isFeaturedOnly ? merchants.filter { $0.isFeatured } : merchants
         return Array(filtered.prefix(limit))
     }
+
+    private func cardWidth(for count: Int) -> CGFloat {
+        guard count > 0, availableWidth > 0 else { return baseCardWidth }
+        let usableWidth = availableWidth - horizontalInset * 2 - cardSpacing * CGFloat(count - 1)
+        return max(baseCardWidth, usableWidth / CGFloat(count))
+    }
     
     var body: some View {
-        // If featuredOnly and nothing to show after loading, hide entirely
         if isFeaturedOnly && !isLoading && displayedMerchants.isEmpty {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 16) {
-                // Header
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.title2.weight(.bold))
@@ -104,15 +106,16 @@ struct CarouselListMerchants: View {
                                     .transition(.scale)
                             }
                             
+                            let width = cardWidth(for: displayedMerchants.count)
                             ForEach(displayedMerchants) { merchant in
                                 NavigationLink {
                                     MerchantDetailView(merchant: merchant)
                                 } label: {
-                                    MerchantCardView(merchant: merchant)
+                                    MerchantCardView(merchant: merchant, cardWidth: width)
                                 }
                             }
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, horizontalInset)
                     }
                     .onScrollGeometryChange(for: CGFloat.self, of: { geo in
                         return geo.contentOffset.x
@@ -132,6 +135,11 @@ struct CarouselListMerchants: View {
                 }
             }
             .animation(.easeIn(duration: 0.3), value: isLoading)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.width
+            } action: { width in
+                availableWidth = width
+            }
             .task {
                 await loadMerchants()
             }
