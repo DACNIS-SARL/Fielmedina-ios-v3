@@ -48,6 +48,7 @@ final class LocationVoiceoverPlayer {
             object: item,
             queue: .main
         ) { [weak self] _ in
+            AppReviewPrompter.recordSignificantEvent()
             Task { @MainActor [weak self] in
                 self?.stop()
             }

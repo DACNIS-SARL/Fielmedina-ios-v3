@@ -1,10 +1,3 @@
-//
-//  FielmedinaApp.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/7/26.
-//
-
 import SwiftUI
 import FirebaseCore
 import FirebaseMessaging
@@ -44,9 +37,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         CacheConfigurator.configureURLCache()
 
-      
         Task { @MainActor in
-            await OfflineMapsManager.resolveNavigationTilesVersionIfNeeded()
+            await OfflineMapsManager.shared.prepareNavigationForLaunch().value
             if NavigationTilesVersionStore.stored != nil {
                 _ = MapboxNavigationProviderStore.shared
             }
@@ -69,8 +61,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Meta's app-activation event. Meta counts sessions from this; without it
-        // retention and frequency reporting in Ads Manager stay empty.
         MetaEvents.activateApp()
     }
 
@@ -82,7 +72,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 
-    /// Custom-URL-scheme entry point (`fb<APP_ID>`), the fallback for the above.
     func application(_ application: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
@@ -120,9 +109,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         FirebaseUtils.logFCMEvent(event: "notification_tapped",
                                   details: "notification_id: \(userInfo["notification_id"] ?? "unknown")")
         
-        // Handle deep linking or navigation based on notification data
-        // Expecting a payload like { "screen": "map" } or { "target_screen": "hiking" }
-        // Dispatch async to ensure MainNavigationView has subscribed on cold launch
         DispatchQueue.main.async {
             if let screen = (userInfo["screen"] as? String) ?? (userInfo["target_screen"] as? String) {
                 LogUtils.d("AppDelegate", "🔗 Deep link target screen: \(screen)")
@@ -167,10 +153,10 @@ struct FielmedinaApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 UNUserNotificationCenter.current().setBadgeCount(0)
-                // Keep offline map regions pinned to a routing-tiles version the
-                // navigator can use; otherwise offline navigation breaks over time.
                 OfflineMapsManager.shared.refreshDownloadedRegionsIfNeeded()
                 requestTrackingAuthorizationIfAppropriate()
+                AppReviewPrompter.recordActiveDay()
+                AppReviewPrompter.requestReviewIfAppropriate(after: .seconds(3))
             }
         }
     }

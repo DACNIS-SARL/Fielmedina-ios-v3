@@ -139,6 +139,19 @@ ETA display. Key fixes already in place, don't unwind them without understanding
   from what the router can see.
 - `NavigationTilesVersionStore` / `MapboxNavigationProviderStore.swift` pin the
   routing-tiles version explicitly — the SDK's "latest" resolution fails offline.
+- The pin may only point at a version **every** downloaded region has fully on disk.
+  Per-region records (`offline_nav_region_versions`) are trimmed when a region load
+  starts and set when it succeeds; the pin moves to the newest version common to all
+  regions. Every region load includes the pinned and runtime versions next to the
+  latest one. `prepareNavigationForLaunch()` reconciles the pin against the TileStore
+  before the navigation provider is created. The old code moved the pin when a refresh
+  *started*: an interrupted refresh left the router pinned to tiles that were never
+  downloaded, offline navigation stayed dead for a week, and users had to remove and
+  re-download their city.
+- Never wipe the tile store when the Mapbox SDK version changes. Regions and style
+  packs survive SDK upgrades; `OfflineTileStore` only schedules a region refresh. The
+  previous wipe deleted every user's offline maps on each app update that bumped
+  Mapbox.
 - `MapboxNavigationProviderStore.shared` is `@MainActor` and calls
   `getLatestNavigationTilesetDescriptor()` right after creating the provider. It looks
   like dead code but forces the SDK's shared `NativeHandlersFactory` (unsynchronised
@@ -154,6 +167,18 @@ ETA display. Key fixes already in place, don't unwind them without understanding
   **debounced on GPS movement** (bucket coordinates to ~100m) — see
   `HikingListModel.updateMetrics()`. Unbounded "one route request per item" saturates
   the device and made the hiking list feel slow.
+
+## App review prompt (`Services/Review/AppReviewPrompter.swift`)
+
+StoreKit's `AppStore.requestReview(in:)` only. App Store guideline 5.6.1 disallows
+custom review prompts, so never add a pre-prompt alert. Same rules as Android
+(`core/review/AppReviewPrompter.kt`): significant events are a place/walk arrival, an
+audio guide played to the end and an offline city download; the request fires after
+navigation is closed following an arrival, or 3 s after the app becomes active, and
+only with ≥3 active days, ≥2 events, a new event since the last request, 120 days since
+the last request, a new app version and a connection. iOS itself caps the dialog at 3
+per year and always shows it in development builds. Settings has a "Rate Fielmedina"
+row that opens `?action=write-review` on the App Store.
 
 ## Image loading
 

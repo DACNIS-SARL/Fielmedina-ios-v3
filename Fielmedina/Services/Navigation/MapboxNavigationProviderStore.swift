@@ -49,6 +49,7 @@ enum RouteWaypointSanitizer {
 
 enum NavigationTilesVersionStore {
     private static let key = "offline_nav_tiles_version"
+    private static let regionVersionsKey = "offline_nav_region_versions"
 
     static private(set) var pinnedAtLaunch = ""
 
@@ -57,9 +58,60 @@ enum NavigationTilesVersionStore {
         set { UserDefaults.standard.set(newValue, forKey: key) }
     }
 
+    static var regionVersions: [String: [String]] {
+        get { UserDefaults.standard.dictionary(forKey: regionVersionsKey) as? [String: [String]] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: regionVersionsKey) }
+    }
+
     static func consumeForLaunch() -> String {
         pinnedAtLaunch = stored ?? ""
         return pinnedAtLaunch
+    }
+
+    static func versionsForDownload(available: [String]?) -> [String] {
+        var versions: [String] = []
+        for candidate in [available?.last, stored, pinnedAtLaunch] {
+            guard let candidate, !candidate.isEmpty, !versions.contains(candidate) else { continue }
+            if let available, !available.contains(candidate) { continue }
+            versions.append(candidate)
+        }
+        return versions
+    }
+
+    static func beginDownload(regionId: String, versions: [String]) {
+        var records = regionVersions
+        guard let current = records[regionId] else { return }
+        records[regionId] = current.filter(versions.contains)
+        regionVersions = records
+    }
+
+    static func completeDownload(regionId: String, versions: [String]) {
+        guard !versions.isEmpty else { return }
+        var records = regionVersions
+        records[regionId] = versions
+        regionVersions = records
+    }
+
+    static func forget(regionId: String) {
+        var records = regionVersions
+        records.removeValue(forKey: regionId)
+        regionVersions = records
+    }
+
+    static func hasPinnedVersion(regionId: String) -> Bool {
+        guard let stored, !stored.isEmpty else { return false }
+        return regionVersions[regionId]?.contains(stored) ?? false
+    }
+
+    static func pinToNewestCommonVersion(regionIds: [String]) {
+        let records = regionVersions
+        var common: Set<String>?
+        for regionId in regionIds {
+            let versions = Set(records[regionId] ?? [])
+            common = common.map { $0.intersection(versions) } ?? versions
+        }
+        guard let newest = common?.max() else { return }
+        stored = newest
     }
 }
 

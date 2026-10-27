@@ -1,9 +1,3 @@
-//
-//  Settings.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/13/26.
-//
 
 import SwiftUI
 import CoreLocation
@@ -33,6 +27,7 @@ struct SettingsView: View {
     @State private var offlineStatus = OfflineContentPrefetcher.shared.status
     @State private var offlineProgress = OfflineContentPrefetcher.shared.progress
     @State private var fcmToken: String? = FirebaseUtils.getSavedToken()
+    @Environment(\.openURL) private var openURL
     
     var body: some View {
         ScrollView {
@@ -40,6 +35,8 @@ struct SettingsView: View {
                 header
                 
                 offlineSection
+
+                rateSection
                 
                 if let token = fcmToken, token.count >= 6 {
                     HStack(spacing: 4) {
@@ -175,6 +172,38 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var rateSection: some View {
+        Button {
+            openURL(AppReviewPrompter.writeReviewURL)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.88, green: 0.43, blue: 0.20))
+                    .frame(width: 36, height: 36)
+                    .background(Color(red: 0.88, green: 0.43, blue: 0.20).opacity(0.15))
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "Rate Fielmedina"))
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(String(localized: "Share your experience on the App Store"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private var offlineSection: some View {

@@ -1,9 +1,3 @@
-//
-//  MapboxNavigationView.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/24/26.
-//
 
 import SwiftUI
 import UIKit
@@ -11,7 +5,6 @@ import MapboxNavigationCore
 import MapboxNavigationUIKit
 import MapboxMaps
 import CoreLocation
-
 
 struct MapboxNavigationView: UIViewControllerRepresentable {
     let navigationRoutes: NavigationRoutes
@@ -63,7 +56,6 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: NavigationViewController, context: Context) {
-        // No-op: ready state is handled via scheduled callback
     }
 
     final class Coordinator: NSObject, NavigationViewControllerDelegate {
@@ -71,6 +63,7 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
         private let onDismiss: () -> Void
         let mapboxNavigationProvider: MapboxNavigationProvider
         private var didReportReady = false
+        private var didArrive = false
         private var readyWorkItem: DispatchWorkItem?
 
         init(onReady: @escaping () -> Void, onDismiss: @escaping () -> Void, mapboxNavigationProvider: MapboxNavigationProvider) {
@@ -101,12 +94,23 @@ struct MapboxNavigationView: UIViewControllerRepresentable {
             readyWorkItem = nil
         }
 
+        func navigationViewController(_ navigationViewController: NavigationViewController, didArriveAt waypoint: Waypoint) -> Bool {
+            if !didArrive {
+                didArrive = true
+                AppReviewPrompter.recordSignificantEvent()
+            }
+            return true
+        }
+
         func navigationViewControllerDidDismiss(
             _ navigationViewController: NavigationViewController,
             byCanceling canceled: Bool
         ) {
             cancelReadyCallback()
             onDismiss()
+            if didArrive {
+                AppReviewPrompter.requestReviewIfAppropriate(after: .milliseconds(800))
+            }
         }
     }
 }

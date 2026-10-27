@@ -1,16 +1,9 @@
-//
-//  HikingNavigator.swift
-//  Fielmedina
-//
-//  Created by Aslan on 1/25/26.
-//
 
 import SwiftUI
 import MapboxNavigationCore
 import MapboxDirections
 import CoreLocation
 
-// MARK: - Navigation Progress Model
 struct HikingNavigationProgress: Codable {
     let completedWaypoints: [Int]
     let currentWaypointIndex: Int
@@ -26,23 +19,18 @@ struct HikingNavigator: View {
     @State private var isCalculatingRoute = false
     @State private var routeError: String?
     @State private var showNavigation = false
-    /// One `StartHiking` conversion per screen session. Both entry paths
-    /// (`startFreshNavigation` and resume) funnel through `calculateHikingRoute`,
-    /// which can run more than once.
     @State private var hikingStartLogged = false
 
-    // Resume functionality state
     @State private var completedWaypoints: Set<Int> = []
+    @State private var didFinishHike = false
     @State private var currentWaypointIndex: Int = 0
     @State private var hasStartedNavigation = false
     @State private var navigationStartTime: Date?
     
-    // State for error handling
     @State private var errorMessage: String?
     @State private var isLocationTimedOut = false
     private let locationTimeout: TimeInterval = 10.0
     
-    // UI State
     @State private var selectedWaypoint: TrailWaypoint?
     @State private var isAnimating = false
     @State private var showDownloadRequiredAlert = false
@@ -65,6 +53,9 @@ struct HikingNavigator: View {
                     completedWaypoints: completedWaypoints,
                     onDismiss: {
                         dismiss()
+                        if didFinishHike {
+                            AppReviewPrompter.requestReviewIfAppropriate(after: .milliseconds(800))
+                        }
                     },
                     onWaypointCompleted: { index in
                          markWaypointCompleted(index)
@@ -201,7 +192,6 @@ struct HikingNavigator: View {
         }
     }
     
-    // MARK: - Logic
     
     private func startNavigationFromCurrentWaypoint() {
         let firstCoord = CLLocationCoordinate2D(latitude: hikingRoute.waypoints.first?.latitude ?? 0.0, longitude: hikingRoute.waypoints.first?.longitude ?? 0.0)
@@ -235,6 +225,10 @@ struct HikingNavigator: View {
     }
     
     private func markWaypointCompleted(_ index: Int) {
+        if index == hikingRoute.waypoints.count - 1 && !didFinishHike {
+            didFinishHike = true
+            AppReviewPrompter.recordSignificantEvent()
+        }
         completedWaypoints.insert(index)
         currentWaypointIndex = index + 1
         saveNavigationProgress()
@@ -273,7 +267,6 @@ struct HikingNavigator: View {
         errorMessage = nil
         
         Task {
-            // Wait for location if needed
             var attempts = 0
             while LocationManager.shared.userLocation == nil && attempts < 20 && !force {
                 try? await Task.sleep(for: .milliseconds(500))
@@ -283,8 +276,6 @@ struct HikingNavigator: View {
                 }
             }
             
-            // Use user location or fallback to first waypoint if forced
-            // Use provided initial location, user location, or fallback to first waypoint if forced
             let startCoordinate: CLLocationCoordinate2D
             if let initialLoc = initialUserLocation {
                 startCoordinate = initialLoc
@@ -304,29 +295,21 @@ struct HikingNavigator: View {
             
             var waypoints: [Waypoint] = []
             
-            // Start Coordinate
             waypoints.append(Waypoint(coordinate: startCoordinate, name: "Start"))
             
-            // Logic: if resuming, we should ideally route to the NEXT uncompleted waypoint
-            // and then follow the rest. 
-            // If we include completed ones, navigation might try to turn the user around.
             let allPoints = hikingRoute.waypoints
             let remainingPoints = allPoints.enumerated().filter { !completedWaypoints.contains($0.offset) }
             
             if remainingPoints.isEmpty {
-                // Should not happen if startNavigationFromCurrentWaypoint logic is correct
                 waypoints.append(contentsOf: allPoints.map { 
                     Waypoint(coordinate: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude), name: $0.name)
                 })
             } else {
-                // Route to remaining points
                 waypoints.append(contentsOf: remainingPoints.map { _, waypoint in
                     Waypoint(coordinate: CLLocationCoordinate2D(latitude: waypoint.latitude, longitude: waypoint.longitude), name: waypoint.name)
                 })
             }
             
-            // Guard the fragile offline router against malformed input (invalid/(0,0)
-            // coordinates, duplicates, or >25 waypoints), which can crash it natively.
             let sanitizedWaypoints = RouteWaypointSanitizer.sanitize(waypoints)
             guard sanitizedWaypoints.count >= 2 else {
                 await MainActor.run {
@@ -339,9 +322,6 @@ struct HikingNavigator: View {
             let options = NavigationRouteOptions(waypoints: sanitizedWaypoints)
             options.profileIdentifier = .walking
 
-            // Mapbox V11+: If we are offline, it should use the OfflineRouter automatically if offline regions are matches
-            // but we can also check environment or tiles.
-
             do {
                 let response = try await routingProvider.calculateRoutes(options: options).value
                 await MainActor.run {
@@ -349,11 +329,6 @@ struct HikingNavigator: View {
                     self.showNavigation = true
                     self.isCalculatingRoute = false
 
-                    // Highest-intent conversion in the app, logged only once a route
-                    // actually exists. Logging earlier (right after the offline guard)
-                    // counted starts that then failed on GPS, waypoint sanitisation or
-                    // routing. Guarded so resuming or recalculating a route inside one
-                    // session cannot double-count.
                     if !self.hikingStartLogged {
                         self.hikingStartLogged = true
                         MetaEvents.logHikingStarted(
@@ -363,8 +338,6 @@ struct HikingNavigator: View {
                     }
                 }
             } catch is CancellationError {
-                // The task was cancelled (user left the screen) — that's not a failure,
-                // so clear the spinner without surfacing a navigation error.
                 await MainActor.run { isCalculatingRoute = false }
             } catch {
                 LogUtils.e("HikingNavigator", "Error calculating route", error)

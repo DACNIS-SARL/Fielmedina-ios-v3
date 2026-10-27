@@ -117,11 +117,34 @@ final class OfflineMapsManager: @unchecked Sendable {
         }
     }
 
-    func refreshDownloadedRegionsIfNeeded() {
-        guard NetworkMonitor.shared.isConnected else { return }
+    @MainActor private var isRefreshingRegions = false
+    @MainActor private var launchPreparation: Task<Void, Never>?
 
-        Task { [weak self] in
+    static func markRegionRefreshDue() {
+        UserDefaults.standard.removeObject(forKey: lastRegionRefreshKey)
+    }
+
+    @MainActor
+    func prepareNavigationForLaunch() -> Task<Void, Never> {
+        if let launchPreparation { return launchPreparation }
+        let task = Task { @MainActor in
+            await Self.reconcileNavigationTilesVersion()
+            await Self.resolveNavigationTilesVersionIfNeeded()
+        }
+        launchPreparation = task
+        return task
+    }
+
+    @MainActor
+    func refreshDownloadedRegionsIfNeeded() {
+        guard NetworkMonitor.shared.isConnected, !isRefreshingRegions else { return }
+        isRefreshingRegions = true
+
+        Task { @MainActor [weak self] in
+            defer { self?.isRefreshingRegions = false }
+            await self?.prepareNavigationForLaunch().value
             await Self.refreshCitiesMetadata()
+            guard let self, let regions = await self.regionStates() else { return }
 
             let defaults = UserDefaults.standard
             let weeklyRefreshDue: Bool
@@ -131,44 +154,102 @@ final class OfflineMapsManager: @unchecked Sendable {
                 weeklyRefreshDue = true
             }
 
-            self?.fetchDownloadedRegionIds { [weak self] regionIds in
-                guard let self else { return }
-                if weeklyRefreshDue {
-                    defaults.set(Date(), forKey: Self.lastRegionRefreshKey)
-                }
-                guard !regionIds.isEmpty else { return }
+            let store = OfflineCityDataStore.shared
+            let cities = store.cachedCities
+            var allSucceeded = true
+            for region in regions {
+                guard self.activeDownloads[region.id] == nil else { continue }
+                let mappedCityId = store.cityId(for: region.id)
+                guard let city = cities.first(where: { $0.cityId == mappedCityId })
+                        ?? cities.first(where: { $0.id == region.id }) else { continue }
 
-                let store = OfflineCityDataStore.shared
-                let cities = store.cachedCities
-                for regionId in regionIds {
-                    guard self.activeDownloads[regionId] == nil else { continue }
-                    let mappedCityId = store.cityId(for: regionId)
-                    guard let city = cities.first(where: { $0.cityId == mappedCityId })
-                            ?? cities.first(where: { $0.id == regionId }) else { continue }
+                let isStale = !region.isComplete || !NavigationTilesVersionStore.hasPinnedVersion(regionId: region.id)
+                let hasMoved = Self.regionGeometryChanged(regionId: region.id, city: city)
+                guard weeklyRefreshDue || isStale || hasMoved else { continue }
 
-                    let hasMoved = Self.regionGeometryChanged(regionId: regionId, city: city)
-                    guard hasMoved || weeklyRefreshDue else { continue }
-
-                    self.downloadRegion(
-                        id: regionId,
-                        name: city.name,
-                        coordinate: CLLocationCoordinate2D(latitude: city.latitude, longitude: city.longitude),
-                        radius: city.radius,
-                        silent: true,
-                        progress: { _ in },
-                        completion: { result in
-                            if case .success = result {
-                                Self.recordRegionGeometry(
-                                    regionId: regionId,
-                                    latitude: city.latitude,
-                                    longitude: city.longitude,
-                                    radius: city.radius
-                                )
-                            }
-                        }
-                    )
+                let succeeded = await self.refreshRegion(id: region.id, city: city)
+                if !succeeded {
+                    allSucceeded = false
                 }
             }
+
+            if weeklyRefreshDue && allSucceeded {
+                defaults.set(Date(), forKey: Self.lastRegionRefreshKey)
+            }
+        }
+    }
+
+    private func refreshRegion(id: String, city: OfflineCityDataStore.CachedCity) async -> Bool {
+        await withCheckedContinuation { continuation in
+            downloadRegion(
+                id: id,
+                name: city.name,
+                coordinate: CLLocationCoordinate2D(latitude: city.latitude, longitude: city.longitude),
+                radius: city.radius,
+                silent: true,
+                progress: { _ in }
+            ) { result in
+                guard case .success = result else {
+                    continuation.resume(returning: false)
+                    return
+                }
+                Self.recordRegionGeometry(
+                    regionId: id,
+                    latitude: city.latitude,
+                    longitude: city.longitude,
+                    radius: city.radius
+                )
+                continuation.resume(returning: true)
+            }
+        }
+    }
+
+    private struct RegionState: Sendable {
+        let id: String
+        let isComplete: Bool
+    }
+
+    private func regionStates() async -> [RegionState]? {
+        await withCheckedContinuation { continuation in
+            tileStore.allTileRegions { result in
+                guard case .success(let regions) = result else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: regions.map {
+                    RegionState(id: $0.id, isComplete: $0.completedResourceCount >= $0.requiredResourceCount)
+                })
+            }
+        }
+    }
+
+    private func region(id: String, containsNavigationVersion version: String) async -> Bool {
+        let descriptor = Self.buildNavigationDescriptor(version: version)
+        return await withCheckedContinuation { continuation in
+            tileStore.tileRegionContainsDescriptors(forId: id, descriptors: [descriptor]) { result in
+                continuation.resume(returning: (try? result.get()) ?? false)
+            }
+        }
+    }
+
+    private static func reconcileNavigationTilesVersion() async {
+        guard let regions = await shared.regionStates() else { return }
+        let regionIds = regions.map(\.id)
+        var records = NavigationTilesVersionStore.regionVersions.filter { regionIds.contains($0.key) }
+        if let pinned = NavigationTilesVersionStore.stored, !pinned.isEmpty {
+            for region in regions where records[region.id] == nil && region.isComplete {
+                if await shared.region(id: region.id, containsNavigationVersion: pinned) {
+                    records[region.id] = [pinned]
+                }
+            }
+        }
+        NavigationTilesVersionStore.regionVersions = records
+        NavigationTilesVersionStore.pinToNewestCommonVersion(regionIds: regionIds)
+    }
+
+    private func pinNavigationTilesVersion(excluding removedId: String? = nil) {
+        fetchDownloadedRegionIds { regionIds in
+            NavigationTilesVersionStore.pinToNewestCommonVersion(regionIds: regionIds.filter { $0 != removedId })
         }
     }
     
@@ -247,7 +328,7 @@ final class OfflineMapsManager: @unchecked Sendable {
     
     private static let navigationTilesDataset = ProfileIdentifier.walking.rawValue
 
-    private static func fetchLatestNavigationTilesVersion() async -> String? {
+    private static func fetchAvailableNavigationTilesVersions() async -> [String]? {
         let token = MapboxOptions.accessToken
         guard !token.isEmpty,
               let url = URL(string: "https://api.mapbox.com/route-tiles/v2/\(navigationTilesDataset)/versions?access_token=\(token)") else {
@@ -258,23 +339,21 @@ final class OfflineMapsManager: @unchecked Sendable {
             let request = URLRequest(url: url, timeoutInterval: 10)
             let (data, _) = try await URLSession.shared.data(for: request)
             let response = try JSONDecoder().decode(VersionsResponse.self, from: data)
-            let latest = response.availableVersions.sorted().last
-            if let latest {
-                NavigationTilesVersionStore.stored = latest
-            }
-            return latest
+            let versions = response.availableVersions.sorted()
+            return versions.isEmpty ? nil : versions
         } catch {
             return nil
         }
     }
 
-    static func resolveNavigationTilesVersionIfNeeded() async {
+    private static func resolveNavigationTilesVersionIfNeeded() async {
         guard NavigationTilesVersionStore.stored == nil else { return }
         for _ in 0..<10 where !NetworkMonitor.shared.isConnected {
             try? await Task.sleep(for: .milliseconds(300))
         }
-        guard NetworkMonitor.shared.isConnected else { return }
-        _ = await fetchLatestNavigationTilesVersion()
+        guard NetworkMonitor.shared.isConnected,
+              let latest = await fetchAvailableNavigationTilesVersions()?.last else { return }
+        NavigationTilesVersionStore.stored = latest
     }
 
     private func downloadNavigationTiles(
@@ -286,23 +365,17 @@ final class OfflineMapsManager: @unchecked Sendable {
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         Task { @MainActor in
-            var navigationDescriptors: [TilesetDescriptor] = []
-            if let version = await Self.fetchLatestNavigationTilesVersion() {
-                navigationDescriptors.append(Self.buildNavigationDescriptor(version: version))
-                let runtimeVersion = NavigationTilesVersionStore.pinnedAtLaunch
-                if !runtimeVersion.isEmpty && runtimeVersion != version {
-                    navigationDescriptors.append(Self.buildNavigationDescriptor(version: runtimeVersion))
-                }
-            } else {
-                navigationDescriptors.append(
-                    MapboxNavigationProviderStore.shared.getLatestNavigationTilesetDescriptor()
-                )
-            }
+            let available = await Self.fetchAvailableNavigationTilesVersions()
+            let versions = NavigationTilesVersionStore.versionsForDownload(available: available)
+            let navigationDescriptors = versions.isEmpty
+                ? [MapboxNavigationProviderStore.shared.getLatestNavigationTilesetDescriptor()]
+                : versions.map(Self.buildNavigationDescriptor)
             self.loadTileRegion(
                 id: id,
                 coordinate: coordinate,
                 radius: radius,
                 navigationDescriptors: navigationDescriptors,
+                navigationVersions: versions,
                 silent: silent,
                 progress: progress,
                 completion: completion
@@ -320,6 +393,7 @@ final class OfflineMapsManager: @unchecked Sendable {
         coordinate: CLLocationCoordinate2D,
         radius: CLLocationDistance,
         navigationDescriptors: [TilesetDescriptor],
+        navigationVersions: [String],
         silent: Bool,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<Void, Error>) -> Void
@@ -358,6 +432,8 @@ final class OfflineMapsManager: @unchecked Sendable {
             activeDownloads[id] = 0.01
         }
 
+        NavigationTilesVersionStore.beginDownload(regionId: id, versions: navigationVersions)
+
         tileStore.loadTileRegion(
             forId: id,
             loadOptions: tileRegionLoadOptions
@@ -385,11 +461,14 @@ final class OfflineMapsManager: @unchecked Sendable {
                 }
                 switch result {
                 case .success:
+                    NavigationTilesVersionStore.completeDownload(regionId: id, versions: navigationVersions)
+                    self?.pinNavigationTilesVersion()
                     if !silent {
                         NotificationCenter.default.post(name: .tileRegionCompleted, object: nil, userInfo: ["id": id])
                         Task { @MainActor in
                             MetaEvents.logOfflineRegionDownloaded(regionId: id)
                         }
+                        AppReviewPrompter.recordSignificantEvent()
                     }
                     completion(.success(()))
                 case .failure(let error):
@@ -404,6 +483,8 @@ final class OfflineMapsManager: @unchecked Sendable {
     
     func removeRegion(id: String, completion: @escaping (Result<Void, Error>) -> Void) {
         tileStore.removeTileRegion(forId: id)
+        NavigationTilesVersionStore.forget(regionId: id)
+        pinNavigationTilesVersion(excluding: id)
         DispatchQueue.main.async {
             completion(.success(()))
         }
